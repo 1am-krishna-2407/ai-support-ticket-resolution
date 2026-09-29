@@ -1,0 +1,186 @@
+"""Typed application settings.
+
+Every tunable value lives here and is read from the environment (or a `.env`
+file). Nothing else in the codebase should hardcode timeouts, limits, model
+names, or thresholds.
+"""
+
+from __future__ import annotations
+
+from enum import StrEnum
+from functools import lru_cache
+from typing import Annotated, Self
+
+from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+
+class Environment(StrEnum):
+    DEVELOPMENT = "development"
+    TEST = "test"
+    PRODUCTION = "production"
+
+
+class AdminMode(StrEnum):
+    """How admin-only routes (ingestion/evaluation triggers) are protected.
+
+    token: requires an `X-Admin-Token` header matching ADMIN_TOKEN.
+    local: only requests from loopback addresses are allowed.
+    dev:   no protection. Refused when ENVIRONMENT=production.
+    """
+
+    TOKEN = "token"  # noqa: S105 (mode name, not a credential)
+    LOCAL = "local"
+    DEV = "dev"
+
+
+def _split_csv(value: object) -> object:
+    if isinstance(value, str):
+        return [item.strip() for item in value.split(",") if item.strip()]
+    return value
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=False,
+    )
+
+    # --- Application -------------------------------------------------------
+    app_name: str = "Support Resolution Platform"
+    app_version: str = "0.1.0"
+    environment: Environment = Environment.DEVELOPMENT
+    log_level: str = "INFO"
+    api_prefix: str = "/api/v1"
+    cors_origins: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["http://localhost:5173", "http://localhost:8080"]
+    )
+    max_request_body_bytes: int = Field(default=256_000, gt=0)
+
+    # --- Database ----------------------------------------------------------
+    database_url: SecretStr
+    db_pool_size: int = Field(default=10, gt=0)
+    db_max_overflow: int = Field(default=5, ge=0)
+    db_pool_timeout_seconds: float = Field(default=10.0, gt=0)
+    db_statement_timeout_ms: int = Field(default=15_000, gt=0)
+
+    # --- Admin protection --------------------------------------------------
+    admin_mode: AdminMode = AdminMode.TOKEN
+    admin_token: SecretStr | None = None
+
+    # --- LLM provider (OpenAI-compatible) ----------------------------------
+    llm_base_url: str = "https://api.openai.com/v1"
+    llm_api_key: SecretStr | None = None
+    llm_model: str = "gpt-4o-mini"
+    llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    llm_max_output_tokens: int = Field(default=1500, gt=0)
+    llm_timeout_seconds: float = Field(default=60.0, gt=0)
+    llm_max_retries: int = Field(default=2, ge=0, le=5)
+    llm_seed: int | None = 7
+
+    # --- Embedding provider (OpenAI-compatible) ----------------------------
+    embedding_base_url: str = "https://api.openai.com/v1"
+    embedding_api_key: SecretStr | None = None
+    embedding_model: str = "text-embedding-3-small"
+    # The pgvector column is created with this dimension at migration time.
+    # Changing it requires a new migration and a full re-embed.
+    embedding_dimension: int = Field(default=1536, gt=0, le=16_000)
+    embedding_batch_size: int = Field(default=64, gt=0, le=2048)
+    embedding_concurrency: int = Field(default=2, gt=0, le=16)
+    embedding_timeout_seconds: float = Field(default=60.0, gt=0)
+    embedding_max_retries: int = Field(default=3, ge=0, le=8)
+
+    # --- Knowledge ingestion -----------------------------------------------
+    allowed_source_domains: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["docs.gitlab.com"]
+    )
+    manifest_path: str = "knowledge/manifest/sources.json"
+    raw_storage_dir: str = "knowledge/raw"
+    fetch_connect_timeout_seconds: float = Field(default=5.0, gt=0)
+    fetch_read_timeout_seconds: float = Field(default=20.0, gt=0)
+    fetch_max_redirects: int = Field(default=5, ge=0, le=10)
+    fetch_max_response_bytes: int = Field(default=5_000_000, gt=0)
+    fetch_max_retries: int = Field(default=3, ge=0, le=8)
+    fetch_min_interval_seconds: float = Field(default=1.0, ge=0)
+    fetch_user_agent: str = "SupportResolutionPlatform/0.1 (+independent research project)"
+    chunk_target_tokens: int = Field(default=450, gt=0)
+    chunk_overlap_tokens: int = Field(default=60, ge=0)
+    chunk_hard_max_tokens: int = Field(default=900, gt=0)
+    tokenizer_encoding: str = "cl100k_base"
+
+    # --- Retrieval ---------------------------------------------------------
+    retrieval_candidate_k: int = Field(default=40, gt=0, le=500)
+    retrieval_top_k: int = Field(default=8, gt=0, le=50)
+    retrieval_rrf_k: int = Field(default=60, gt=0)
+    retrieval_semantic_weight: float = Field(default=1.0, ge=0)
+    retrieval_lexical_weight: float = Field(default=1.0, ge=0)
+    retrieval_relevance_threshold: float = Field(default=0.35, ge=0.0, le=1.0)
+    retrieval_max_chunks_per_document: int = Field(default=3, gt=0)
+    retrieval_max_query_chars: int = Field(default=4000, gt=0)
+    reranker_enabled: bool = False
+
+    # --- Generation / grounding --------------------------------------------
+    context_max_tokens: int = Field(default=6000, gt=0)
+    classification_min_confidence: float = Field(default=0.6, ge=0.0, le=1.0)
+    classification_ambiguity_margin: float = Field(default=0.15, ge=0.0, le=1.0)
+    claim_level_grounding_enabled: bool = False
+
+    # --- Ticket input limits -----------------------------------------------
+    ticket_title_max_chars: int = Field(default=300, gt=0)
+    ticket_description_max_chars: int = Field(default=20_000, gt=0)
+
+    # --- Rate limiting -----------------------------------------------------
+    rate_limit_enabled: bool = True
+    rate_limit_analyze_per_minute: int = Field(default=20, gt=0)
+    rate_limit_search_per_minute: int = Field(default=60, gt=0)
+
+    # --- Observability / privacy -------------------------------------------
+    log_llm_payloads: bool = False
+    persist_ticket_bodies: bool = False
+
+    @field_validator("cors_origins", "allowed_source_domains", mode="before")
+    @classmethod
+    def _parse_csv(cls, value: object) -> object:
+        return _split_csv(value)
+
+    @field_validator("allowed_source_domains")
+    @classmethod
+    def _normalize_domains(cls, value: list[str]) -> list[str]:
+        domains = [d.lower().rstrip(".") for d in value]
+        for d in domains:
+            if "/" in d or ":" in d or " " in d:
+                raise ValueError(f"allowed_source_domains entry must be a bare hostname: {d!r}")
+        return domains
+
+    @field_validator("log_level")
+    @classmethod
+    def _validate_log_level(cls, value: str) -> str:
+        level = value.upper()
+        if level not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
+            raise ValueError(f"invalid log_level: {value!r}")
+        return level
+
+    @model_validator(mode="after")
+    def _cross_field_checks(self) -> Self:
+        if self.admin_mode is AdminMode.TOKEN:
+            token = self.admin_token.get_secret_value() if self.admin_token else ""
+            if len(token) < 16:
+                raise ValueError("ADMIN_MODE=token requires ADMIN_TOKEN of at least 16 characters")
+        if self.admin_mode is AdminMode.DEV and self.environment is Environment.PRODUCTION:
+            raise ValueError("ADMIN_MODE=dev is not allowed when ENVIRONMENT=production")
+        if self.chunk_overlap_tokens >= self.chunk_target_tokens:
+            raise ValueError("CHUNK_OVERLAP_TOKENS must be smaller than CHUNK_TARGET_TOKENS")
+        if self.chunk_hard_max_tokens < self.chunk_target_tokens:
+            raise ValueError("CHUNK_HARD_MAX_TOKENS must be >= CHUNK_TARGET_TOKENS")
+        if self.retrieval_top_k > self.retrieval_candidate_k:
+            raise ValueError("RETRIEVAL_TOP_K must be <= RETRIEVAL_CANDIDATE_K")
+        if not self.allowed_source_domains:
+            raise ValueError("ALLOWED_SOURCE_DOMAINS must not be empty")
+        return self
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    return Settings()  # values come from the environment
