@@ -447,9 +447,14 @@ class TicketAnalysisService:
                 for n, step in enumerate(generated.resolution_steps, 1)
             ],
             explanation=generated.explanation,
-            warnings=generated.warnings,
+            warnings=generated.warnings
+            + (
+                ["Confidence lowered to medium: the cited evidence does not support 'high'."]
+                if inputs.adjusted_confidence
+                else []
+            ),
             questions_for_customer=generated.questions_for_customer,
-            confidence=generated.confidence,
+            confidence=inputs.adjusted_confidence or generated.confidence,
         )
         return view, self._citations(context_used, set(citations.cited)), report, True, unsupported
 

@@ -86,9 +86,10 @@ class Settings(BaseSettings):
     llm_api_key: SecretStr | None = None
     llm_model: str = "openai/gpt-oss-120b"
     # gpt-oss models are reasoning models; this bounds hidden reasoning tokens.
-    llm_reasoning_effort: Literal["low", "medium", "high"] = "medium"
+    llm_reasoning_effort: Literal["low", "medium", "high"] = "low"
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
-    llm_max_output_tokens: int = Field(default=1500, gt=0)
+    # Reasoning tokens count toward this limit on gpt-oss; 1,500 truncated some drafts.
+    llm_max_output_tokens: int = Field(default=2500, gt=0)
     llm_timeout_seconds: float = Field(default=60.0, gt=0)
     llm_max_retries: int = Field(default=2, ge=0, le=8)
     # Client-side pacing to the provider's tokens-per-minute limit (Groq free tier for

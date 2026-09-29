@@ -70,7 +70,7 @@ async def test_request_body_and_auth(llm_settings: Settings) -> None:
     body = json.loads(request.content)
     assert body["model"] == "openai/gpt-oss-120b"
     assert body["temperature"] == 0.0 and body["seed"] == 7
-    assert body["reasoning_effort"] == "medium" and body["include_reasoning"] is False
+    assert body["reasoning_effort"] == "low" and body["include_reasoning"] is False
     assert body["response_format"]["type"] == "json_schema"
     assert body["response_format"]["json_schema"]["strict"] is True
     assert body["messages"] == [

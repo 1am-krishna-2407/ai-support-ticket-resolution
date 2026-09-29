@@ -234,9 +234,10 @@ def resolution(**overrides: Any) -> GeneratedResolution:
 
 
 def grounding(res: GeneratedResolution, **kw: Any):  # type: ignore[no-untyped-def]
-    citations = validate_citations(res, [c.source_id for c in EVIDENCE])
+    evidence = kw.pop("evidence", EVIDENCE)
+    citations = validate_citations(res, [c.source_id for c in evidence])
     inputs = GroundingInputs(
-        resolution=res, evidence=EVIDENCE, evidence_sufficient=kw.pop("sufficient", True),
+        resolution=res, evidence=evidence, evidence_sufficient=kw.pop("sufficient", True),
         citations=citations, ticket_text=kw.pop("ticket", "x509 error"), **kw,
     )  # fmt: skip
     return check_grounding(inputs), citations, inputs
@@ -280,14 +281,28 @@ def test_invented_command_is_flagged() -> None:
     assert "gitlab-runner reset-certs --force" in inputs.unsupported_identifiers
 
 
-def test_identifier_must_be_in_the_cited_source_not_just_any_source() -> None:
+def test_identifier_found_in_another_cited_source_is_supported() -> None:
+    # The command is in SRC-001, which the draft cites (top level), though step cites SRC-002.
     res = resolution(
         resolution_steps=[
             ResolutionStep(instruction="Run `gitlab-runner restart`.", source_ids=["SRC-002"])
         ]
     )
     report, _, _ = grounding(res)
+    assert "identifiers_supported" not in failed(report)
+
+
+def test_identifier_only_in_uncited_evidence_is_flagged() -> None:
+    # The command appears only in SRC-001, which the draft never cites.
+    res = resolution(
+        resolution_steps=[
+            ResolutionStep(instruction="Run `gitlab-runner restart`.", source_ids=["SRC-002"])
+        ],
+        source_ids=["SRC-002"],
+    )
+    report, _, inputs = grounding(res)
     assert "identifiers_supported" in failed(report)
+    assert inputs.unsupported_identifiers == ["gitlab-runner restart"]
 
 
 def test_unsupported_version_claim() -> None:
@@ -303,11 +318,32 @@ def test_unsupported_version_claim() -> None:
     assert "versions_supported" not in failed(ok)
 
 
-def test_certainty_on_weak_evidence_is_rejected() -> None:
-    report, _, _ = grounding(resolution(confidence="high", source_ids=["SRC-001"]))
-    assert "confidence_calibrated" in failed(report)
-    weak, _, _ = grounding(resolution(confidence="high"), sufficient=False)
-    assert {"confidence_calibrated", "retrieval_threshold"} <= failed(weak)
+def test_high_confidence_backed_by_one_strong_source_is_kept() -> None:
+    report, _, inputs = grounding(resolution(confidence="high", source_ids=["SRC-001"]))
+    assert inputs.adjusted_confidence is None  # SRC-001 similarity 0.80 >= 0.75
+    assert "confidence_calibrated" not in failed(report)
+
+
+def test_unbacked_high_confidence_is_lowered_not_withheld() -> None:
+    weak = [
+        chunk("SRC-001", EVIDENCE[0].content, final=0.6),
+        chunk("SRC-002", EVIDENCE[1].content, final=0.6),
+    ]
+    res = resolution(
+        confidence="high",
+        source_ids=["SRC-001"],
+        resolution_steps=[
+            ResolutionStep(instruction="Run `gitlab-runner restart`.", source_ids=["SRC-001"])
+        ],
+    )
+    report, _, inputs = grounding(res, evidence=weak)
+    assert inputs.adjusted_confidence == "medium"
+    assert report.grounded  # the draft stays; only the label changes
+    check = next(c for c in report.checks if c.name == "confidence_calibrated")
+    assert check.passed and "lowered to 'medium'" in check.detail
+    insufficient, _, inputs2 = grounding(resolution(confidence="high"), sufficient=False)
+    assert inputs2.adjusted_confidence == "medium"
+    assert "retrieval_threshold" in failed(insufficient)
 
 
 def test_model_claiming_grounded_when_checks_fail_is_inconsistent() -> None:
@@ -328,3 +364,40 @@ def test_identifier_extraction() -> None:
         "Run `gitlab-runner verify` with --delete, set $CI_DEBUG_TRACE and edit /etc/gitlab/gitlab.rb"
     )
     assert {"gitlab-runner verify", "--delete", "CI_DEBUG_TRACE", "/etc/gitlab/gitlab.rb"} <= found
+
+
+@pytest.mark.parametrize(
+    ("span", "expected"),
+    [
+        ("--tls-ca-file=/path/to/ca.crt", ("--tls-ca-file",)),
+        ('tls-ca-file = "/path/to/ca.crt"', ("tls-ca-file",)),
+        ('memory_limit = "4Gi"', ("memory_limit",)),
+        ("GIT_SSL_NO_VERIFY=true", ("GIT_SSL_NO_VERIFY",)),
+        ("PRIVATE-TOKEN: <new_token>", ("PRIVATE-TOKEN",)),
+        ("/path/to/ca.crt", ()),
+        ("https://github.com/yourgroup/yourrepo.git", ()),
+        ("<your_token>", ()),
+        (
+            "/etc/gitlab-runner/certs/<host>.crt",
+            ("/etc/gitlab-runner/certs/<host>.crt", "/etc/gitlab-runner/certs/"),
+        ),
+        ("/etc/gitlab/gitlab.rb", ("/etc/gitlab/gitlab.rb",)),
+        ("gitlab-runner register", ("gitlab-runner register",)),
+        ("[runners.kubernetes]", ("[runners.kubernetes]",)),
+    ],
+)
+def test_identifier_alternatives(span: str, expected: tuple[str, ...]) -> None:
+    from app.services.analysis.validation import identifier_alternatives
+
+    assert identifier_alternatives(span, "ticket mentions gitlab.internal") == expected
+
+
+def test_customer_hostname_path_falls_back_to_documented_directory() -> None:
+    from app.services.analysis.validation import identifier_alternatives
+
+    ticket = "Our server gitlab.internal uses an internal CA"
+    alts = identifier_alternatives("/etc/gitlab-runner/certs/gitlab.internal.crt", ticket)
+    assert alts == ("/etc/gitlab-runner/certs/gitlab.internal.crt", "/etc/gitlab-runner/certs/")
+    assert identifier_alternatives("/etc/gitlab/invented.rb", ticket) == (
+        "/etc/gitlab/invented.rb",
+    )

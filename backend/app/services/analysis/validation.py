@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
+from typing import Literal
 
 from app.schemas.analysis import (
     SOURCE_ID_PATTERN,
@@ -62,8 +63,53 @@ def validate_citations(
     return CitationReport(malformed, unknown, missing, cited)
 
 
+# Placeholders and example values that stand in for the customer's own data.
+_PLACEHOLDER = re.compile(
+    r"<[^<>\n]{1,60}>|\{\{[^}]{1,60}\}\}|\b(?:your|my)[-_][\w.-]+|\byour\w*\b"
+    r"|\bexample\.(?:com|org|net)\b|/path/to/[\w./-]*|\bxxx+\b",
+    re.IGNORECASE,
+)
+# `key = value`, `KEY=value`, `--flag=value`, `Header: value` → the key is the identifier.
+_KEY_VALUE = re.compile(r"^\s*(--?[A-Za-z][\w.-]*|[A-Za-z_][\w.-]*)\s*(?:=|:)\s*\S")
+
+
+def identifier_alternatives(span: str, ticket_text: str = "") -> tuple[str, ...]:
+    """What must appear in evidence for `span` to count as supported (any alternative).
+
+    Returns () when there is nothing to check (URLs, pure placeholders). The customer's
+    own values (hostnames, sizes, paths under placeholders) are not required to appear;
+    the documented key, flag, command, or directory is.
+    """
+    s = span.strip().strip(".,;")
+    if not s or s.lower().startswith(("http://", "https://")):
+        return ()
+    match = _KEY_VALUE.match(s)
+    if match and not s.startswith(("/", "~")):
+        return (match.group(1),)
+    if s.startswith(("/path/to/", "path/to/")):
+        return ()  # a pure placeholder path
+    if s.startswith(("/", "~/")):
+        directory = s[: s.rstrip("/").rfind("/") + 1]
+        name = s.rstrip("/").rsplit("/", 1)[-1]
+        # Customer-specific: a placeholder, or a hostname-like name taken from the ticket
+        # (gitlab.internal.crt). Generic names such as gitlab.rb must appear verbatim.
+        base = name.rsplit(".", 1)[0].lower()
+        customer_specific = bool(_PLACEHOLDER.search(name)) or (
+            "." in base and base in ticket_text.lower()
+        )
+        if customer_specific and len(directory) > 1:
+            # e.g. /etc/gitlab-runner/certs/<host>.crt: the documented directory is enough.
+            return (s, directory)
+        return (s,)
+    if _PLACEHOLDER.search(s):
+        cleaned = _PLACEHOLDER.sub(" ", s).strip(" :=/-_")
+        cleaned = re.sub(r"\s+", " ", cleaned)
+        return (cleaned,) if len(cleaned) >= 3 else ()
+    return (s,)
+
+
 def extract_identifiers(text: str) -> set[str]:
-    """Commands, flags, variables, keys, and paths that must appear verbatim in evidence."""
+    """Inline code spans and command/flag/variable/path mentions in `text`."""
     found = {m.group(1).strip() for m in _INLINE_CODE.finditer(text)}
     for pattern in _IDENTIFIERS:
         found.update(m.group(1).strip() for m in pattern.finditer(text))
@@ -82,8 +128,11 @@ class GroundingInputs:
     citations: CitationReport
     ticket_text: str
     high_confidence_min_sources: int = 2
+    high_confidence_min_score: float = 0.75
     claim_verdicts: dict[int, bool] | None = None
     unsupported_identifiers: list[str] = field(default_factory=list)
+    # Set when a stated "high" confidence is not backed by the evidence and is lowered.
+    adjusted_confidence: Literal["medium"] | None = None
 
 
 def check_grounding(inputs: GroundingInputs) -> GroundingReport:
@@ -118,12 +167,19 @@ def check_grounding(inputs: GroundingInputs) -> GroundingReport:
         else f"Steps without valid citations: {list(c.steps_without_citations)}.",
     )
 
-    # Identifiers in each step must appear in that step's cited evidence.
+    # Commands, flags, keys, and documented paths in each step must appear in the evidence
+    # the draft cites: the step's own sources first, then any source the draft cites.
+    all_cited = _normalize(" ".join(by_id[i].content for i in c.cited if i in by_id))
     unsupported: list[str] = []
     for step in r.resolution_steps:
-        cited_text = _normalize(" ".join(by_id[i].content for i in step.source_ids if i in by_id))
+        step_text = _normalize(" ".join(by_id[i].content for i in step.source_ids if i in by_id))
         for ident in sorted(extract_identifiers(step.instruction)):
-            if _normalize(ident) not in cited_text:
+            alternatives = identifier_alternatives(ident, inputs.ticket_text)
+            if not alternatives:
+                continue
+            if not any(
+                _normalize(a) in step_text or _normalize(a) in all_cited for a in alternatives
+            ):
                 unsupported.append(ident)
     inputs.unsupported_identifiers[:] = unsupported
     add(
@@ -148,17 +204,25 @@ def check_grounding(inputs: GroundingInputs) -> GroundingReport:
         else f"Versions not in evidence: {', '.join(unsupported_versions)}.",
     )
 
+    # "high" needs sufficient evidence and either several cited sources or one strong one.
+    # An unsupported "high" is lowered to "medium" (reported) rather than withholding the
+    # draft: the label, not the content, is what was overstated.
     cited_count = len(c.cited)
-    overconfident = r.confidence == "high" and (
-        cited_count < inputs.high_confidence_min_sources or not inputs.evidence_sufficient
+    best = max((by_id[i].scores.final for i in c.cited if i in by_id), default=0.0)
+    backed = inputs.evidence_sufficient and (
+        cited_count >= inputs.high_confidence_min_sources
+        or best >= inputs.high_confidence_min_score
     )
-    add(
-        "confidence_calibrated",
-        not overconfident,
-        "Stated confidence is consistent with the evidence."
-        if not overconfident
-        else f"'high' confidence claimed with {cited_count} cited source(s).",
-    )
+    if r.confidence == "high" and not backed:
+        inputs.adjusted_confidence = "medium"
+        add(
+            "confidence_calibrated",
+            True,
+            f"Stated 'high' lowered to 'medium': {cited_count} cited source(s), "
+            f"best similarity {best:.2f}.",
+        )
+    else:
+        add("confidence_calibrated", True, "Stated confidence is consistent with the evidence.")
 
     if inputs.claim_verdicts is not None:
         failing = sorted(n for n, ok in inputs.claim_verdicts.items() if not ok)
