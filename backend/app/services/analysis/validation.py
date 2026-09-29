@@ -170,6 +170,7 @@ def check_grounding(inputs: GroundingInputs) -> GroundingReport:
     # Commands, flags, keys, and documented paths in each step must appear in the evidence
     # the draft cites: the step's own sources first, then any source the draft cites.
     all_cited = _normalize(" ".join(by_id[i].content for i in c.cited if i in by_id))
+    ticket = _normalize(inputs.ticket_text)
     unsupported: list[str] = []
     for step in r.resolution_steps:
         step_text = _normalize(" ".join(by_id[i].content for i in step.source_ids if i in by_id))
@@ -178,7 +179,8 @@ def check_grounding(inputs: GroundingInputs) -> GroundingReport:
             if not alternatives:
                 continue
             if not any(
-                _normalize(a) in step_text or _normalize(a) in all_cited for a in alternatives
+                _normalize(a) in step_text or _normalize(a) in all_cited or _normalize(a) in ticket
+                for a in alternatives
             ):
                 unsupported.append(ident)
     inputs.unsupported_identifiers[:] = unsupported

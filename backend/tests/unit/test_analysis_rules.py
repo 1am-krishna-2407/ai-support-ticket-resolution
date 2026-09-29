@@ -401,3 +401,18 @@ def test_customer_hostname_path_falls_back_to_documented_directory() -> None:
     assert identifier_alternatives("/etc/gitlab/invented.rb", ticket) == (
         "/etc/gitlab/invented.rb",
     )
+
+
+def test_values_from_the_ticket_are_not_product_claims() -> None:
+    res = resolution(
+        resolution_steps=[
+            ResolutionStep(
+                instruction="Copy the CA for `gitlab.internal` and run `gitlab-runner restart`.",
+                source_ids=["SRC-001"],
+            )
+        ]
+    )
+    report, _, _ = grounding(res, ticket="Our server gitlab.internal uses an internal CA")
+    assert "identifiers_supported" not in failed(report)
+    _, _, inputs = grounding(res, ticket="an unrelated ticket")
+    assert inputs.unsupported_identifiers == ["gitlab.internal"]

@@ -218,3 +218,29 @@ async def test_schema_validation_failure_is_invalid_model_output(llm_settings: S
     with pytest.raises(InvalidModelOutputError) as info:
         await _call(p)
     assert info.value.details and info.value.details["provider_code"] == "json_validate_failed"
+
+
+async def test_daily_token_limit_fails_fast(llm_settings: Settings) -> None:
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(
+            429,
+            headers={"retry-after": "285"},
+            json={
+                "error": {
+                    "code": "rate_limit_exceeded",
+                    "message": (
+                        "Rate limit reached for model on tokens per day (TPD): Limit 200000, Used 196031"
+                    ),
+                }
+            },
+        )
+
+    p, sleeps = provider(llm_settings, handler)
+    with pytest.raises(LLMProviderError, match="daily token limit") as info:
+        await _call(p)
+    assert calls == 1 and sleeps == []  # no futile retries
+    assert info.value.details and info.value.details["daily_limit"] is True

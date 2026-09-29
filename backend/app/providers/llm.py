@@ -94,6 +94,16 @@ def strict_json_schema(model: type[BaseModel]) -> dict[str, Any]:
     return resolve(raw)  # type: ignore[no-any-return]
 
 
+def _daily_limit(response: httpx.Response) -> bool:
+    """True when a 429 is a per-day quota (retrying within minutes cannot succeed)."""
+    try:
+        message = str(response.json().get("error", {}).get("message", ""))
+    except ValueError:
+        return False
+    lowered = message.lower()
+    return "per day" in lowered or "(tpd)" in lowered or "(rpd)" in lowered
+
+
 class TokenBucket:
     """Tokens-per-minute pacing: waits until a request's estimated tokens are available.
 
@@ -256,6 +266,14 @@ class OpenAICompatibleChatProvider:
                 continue
             latency = round((time.perf_counter() - started) * 1000, 2)
 
+            if response.status_code == 429 and _daily_limit(response):
+                details = self._error_details(response, attempt + 1)
+                logger.warning("llm daily token limit reached", extra=details)
+                raise LLMProviderError(
+                    "The language model provider's daily token limit is reached; "
+                    "retry later or upgrade the provider plan.",
+                    details=details | {"daily_limit": True},
+                )
             if response.status_code in RETRYABLE_STATUS and not last:
                 delay = self._backoff(attempt, response.headers.get("retry-after"))
                 logger.warning(
