@@ -58,6 +58,8 @@ export interface RequestOptions {
   headers?: Record<string, string>;
   signal?: AbortSignal;
   timeoutMs?: number;
+  /** Non-2xx statuses whose body is a normal payload (e.g. 503 from GET /ready). */
+  acceptStatuses?: number[];
 }
 
 export async function apiRequest<T>(
@@ -65,7 +67,14 @@ export async function apiRequest<T>(
   schema: z.ZodType<T>,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { method = "GET", body, headers = {}, signal, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
+  const {
+    method = "GET",
+    body,
+    headers = {},
+    signal,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    acceptStatuses = [],
+  } = options;
 
   const controller = new AbortController();
   let timedOut = false;
@@ -113,7 +122,7 @@ export async function apiRequest<T>(
   const requestId = response.headers.get("X-Request-ID");
   const payload: unknown = await response.json().catch(() => undefined);
 
-  if (!response.ok) {
+  if (!response.ok && !acceptStatuses.includes(response.status)) {
     const parsed = ErrorResponseSchema.safeParse(payload);
     if (parsed.success) {
       const { code, message, details, request_id } = parsed.data.error;

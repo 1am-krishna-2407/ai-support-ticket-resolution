@@ -116,6 +116,9 @@ class Settings(BaseSettings):
     embedding_concurrency: int = Field(default=2, gt=0, le=16)
     embedding_timeout_seconds: float = Field(default=60.0, gt=0)
     embedding_max_retries: int = Field(default=5, ge=0, le=8)
+    # After the provider reports exhausted quota/credits, fail fast (no requests) for this
+    # long, so searches degrade immediately instead of waiting through retries.
+    embedding_quota_cooldown_seconds: float = Field(default=300.0, ge=0)
 
     # --- Knowledge ingestion -----------------------------------------------
     allowed_source_domains: Annotated[list[str], NoDecode] = Field(

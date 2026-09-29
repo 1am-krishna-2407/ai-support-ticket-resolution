@@ -168,7 +168,7 @@ async def test_daily_quota_fails_fast_without_retrying(gemini_settings: Settings
 async def test_retries_are_bounded(gemini_settings: Settings) -> None:
     provider, _ = _provider(gemini_settings, lambda r: httpx.Response(503))
     with pytest.raises(EmbeddingProviderError) as info:
-        await provider.embed_query("x")
+        await provider.embed_documents([EmbeddingInput("x")])
     assert provider.requests_made == 3  # 1 + embedding_max_retries
     assert info.value.details and info.value.details["status"] == 503
 
@@ -195,7 +195,7 @@ async def test_network_errors_are_retried_then_raised(gemini_settings: Settings)
 
     provider, _ = _provider(gemini_settings, handler)
     with pytest.raises(EmbeddingProviderError, match="Could not reach"):
-        await provider.embed_query("x")
+        await provider.embed_documents([EmbeddingInput("x")])
     assert provider.requests_made == 3
 
 

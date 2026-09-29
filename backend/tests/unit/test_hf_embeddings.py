@@ -122,7 +122,7 @@ async def test_persistent_payment_required_means_credits_exhausted(hf_settings: 
         hf_settings, lambda r: httpx.Response(402, json={"error": "You have exceeded your credits"})
     )
     with pytest.raises(EmbeddingQuotaExhaustedError) as info:
-        await p.embed_query("x")
+        await p.embed_documents([EmbeddingInput("x")])
     backoffs = [s for s in sleeps if s >= 1.0]  # excludes 0.1 s request pacing
     assert p.requests_made == 3 and len(backoffs) == 2  # retried before giving up
     assert info.value.details and info.value.details["quota"] == ["huggingface-credits"]
@@ -148,7 +148,7 @@ async def test_rate_limit_and_model_loading_are_retried(hf_settings: Settings) -
         return response if response is not None else ok(request)
 
     p, sleeps = provider(hf_settings, handler)
-    assert len(await p.embed_query("x")) == DIM
+    assert len((await p.embed_documents([EmbeddingInput("x")]))[0]) == DIM
     assert sleeps[0] == 2.0 and p.requests_made == 3
 
 
@@ -206,3 +206,39 @@ def test_settings_resolve_keys_and_urls(make_settings: Callable[..., Settings]) 
 def test_gemini_batch_limit_is_enforced(make_settings: Callable[..., Settings]) -> None:
     with pytest.raises(ValueError, match="EMBEDDING_BATCH_SIZE"):
         make_settings(embedding_provider="gemini", embedding_batch_size=101)
+
+
+async def test_circuit_opens_after_exhausted_credits(hf_settings: Settings) -> None:
+    p, _ = provider(hf_settings, lambda r: httpx.Response(402, json={"error": "depleted"}))
+    with pytest.raises(EmbeddingQuotaExhaustedError):
+        await p.embed_query("x")
+    made = p.requests_made
+    with pytest.raises(EmbeddingQuotaExhaustedError) as info:
+        await p.embed_query("y")
+    assert p.requests_made == made  # no request while the circuit is open
+    assert info.value.details and info.value.details["circuit_open"] is True
+
+
+async def test_circuit_closes_after_cooldown(make_settings: Callable[..., Settings]) -> None:
+    settings = make_settings(
+        hf_token=HF_TOKEN, embedding_dimension=DIM, embedding_max_retries=0,
+        embedding_quota_cooldown_seconds=0, embedding_max_requests_per_minute=600,
+    )  # fmt: skip
+    responses = iter([httpx.Response(402, json={"error": "depleted"}), None])
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        response = next(responses)
+        return response if response is not None else ok(request)
+
+    p, _ = provider(settings, handler)
+    with pytest.raises(EmbeddingQuotaExhaustedError):
+        await p.embed_query("x")
+    assert len(await p.embed_query("y")) == DIM  # cooldown 0: tries again and succeeds
+    assert p.last_failure is None
+
+
+async def test_queries_retry_at_most_once(hf_settings: Settings) -> None:
+    p, _ = provider(hf_settings, lambda r: httpx.Response(503))
+    with pytest.raises(EmbeddingProviderError):
+        await p.embed_query("x")
+    assert p.requests_made == 2  # interactive path: one retry, then degrade

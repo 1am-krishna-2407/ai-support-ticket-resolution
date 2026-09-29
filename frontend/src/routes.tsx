@@ -3,6 +3,7 @@ import type { RouteObject } from "react-router";
 import { AppShell } from "./components/AppShell";
 import { RouteErrorBoundary } from "./components/RouteErrorBoundary";
 import { DashboardPage } from "./pages/DashboardPage";
+import { DocumentDetailPage } from "./pages/DocumentDetailPage";
 import { EvaluationPage } from "./pages/EvaluationPage";
 import { IngestionPage } from "./pages/IngestionPage";
 import { KnowledgeBasePage } from "./pages/KnowledgeBasePage";
@@ -21,6 +22,7 @@ export const routes: RouteObject[] = [
       { path: "tickets", element: <TicketAnalysisPage /> },
       { path: "retrieval", element: <RetrievalExplorerPage /> },
       { path: "knowledge-base", element: <KnowledgeBasePage /> },
+      { path: "knowledge-base/:documentId", element: <DocumentDetailPage /> },
       { path: "ingestion", element: <IngestionPage /> },
       { path: "evaluation", element: <EvaluationPage /> },
       { path: "status", element: <SystemStatusPage /> },
