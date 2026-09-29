@@ -153,3 +153,16 @@ def test_generation_statuses_drive_refusal_when_present() -> None:
     o = outcome(expected_behavior="insufficient_evidence", expected_documents=[],
                 evidence_sufficient=True, resolution_status="insufficient_evidence")  # fmt: skip
     assert aggregate([o], 5)["summary"]["deterministic"]["correct_refusal_rate"] == 1.0
+
+
+def test_errored_cases_are_counted_but_not_scored() -> None:
+    outcomes = [
+        outcome(case_id="ok"),
+        outcome(case_id="outage", retrieved_documents=[], evidence_sufficient=False,
+                error="RETRIEVAL_UNAVAILABLE: Retrieval ran without embeddings"),
+    ]  # fmt: skip
+    s = aggregate(outcomes, 5)["summary"]
+    assert (s["cases"], s["scored_cases"], s["errors"]) == (2, 1, 1)
+    assert s["error_cases"] == ["outage"]
+    assert s["deterministic"]["hit_rate@5"] == 1.0  # the outage is not scored as a miss
+    assert s["deterministic"]["false_refusal_rate"] == 0.0  # nor as a refusal

@@ -185,3 +185,30 @@ async def test_evaluation_api_validation(api: Any) -> None:
     ).status_code == 422
     missing = await c.get("/api/v1/evaluations/00000000-0000-0000-0000-000000000000")
     assert missing.status_code == 404
+
+
+async def test_degraded_retrieval_is_an_error_not_a_refusal(corpus: Any) -> None:  # noqa: F811
+    from app.core.errors import EmbeddingQuotaExhaustedError
+
+    settings, engine = corpus
+
+    class Outage(MappingEmbedder):
+        async def embed_query(self, text: str) -> list[float]:
+            raise EmbeddingQuotaExhaustedError()
+
+    runner = build_evaluation_runner(
+        settings,
+        engine=engine,
+        session_factory=create_session_factory(engine),
+        embedder=Outage({}),  # type: ignore[arg-type]
+        llm=None,
+        prompts=PromptRegistry(),
+    )
+    run_id = await runner.run(EvaluationOptions(k=3), EvaluationDataset.model_validate(DATASET))
+    async with create_session_factory(engine)() as session:
+        found = await get_run(session, run_id)
+    assert found is not None
+    run, cases = found
+    assert run.metrics["errors"] == 3 and run.metrics["scored_cases"] == 0
+    assert all(c.error and "without embeddings" in c.error for c in cases)
+    assert run.metrics["deterministic"]["false_refusal_rate"] is None

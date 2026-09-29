@@ -21,7 +21,7 @@ from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from app.core.config import Settings
-from app.core.errors import AppError, EvaluationAlreadyRunningError
+from app.core.errors import AppError, ErrorCode, EvaluationAlreadyRunningError
 from app.db.models import EvaluationCase, EvaluationRun, EvaluationRunStatus
 from app.schemas.retrieval import RetrievalMethod, RetrievalResult
 from app.schemas.tickets import TicketInput
@@ -33,6 +33,13 @@ from app.services.retrieval.query import transform_query
 from app.services.retrieval.service import RetrievalService
 
 logger = logging.getLogger("app.evaluation")
+
+
+class RetrievalDegradedDuringEvaluationError(AppError):
+    code = ErrorCode.RETRIEVAL_UNAVAILABLE
+    status_code = 503
+    default_message = "Retrieval ran without embeddings."
+
 
 EVALUATION_LOCK_KEY = 7_300_002
 ACTIVE_STATES = (EvaluationRunStatus.QUEUED.value, EvaluationRunStatus.RUNNING.value)
@@ -322,6 +329,12 @@ class EvaluationRunner:
             retrieval = await self._retrieval.retrieve(
                 query, method=options.method, top_k=options.top_k
             )
+            if retrieval.degraded:
+                # Embeddings failed (provider outage/credits): the result reflects the
+                # outage, not retrieval quality, so it is an error, not a miss or refusal.
+                raise RetrievalDegradedDuringEvaluationError(
+                    "Retrieval ran without embeddings: " + "; ".join(retrieval.warnings)
+                )
             outcome.retrieved_documents = _documents(retrieval)
             outcome.evidence_sufficient = retrieval.evidence_sufficient
             actual["retrieval"] = {

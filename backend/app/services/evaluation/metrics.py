@@ -89,6 +89,9 @@ def _rate(flags: Sequence[bool]) -> float | None:
 
 
 def aggregate(outcomes: Sequence[CaseOutcome], k: int) -> dict[str, Any]:
+    """Quality metrics over cases that ran; infrastructure errors are counted, not scored."""
+    errored = [o for o in outcomes if o.error]
+    outcomes = [o for o in outcomes if not o.error]
     per_case = {o.case_id: case_metrics(o, k) for o in outcomes}
     answerable = [o for o in outcomes if o.expected_behavior == "answer"]
     out_of_scope = [o for o in outcomes if o.expected_behavior == "insufficient_evidence"]
@@ -105,10 +108,12 @@ def aggregate(outcomes: Sequence[CaseOutcome], k: int) -> dict[str, Any]:
             return o.resolution_status in REFUSAL_STATUSES
         return not o.evidence_sufficient
 
-    latencies = [o.latency_ms for o in outcomes if o.error is None]
+    latencies = [o.latency_ms for o in outcomes]
     metrics: dict[str, Any] = {
-        "cases": len(outcomes),
-        "errors": sum(1 for o in outcomes if o.error),
+        "cases": len(outcomes) + len(errored),
+        "scored_cases": len(outcomes),
+        "errors": len(errored),
+        "error_cases": sorted(o.case_id for o in errored),
         "deterministic": {
             f"recall@{k}": round(mean(values(f"recall@{k}")), 4) if values(f"recall@{k}") else None,
             f"hit_rate@{k}": round(mean(values(f"hit@{k}")), 4) if values(f"hit@{k}") else None,
