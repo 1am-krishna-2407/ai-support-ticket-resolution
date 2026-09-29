@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import { PageHeader } from "../components/PageHeader";
 import { ErrorState, LoadingState, MetricCard, Panel } from "../components/States";
 import { StatusBadge } from "../components/StatusBadge";
-import { getIngestionStatus, getReadiness, queryKeys } from "../services/endpoints";
+import { getIngestionStatus, getReadiness, listEvaluations, queryKeys } from "../services/endpoints";
 
 export function DashboardPage() {
   const readiness = useQuery({
@@ -16,6 +16,11 @@ export function DashboardPage() {
     queryFn: ({ signal }) => getIngestionStatus(signal),
   });
 
+  const evaluations = useQuery({
+    queryKey: queryKeys.evaluations,
+    queryFn: ({ signal }) => listEvaluations(signal),
+  });
+  const latestEval = evaluations.data?.items.find((r) => r.status === "completed" && r.metrics);
   const kb = readiness.data?.knowledge_base;
   const job = ingestion.data?.latest;
 
@@ -97,8 +102,31 @@ export function DashboardPage() {
             </Panel>
           </div>
 
-          <Panel title="Evaluation">
-            <p className="text-sm text-slate-600">No evaluation results available yet.</p>
+          <Panel
+            title="Latest evaluation"
+            actions={
+              <Link to="/evaluation" className="text-xs font-medium text-blue-700 underline">
+                Details
+              </Link>
+            }
+          >
+            {latestEval?.metrics ? (
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {(["recall@5", "mrr", "correct_refusal_rate", "false_refusal_rate"] as const).map((key) => (
+                  <MetricCard
+                    key={key}
+                    label={key.replace(/_/g, " ")}
+                    value={latestEval.metrics!.deterministic[key]?.toFixed(3) ?? "–"}
+                  />
+                ))}
+                <p className="col-span-full text-xs text-slate-500">
+                  {latestEval.name ?? latestEval.id.slice(0, 8)} · {String(latestEval.config.method)} ·{" "}
+                  {latestEval.total_cases} cases · {new Date(latestEval.created_at).toLocaleString()}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-600">No evaluation results available yet.</p>
+            )}
           </Panel>
         </div>
       )}

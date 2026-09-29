@@ -3,6 +3,9 @@ import { apiRequest } from "./api";
 import {
   ChunkPageSchema,
   DocumentDetailSchema,
+  EvaluationRunDetailSchema,
+  EvaluationRunListSchema,
+  EvaluationRunSchema,
   DocumentPageSchema,
   IngestionJobSchema,
   IngestionStatusSchema,
@@ -48,6 +51,8 @@ export const queryKeys = {
   chunks: (id: string, offset: number, limit: number, version?: number) =>
     ["documents", "chunks", id, { offset, limit, version }] as const,
   ingestionStatus: ["ingestion", "status"] as const,
+  evaluations: ["evaluations", "list"] as const,
+  evaluation: (id: string) => ["evaluations", "detail", id] as const,
 };
 
 export const analyzeTicket = (payload: TicketPayload, signal?: AbortSignal) =>
@@ -99,5 +104,26 @@ export const startIngestion = (adminToken: string, force: boolean) =>
   apiRequest("/ingestion/run", IngestionJobSchema, {
     method: "POST",
     body: { force, only: [] },
+    headers: { "X-Admin-Token": adminToken },
+  });
+
+export interface EvaluationStartPayload {
+  name?: string;
+  method: RetrievalMethod;
+  top_k?: number;
+  k: number;
+  generation: boolean;
+}
+
+export const listEvaluations = (signal?: AbortSignal) =>
+  apiRequest("/evaluations?limit=50", EvaluationRunListSchema, { signal });
+
+export const getEvaluation = (id: string, signal?: AbortSignal) =>
+  apiRequest(`/evaluations/${encodeURIComponent(id)}`, EvaluationRunDetailSchema, { signal });
+
+export const startEvaluation = (adminToken: string, payload: EvaluationStartPayload) =>
+  apiRequest("/evaluations/run", EvaluationRunSchema, {
+    method: "POST",
+    body: payload,
     headers: { "X-Admin-Token": adminToken },
   });

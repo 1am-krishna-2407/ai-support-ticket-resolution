@@ -125,6 +125,7 @@ class Settings(BaseSettings):
         default_factory=lambda: ["docs.gitlab.com"]
     )
     manifest_path: str = "knowledge/manifest/sources.json"
+    evaluation_dataset_path: str = "evaluation/cases.json"
     raw_storage_dir: str = "knowledge/raw"
     fetch_connect_timeout_seconds: float = Field(default=5.0, gt=0)
     fetch_read_timeout_seconds: float = Field(default=20.0, gt=0)

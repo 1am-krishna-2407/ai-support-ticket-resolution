@@ -291,3 +291,51 @@ export const ReadinessSchema = z.object({
     .nullable(),
 });
 export type Readiness = z.infer<typeof ReadinessSchema>;
+
+// --- Evaluation -----------------------------------------------------------------------------
+
+export const EvaluationRunSchema = z.object({
+  id: z.string(),
+  name: nullableString,
+  status: z.string(),
+  config: z.record(z.string(), z.unknown()),
+  metrics: z
+    .object({
+      cases: z.number(),
+      errors: z.number(),
+      deterministic: z.record(z.string(), z.number().nullable()),
+      latency_ms: z.record(z.string(), z.number().nullable()),
+      by_type: z.record(z.string(), z.record(z.string(), z.number().nullable())).optional(),
+    })
+    .nullable(),
+  dataset_version: nullableString,
+  total_cases: z.number(),
+  completed_cases: z.number(),
+  error: nullableString,
+  created_at: z.string(),
+  started_at: nullableString,
+  finished_at: nullableString,
+});
+export type EvaluationRun = z.infer<typeof EvaluationRunSchema>;
+
+export const EvaluationRunListSchema = z.object({
+  items: z.array(EvaluationRunSchema),
+  running: z.boolean(),
+});
+
+export const EvaluationCaseSchema = z.object({
+  case_id: z.string(),
+  case_type: z.string(),
+  expected: z.record(z.string(), z.unknown()),
+  actual: z.record(z.string(), z.unknown()).nullable(),
+  metrics: z.record(z.string(), z.unknown()).nullable(),
+  passed: z.boolean().nullable(),
+  latency_ms: z.number().nullable(),
+  error: nullableString,
+});
+export type EvaluationCase = z.infer<typeof EvaluationCaseSchema>;
+
+export const EvaluationRunDetailSchema = EvaluationRunSchema.extend({
+  cases: z.array(EvaluationCaseSchema),
+});
+export type EvaluationRunDetail = z.infer<typeof EvaluationRunDetailSchema>;

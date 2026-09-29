@@ -62,15 +62,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.ingestion_start_lock = asyncio.Lock()
         app.state.fetcher_factory = HttpDocumentFetcher
         app.state.ingestion_task = None
+        app.state.evaluation_start_lock = asyncio.Lock()
+        app.state.evaluation_task = None
         try:
             yield
         finally:
-            task = app.state.ingestion_task
-            if task is not None and not task.done():
-                # The job row keeps its stage; the next run's recovery marks it failed.
-                task.cancel()
-                with contextlib.suppress(asyncio.CancelledError):
-                    await task
+            for task in (app.state.ingestion_task, app.state.evaluation_task):
+                if task is not None and not task.done():
+                    # Rows keep their stage; the next run's recovery marks them failed.
+                    task.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):
+                        await task
             if app.state.embedder is not None:
                 await app.state.embedder.aclose()
             if app.state.llm is not None:

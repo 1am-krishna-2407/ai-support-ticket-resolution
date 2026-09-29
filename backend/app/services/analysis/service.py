@@ -250,7 +250,11 @@ class TicketAnalysisService:
 
     # --- full analysis --------------------------------------------------------------
 
-    async def analyze(self, ticket: TicketInput) -> TicketAnalysisResponse:
+    async def analyze(
+        self, ticket: TicketInput, *, precomputed_retrieval: RetrievalResult | None = None
+    ) -> TicketAnalysisResponse:
+        """Analyse a ticket. `precomputed_retrieval` lets callers that already retrieved
+        (the evaluation runner) avoid a second retrieval and its embedding call."""
         total_started = time.perf_counter()
         timings: dict[str, float] = {}
         errors: list[StageError] = []
@@ -261,14 +265,17 @@ class TicketAnalysisService:
         errors.extend(triage.errors)
 
         started = time.perf_counter()
-        retrieval: RetrievalResult | None = None
-        try:
-            query = transform_query(
-                ticket.title, ticket.description, max_chars=self._settings.retrieval_max_query_chars
-            )
-            retrieval = await self._retrieval.retrieve(query, method=RetrievalMethod.HYBRID)
-        except (RetrievalUnavailableError, EmbeddingProviderError) as exc:
-            errors.append(_error("retrieval", exc))
+        retrieval: RetrievalResult | None = precomputed_retrieval
+        if retrieval is None:
+            try:
+                query = transform_query(
+                    ticket.title,
+                    ticket.description,
+                    max_chars=self._settings.retrieval_max_query_chars,
+                )
+                retrieval = await self._retrieval.retrieve(query, method=RetrievalMethod.HYBRID)
+            except (RetrievalUnavailableError, EmbeddingProviderError) as exc:
+                errors.append(_error("retrieval", exc))
         timings["retrieval"] = _ms(started)
         if retrieval is not None and "embedding" in retrieval.diagnostics.timings_ms:
             timings["embedding"] = retrieval.diagnostics.timings_ms["embedding"]
