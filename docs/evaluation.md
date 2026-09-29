@@ -96,4 +96,42 @@ The UI shows this next to the results and can compare any two runs metric by met
 
 ## Results
 
-_Results are recorded here from real runs only, once the full corpus is embedded._
+### Retrieval evaluation (2026-09-30)
+
+Corpus: 217 documents and 4,600 chunks (Qwen3-Embedding-0.6B@1024). Threshold 0.45, top-K 8,
+K = 5. Dataset `2026-09-30.1` (51 cases). Stored runs: `retrieval-{hybrid,vector,lexical}-v2`.
+
+| Method | Scored / total | Recall@5 | Hit rate@5 | Precision@5 | MRR | False refusals | Correct refusals |
+|---|---|---|---|---|---|---|---|
+| vector | 48 / 51 | **0.867** | **1.000** | 0.394 | **0.875** | 0.00 | 0.67 (2 of 3) |
+| hybrid | 46 / 51 | 0.773 | 0.953 | 0.354 | 0.855 | 0.00 | 0.67 (2 of 3) |
+| lexical | 47 / 51 | 0.720 | 0.933 | 0.294 | 0.676 | 0.00 | 1.00 (2 of 2)* |
+
+\* The hard out-of-scope case (c45) errored in the lexical run, so only two out-of-scope
+cases were scored; the 1.00 is not comparable with the other rows.
+
+Every run resisted all three prompt-injection cases at the retrieval stage (a relevant
+document was retrieved and the injection text was flagged).
+
+**Errors (excluded from scores).** 3-5 cases per run hit Hugging Face 402 ("credits
+depleted") on every retry, roughly every tenth request. They are provider outages, recorded
+as errors (`error_cases`) and not scored as misses or refusals. The first attempt, before
+this was fixed, wrongly counted them as false refusals.
+
+**Findings**
+
+- **Vector outperforms hybrid on this dataset** (MRR 0.875 vs 0.855, Recall@5 0.867 vs
+  0.773). Equal-weight RRF lets strong keyword matches push down semantically better pages.
+  A lower `RETRIEVAL_LEXICAL_WEIGHT` is the next experiment. Hybrid stays the default
+  because exact error strings (for example `x509: certificate signed by unknown authority`)
+  are found through the lexical and phrase lists.
+- **No false refusals** in any run: the 0.45 threshold (docs/retrieval.md §7) holds.
+- **Near-miss out-of-scope (c45, Kubernetes ingress on EKS)** scores 0.55-0.60 similarity
+  against runner and Kubernetes pages. No similarity threshold can refuse it without
+  refusing real answers (the weakest relevant score is 0.591). Rejecting it is the job of
+  the generation stage (an `insufficient_evidence` draft).
+- **Genuine ranking misses:** c02 ("runner shows offline") ranks the runners API and
+  fleet-scaling pages above the FAQ; c03 ("install Runner in a Docker container") ranks
+  Docker-build pages above the install page.
+- Latency: median about 1 s per case; p95 about 19-24 s, dominated by retry backoff on
+  provider 402s rather than search time.
