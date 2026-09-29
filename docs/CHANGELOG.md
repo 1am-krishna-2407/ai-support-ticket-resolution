@@ -41,7 +41,7 @@ queries flagged insufficient, cap and dedupe, category filter, determinism, API 
 
 **Open:** golden queries and threshold tuning on the real corpus need query embeddings.
 
-## Phase 2: Knowledge ingestion (in progress, not tagged)
+## Phase 2: Knowledge ingestion (tag `phase-2-complete`)
 
 **Added** 217-page manifest (curation script + priority lists); SSRF-safe fetcher (pinned IP
 with SNI, per-hop re-validation, robots.txt, size cap, pacing, retries); GitLab parser with
@@ -54,8 +54,9 @@ mode after quota exhaustion; `python -m app.scripts.ingest`; migration `0004`;
 **Verified:** 45 real documents (989 chunks) active; re-run detects them unchanged with zero
 embedding calls; recovery and reuse proven on a real interrupted run.
 
-**Open (exit gate):** the remaining 172 documents are deferred by the Gemini free-tier limit
-of 1,000 embedding inputs per day.
+**Exit gate passed (2026-09-30):** all 217 documents ingested with Qwen3-Embedding-0.6B (4,600
+chunks, all embedded); an immediate re-run reported 217 unchanged and 0 embedding calls; a
+real changed page produced a new version with reused embeddings. See docs/ingestion.md §9.
 
 **Fixed along the way:** Alembic `fileConfig` disabled the app's loggers after in-process
 migrations; cancelled jobs were finalised as `running` with a finish time.

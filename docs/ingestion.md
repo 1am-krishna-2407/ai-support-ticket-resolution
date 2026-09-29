@@ -138,20 +138,25 @@ limit includes a misleading "retry in N seconds" hint, so:
 next run, while holding the lock, marks such jobs `failed` ("Interrupted") and their
 staged documents `failed`. Their embeddings stay reusable, so nothing is paid for twice.
 
-## 9. Real run results (2026-09-29)
+## 9. Real run results
 
-| Run | What happened |
-|---|---|
-| 1 | 45 documents fetched, parsed, chunked, and embedded (989 chunks, ~4 docs/min under per-minute throttling), then Gemini's free-tier **daily** quota (1,000 inputs) ran out. Stopped manually after persistent 429s, which exposed the two gaps above. |
-| 2 | Recovered the interrupted job; re-staged 42 documents entirely from stored embeddings (948 chunks, 0 successful embedding calls) and published them; deferred 175. |
-| 3 | 42 documents detected **unchanged** (content hash + pipeline signature) with no embedding calls; 3 more published from stored embeddings in reuse-only mode; 172 deferred. |
+**Final state (2026-09-30): 217 of 217 documents active, 4,600 chunks, every chunk embedded
+with `Qwen/Qwen3-Embedding-0.6B@1024`.**
 
-State after run 3: **45 active documents, 989 active chunks**, with each document's
-earlier staged version marked `failed` by recovery. Every fetch used the pinned-IP path
-(TLS verified against `docs.gitlab.com`), respected robots.txt, and was paced at one
-request per second.
+| Run | Provider / credit | Outcome |
+|---|---|---|
+| 1-3 (2026-09-29) | Gemini free tier | 45 documents; stopped by the 1,000-inputs-per-day cap. Exposed and fixed: fail fast on daily quotas, interrupted-job recovery, reuse-only mode. Vectors later cleared by migration 0005 when switching models |
+| Qwen 1-2 | Hugging Face account 1 | 24 documents before "monthly included credits depleted" |
+| Qwen 3 | Hugging Face account 2 | +16 documents |
+| Qwen 4 | Hugging Face account 3 | +99 documents (2,739 chunks), including re-embedding the cleared Gemini-era documents |
+| Qwen 5 | Hugging Face account 4 | +10 documents, plus one page GitLab had updated (a new version, reusing its unchanged chunk embeddings) |
+| Qwen 6 | Hugging Face account 5 | +68 documents (915 chunks, 101 calls); corpus complete, 0 deferred |
+| Verification | none needed | **217 unchanged, 0 changed, 0 embedding calls, 0 failures** (218 s, just fetch and parse) |
 
-To finish the manifest, either wait for the daily quota to reset and re-run the ingest
-(about 1,000 chunks per day), or enable billing on the Gemini project. At
-`gemini-embedding-001` paid-tier prices the whole corpus (~1M tokens) costs well under
-US$1, and the full run completes in one go.
+Every run stopped cleanly when credit ran out: embedded documents were published, the rest
+deferred and picked up by the next run with no repeated work.
+
+**Cost note.** A Hugging Face free account's monthly Inference Providers credit covered
+roughly 400-2,700 chunks here, depending on what else the account had used. The full corpus
+is about 4,600 chunks, and re-embedding it (for a model or chunking change) needs a paid
+credit balance or a locally run model. Every search also spends one query embedding.
