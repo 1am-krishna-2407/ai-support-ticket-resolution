@@ -222,6 +222,7 @@ async def test_circuit_opens_after_exhausted_credits(hf_settings: Settings) -> N
 async def test_circuit_closes_after_cooldown(make_settings: Callable[..., Settings]) -> None:
     settings = make_settings(
         hf_token=HF_TOKEN, embedding_dimension=DIM, embedding_max_retries=0,
+        embedding_query_max_retries=0,
         embedding_quota_cooldown_seconds=0, embedding_max_requests_per_minute=600,
     )  # fmt: skip
     responses = iter([httpx.Response(402, json={"error": "depleted"}), None])
@@ -242,3 +243,12 @@ async def test_queries_retry_at_most_once(hf_settings: Settings) -> None:
     with pytest.raises(EmbeddingProviderError):
         await p.embed_query("x")
     assert p.requests_made == 2  # interactive path: one retry, then degrade
+
+
+def test_offline_settings_raise_query_retries_and_disable_cooldown(
+    make_settings: Callable[..., Settings],
+) -> None:
+    from app.scripts._offline import offline_settings
+
+    s = offline_settings(make_settings(embedding_max_retries=5))
+    assert s.embedding_query_max_retries == 5 and s.embedding_quota_cooldown_seconds == 0

@@ -22,6 +22,7 @@ from app.core.tokenizer import get_tokenizer
 from app.db.session import create_engine, create_session_factory
 from app.main import build_embedder, build_llm
 from app.schemas.tickets import TicketInput
+from app.scripts._offline import offline_settings
 from app.services.analysis.prompts import PromptRegistry
 from app.services.analysis.service import TicketAnalysisService
 from app.services.retrieval.service import RetrievalService
@@ -31,8 +32,8 @@ async def _main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", default="evaluation/sample_tickets.json")
     args = parser.parse_args(argv)
-    settings = get_settings()
-    configure_logging("WARNING")
+    settings = offline_settings(get_settings())
+    configure_logging("WARNING", sys.stderr)  # keep stdout for the JSON report
     data = json.loads(await asyncio.to_thread(Path(args.path).read_text, encoding="utf-8"))
 
     engine = create_engine(settings)

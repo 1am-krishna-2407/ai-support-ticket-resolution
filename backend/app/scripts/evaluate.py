@@ -22,6 +22,7 @@ from app.core.logging import configure_logging
 from app.db.session import create_engine, create_session_factory
 from app.main import build_embedder, build_llm
 from app.schemas.retrieval import RetrievalMethod
+from app.scripts._offline import offline_settings
 from app.services.analysis.prompts import PromptRegistry
 from app.services.evaluation.dataset import load_dataset
 from app.services.evaluation.factory import build_evaluation_runner
@@ -42,8 +43,8 @@ def _parse(argv: list[str]) -> argparse.Namespace:
 
 async def _main(argv: list[str]) -> int:
     args = _parse(argv)
-    settings = get_settings()
-    configure_logging("WARNING")
+    settings = offline_settings(get_settings())
+    configure_logging("WARNING", sys.stderr)  # keep stdout for the JSON report
     dataset = load_dataset(Path(settings.evaluation_dataset_path))
     engine = create_engine(settings)
     sessions = create_session_factory(engine)

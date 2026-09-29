@@ -8,7 +8,7 @@ import re
 import sys
 from contextvars import ContextVar
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, TextIO
 
 request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 
@@ -80,9 +80,9 @@ def _record_factory(*args: Any, **kwargs: Any) -> logging.LogRecord:
     return record
 
 
-def configure_logging(level: str) -> None:
+def configure_logging(level: str, stream: TextIO | None = None) -> None:
     logging.setLogRecordFactory(_record_factory)
-    handler = logging.StreamHandler(sys.stdout)
+    handler = logging.StreamHandler(stream or sys.stdout)
     handler.setFormatter(JsonFormatter())
     handler.set_name(_HANDLER_NAME)
     root = logging.getLogger()

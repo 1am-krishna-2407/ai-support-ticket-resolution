@@ -116,6 +116,9 @@ class Settings(BaseSettings):
     embedding_concurrency: int = Field(default=2, gt=0, le=16)
     embedding_timeout_seconds: float = Field(default=60.0, gt=0)
     embedding_max_retries: int = Field(default=5, ge=0, le=8)
+    # Interactive search retries less so a failing provider degrades quickly; offline
+    # scripts (tuning, evaluation) raise this to embedding_max_retries.
+    embedding_query_max_retries: int = Field(default=1, ge=0, le=8)
     # After the provider reports exhausted quota/credits, fail fast (no requests) for this
     # long, so searches degrade immediately instead of waiting through retries.
     embedding_quota_cooldown_seconds: float = Field(default=300.0, ge=0)
@@ -146,7 +149,9 @@ class Settings(BaseSettings):
     retrieval_rrf_k: int = Field(default=60, gt=0)
     retrieval_semantic_weight: float = Field(default=1.0, ge=0)
     retrieval_lexical_weight: float = Field(default=1.0, ge=0)
-    retrieval_relevance_threshold: float = Field(default=0.35, ge=0.0, le=1.0)
+    # Cosine similarity for Qwen3-Embedding-0.6B@1024, tuned on evaluation/golden_queries.json
+    # (docs/retrieval.md §7): out-of-scope best <= 0.355, weakest relevant >= 0.591.
+    retrieval_relevance_threshold: float = Field(default=0.45, ge=0.0, le=1.0)
     retrieval_max_chunks_per_document: int = Field(default=3, gt=0)
     retrieval_max_query_chars: int = Field(default=4000, gt=0)
     reranker_enabled: bool = False

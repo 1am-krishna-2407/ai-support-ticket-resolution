@@ -75,6 +75,34 @@ the embedding spec, and the reranker name.
 Endpoints: `POST /api/v1/search`, `POST /api/v1/tickets/retrieve`,
 `GET /api/v1/documents/{document_id}/chunks`.
 
-## 7. Threshold tuning
+## 7. Threshold tuning (2026-09-30)
 
-_Recorded once the full corpus is embedded; see the golden-query results below._
+Corpus: 217 documents and 4,600 chunks, embedded with `Qwen/Qwen3-Embedding-0.6B@1024`.
+Dataset: `evaluation/golden_queries.json` (20 answerable queries, 5 out-of-scope queries).
+Command: `python -m app.scripts.golden_retrieval --k 5`.
+
+| Method | Recall@5 | Hit rate@5 | MRR |
+|---|---|---|---|
+| vector | 0.942 | 1.000 | 0.917 |
+| lexical | 0.892 | 1.000 | 0.768 |
+| hybrid | 0.942 | 1.000 | 0.892 |
+
+Best cosine similarity per query (hybrid retrieval):
+
+- relevant document, answerable queries: 0.591 (lowest) to 0.857;
+- any document, out-of-scope queries: 0.224 to 0.355 (highest).
+
+| Threshold | Correct refusals (out of scope) | False refusals (answerable) |
+|---|---|---|
+| 0.30-0.35 | 0.80 | 0.00 |
+| **0.375-0.60** | **1.00** | **0.00** |
+| 0.625 | 1.00 | 0.05 |
+| 0.65-0.675 | 1.00 | 0.10 |
+| 0.70 | 1.00 | 0.20 |
+
+**Chosen threshold: 0.45**, near the middle of the fully separating range. That is about
+0.10 above the highest out-of-scope score and 0.14 below the weakest relevant one. The old
+placeholder, 0.35, let one out-of-scope query through. With only 25 queries, treat this as a
+first calibration: the 51-case evaluation re-checks it, including near-miss negatives.
+
+The threshold depends on the embedding model, so re-run this sweep after any model change.

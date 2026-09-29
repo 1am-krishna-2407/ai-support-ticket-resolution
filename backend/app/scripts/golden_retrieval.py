@@ -22,6 +22,7 @@ from app.core.logging import configure_logging
 from app.db.session import create_engine, create_session_factory
 from app.providers.embeddings import create_embedding_provider
 from app.schemas.retrieval import RetrievalMethod, RetrievalResult
+from app.scripts._offline import offline_settings
 from app.services.evaluation.retrieval_metrics import (
     hit_rate_at_k,
     mean,
@@ -52,8 +53,8 @@ async def _main(argv: list[str]) -> int:
     parser.add_argument("--k", type=int, default=5)
     args = parser.parse_args(argv)
 
-    settings = get_settings()
-    configure_logging("WARNING")
+    settings = offline_settings(get_settings())
+    configure_logging("WARNING", sys.stderr)  # keep stdout for the JSON report
     probe = settings.model_copy(update={"retrieval_relevance_threshold": 0.0})
     dataset = json.loads(await asyncio.to_thread(Path(args.path).read_text, encoding="utf-8"))
     queries = dataset["queries"]

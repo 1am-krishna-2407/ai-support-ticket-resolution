@@ -151,6 +151,7 @@ class _HttpEmbeddingProvider:
         self._clock = clock
         self._requests_made = 0
         self._quota_cooldown = settings.embedding_quota_cooldown_seconds
+        self._query_retries = settings.embedding_query_max_retries
         # Most recent failure (cleared by the next success); reported by GET /ready so
         # health checks never spend provider credits on probe requests.
         self.last_failure: dict[str, Any] | None = None
@@ -261,7 +262,7 @@ class _HttpEmbeddingProvider:
         body = self._request_body(items, task)
         # Queries are interactive: retry at most once so a failing provider degrades
         # search quickly. Ingestion (documents) uses the full retry budget.
-        retries = min(self._max_retries, 1) if task is EmbeddingTask.QUERY else self._max_retries
+        retries = self._query_retries if task is EmbeddingTask.QUERY else self._max_retries
         async with self._semaphore:
             for attempt in range(retries + 1):
                 last = attempt == retries
