@@ -68,7 +68,9 @@ async def _main(argv: list[str]) -> int:
                     "steps": len(out.resolution.steps),
                     "grounded": out.grounding.grounded,
                     "grounding_score": out.grounding.score,
-                    "failed_checks": [c.name for c in out.grounding.checks if not c.passed],
+                    "failed_checks": [
+                        f"{c.name}: {c.detail}" for c in out.grounding.checks if not c.passed
+                    ],
                     "sources": [
                         f"{s.source_id} {s.title} ({s.final_score:.2f})" for s in out.sources
                     ],

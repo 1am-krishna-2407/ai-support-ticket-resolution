@@ -119,7 +119,7 @@ async def test_client_error_not_retried_and_redacted(llm_settings: Settings) -> 
         calls += 1
         return httpx.Response(
             400,
-            json={"error": {"code": "json_validate_failed", "message": "Bearer abc.def failed"}},
+            json={"error": {"code": "invalid_request_error", "message": "Bearer abc.def failed"}},
         )
 
     p, _ = provider(llm_settings, handler)
@@ -210,3 +210,11 @@ async def test_requests_reserve_prompt_plus_output_tokens(
     await _call(p)  # ~1000+ tokens reserved from a 1200 budget
     await _call(p)  # must wait for the budget to refill
     assert sleeps and sum(sleeps) > 30
+
+
+async def test_schema_validation_failure_is_invalid_model_output(llm_settings: Settings) -> None:
+    body = {"error": {"code": "json_validate_failed", "message": "Failed to validate JSON"}}
+    p, _ = provider(llm_settings, lambda r: httpx.Response(400, json=body))
+    with pytest.raises(InvalidModelOutputError) as info:
+        await _call(p)
+    assert info.value.details and info.value.details["provider_code"] == "json_validate_failed"

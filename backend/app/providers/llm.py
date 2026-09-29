@@ -34,6 +34,8 @@ logger = logging.getLogger("app.providers.llm")
 
 RETRYABLE_STATUS = frozenset({408, 429, 500, 502, 503, 504})
 MAX_BACKOFF_SECONDS = 30.0
+# Provider error codes meaning "model output failed schema validation" (Groq strict mode).
+SCHEMA_FAILURE_CODES = frozenset({"json_validate_failed"})
 
 
 @dataclass(frozen=True)
@@ -263,9 +265,18 @@ class OpenAICompatibleChatProvider:
                 await self._sleep(delay)
                 continue
             if response.status_code != 200:
+                details = self._error_details(response, attempt + 1)
+                # Metadata only (status, provider code, redacted message); never the prompt.
+                logger.warning("llm request failed", extra=details)
+                if details.get("provider_code") in SCHEMA_FAILURE_CODES:
+                    # The model's output did not satisfy the strict schema: an output problem
+                    # the caller can correct once, not a provider outage.
+                    raise InvalidModelOutputError(
+                        "The model output did not match the required schema.", details=details
+                    )
                 raise LLMProviderError(
                     f"The language model provider returned HTTP {response.status_code}.",
-                    details=self._error_details(response, attempt + 1),
+                    details=details,
                 )
             return self._parse(response, latency)
         raise AssertionError("unreachable")  # pragma: no cover
