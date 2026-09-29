@@ -150,6 +150,9 @@ class _HttpEmbeddingProvider:
         self._sleep = sleep
         self._clock = clock
         self._requests_made = 0
+        # Most recent failure (cleared by the next success); reported by GET /ready so
+        # health checks never spend provider credits on probe requests.
+        self.last_failure: dict[str, Any] | None = None
         self._client = httpx.AsyncClient(
             base_url=settings.resolved_embedding_base_url.rstrip("/") + "/",
             transport=transport,
@@ -222,6 +225,22 @@ class _HttpEmbeddingProvider:
             self._last_request = self._clock()
 
     async def _embed_batch(
+        self, items: Sequence[EmbeddingInput], task: EmbeddingTask
+    ) -> list[list[float]]:
+        try:
+            vectors = await self._embed_batch_once(items, task)
+        except EmbeddingProviderError as exc:
+            self.last_failure = {
+                "code": exc.code.value,
+                "message": exc.message,
+                "at": time.time(),
+                "quota_exhausted": isinstance(exc, EmbeddingQuotaExhaustedError),
+            }
+            raise
+        self.last_failure = None
+        return vectors
+
+    async def _embed_batch_once(
         self, items: Sequence[EmbeddingInput], task: EmbeddingTask
     ) -> list[list[float]]:
         if not items:

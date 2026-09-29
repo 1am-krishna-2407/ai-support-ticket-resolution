@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -18,6 +20,7 @@ from app.db.session import create_engine, create_session_factory
 from app.providers.embeddings import EmbeddingProvider, create_embedding_provider
 from app.providers.llm import LLMProvider, OpenAICompatibleChatProvider
 from app.services.analysis.prompts import PromptRegistry
+from app.services.ingestion.fetcher import HttpDocumentFetcher
 from app.services.retrieval.reranker import NoopReranker
 
 logger = logging.getLogger("app.main")
@@ -56,9 +59,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.reranker = NoopReranker()
         app.state.llm = build_llm(settings)
         app.state.prompts = PromptRegistry()
+        app.state.ingestion_start_lock = asyncio.Lock()
+        app.state.fetcher_factory = HttpDocumentFetcher
+        app.state.ingestion_task = None
         try:
             yield
         finally:
+            task = app.state.ingestion_task
+            if task is not None and not task.done():
+                # The job row keeps its stage; the next run's recovery marks it failed.
+                task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await task
             if app.state.embedder is not None:
                 await app.state.embedder.aclose()
             if app.state.llm is not None:

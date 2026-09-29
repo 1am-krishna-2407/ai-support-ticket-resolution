@@ -102,6 +102,7 @@ class OpenAICompatibleChatProvider:
             raise LLMProviderError("LLM_API_KEY is not configured.")
         self._settings = settings
         self._sleep = sleep
+        self.last_failure: dict[str, Any] | None = None  # reported by GET /ready
         self._client = httpx.AsyncClient(
             base_url=settings.llm_base_url.rstrip("/") + "/",
             transport=transport,
@@ -149,6 +150,21 @@ class OpenAICompatibleChatProvider:
         schema_name: str,
         schema: dict[str, Any],
         max_tokens: int | None = None,
+    ) -> LLMResult:
+        try:
+            result = await self._complete_json(messages, schema_name, schema, max_tokens)
+        except LLMProviderError as exc:
+            self.last_failure = {"code": exc.code.value, "message": exc.message, "at": time.time()}
+            raise
+        self.last_failure = None
+        return result
+
+    async def _complete_json(
+        self,
+        messages: Sequence[ChatMessage],
+        schema_name: str,
+        schema: dict[str, Any],
+        max_tokens: int | None,
     ) -> LLMResult:
         body = self._body(messages, schema_name, schema, max_tokens)
         if self._settings.log_llm_payloads:

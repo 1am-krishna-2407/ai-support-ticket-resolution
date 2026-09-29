@@ -130,13 +130,18 @@ class IngestionService:
             count_tokens,
         )
 
-    async def run(self, options: IngestionOptions) -> IngestionSummary:
+    async def run(
+        self, options: IngestionOptions, *, job_id: uuid.UUID | None = None
+    ) -> IngestionSummary:
+        """Run ingestion. `job_id` adopts a job row pre-created (queued) by the API."""
         async with job_repo.ingestion_lock(self._engine):
-            return await self._run_locked(options)
+            return await self._run_locked(options, job_id)
 
     # --- job lifecycle ------------------------------------------------------------
 
-    async def _run_locked(self, options: IngestionOptions) -> IngestionSummary:
+    async def _run_locked(
+        self, options: IngestionOptions, existing_job_id: uuid.UUID | None
+    ) -> IngestionSummary:
         started = time.monotonic()
         self._quota_exhausted = False
         async with self._sessions() as session:
@@ -148,28 +153,28 @@ class IngestionService:
                     "migrations (alembic upgrade head) after changing EMBEDDING_DIMENSION.",
                     details={"column": column, "provider": self._embedder.dimension},
                 )
-            recovered = await job_repo.recover_interrupted_jobs(session)
+            recovered = await job_repo.recover_interrupted_jobs(session, exclude=existing_job_id)
             if recovered:
                 logger.warning(
                     "recovered interrupted ingestion jobs",
                     extra={"job_ids": [str(j) for j in recovered]},
                 )
-            job = await job_repo.create_job(
-                session,
-                trigger=options.trigger,
-                config={
-                    "force": options.force,
-                    "only": list(options.only),
-                    "fail_fast": options.fail_fast,
-                    "manifest": str(self._manifest_path),
-                    "embedding_spec": self._embedder.spec,
-                    "parser_version": self._parser.version,
-                    "chunk_target_tokens": self._settings.chunk_target_tokens,
-                    "chunk_overlap_tokens": self._settings.chunk_overlap_tokens,
-                    "chunk_hard_max_tokens": self._settings.chunk_hard_max_tokens,
-                },
-            )
-            job_id = job.id
+            config = {
+                "force": options.force,
+                "only": list(options.only),
+                "fail_fast": options.fail_fast,
+                "manifest": str(self._manifest_path),
+                "embedding_spec": self._embedder.spec,
+                "parser_version": self._parser.version,
+                "chunk_target_tokens": self._settings.chunk_target_tokens,
+                "chunk_overlap_tokens": self._settings.chunk_overlap_tokens,
+                "chunk_hard_max_tokens": self._settings.chunk_hard_max_tokens,
+            }
+            if existing_job_id is not None:
+                job_id = await job_repo.start_job(session, existing_job_id, config=config)
+            else:
+                job = await job_repo.create_job(session, trigger=options.trigger, config=config)
+                job_id = job.id
             summary = IngestionSummary(job_id=job_id, status=IngestionJobStatus.RUNNING.value)
             requests_before = self._embedder.requests_made
             staged: list[uuid.UUID] = []

@@ -160,3 +160,91 @@ async def embedding_column_dimension(session: AsyncSession) -> int:
         )
     )
     return int(value or 0)
+
+
+@dataclass(frozen=True)
+class DocumentFilters:
+    search: str | None = None
+    category: str | None = None
+    status: str | None = DocumentStatus.ACTIVE.value
+    enabled: bool | None = None
+
+
+_CHUNK_COUNTS = (
+    select(DocumentChunk.document_pk, func.count().label("chunk_count"))
+    .group_by(DocumentChunk.document_pk)
+    .subquery()
+)
+_CHUNK_MODEL = (
+    select(DocumentChunk.document_pk, func.max(DocumentChunk.embedding_model).label("model"))
+    .group_by(DocumentChunk.document_pk)
+    .subquery()
+)
+
+
+async def list_documents(
+    session: AsyncSession, filters: DocumentFilters, *, offset: int, limit: int
+) -> tuple[int, list[tuple[Document, int]]]:
+    """Documents matching the filters, one row per stored version, newest first by title."""
+    conditions = []
+    if filters.status:
+        conditions.append(Document.status == filters.status)
+    if filters.category:
+        conditions.append(Document.category == filters.category)
+    if filters.enabled is not None:
+        conditions.append(Document.enabled.is_(filters.enabled))
+    if filters.search:
+        pattern = f"%{filters.search.replace('%', r'\%').replace('_', r'\_')}%"
+        conditions.append(
+            Document.title.ilike(pattern, escape="\\")
+            | Document.document_id.ilike(pattern, escape="\\")
+            | Document.canonical_url.ilike(pattern, escape="\\")
+        )
+    total = int(
+        await session.scalar(select(func.count()).select_from(Document).where(*conditions)) or 0
+    )
+    rows = await session.execute(
+        select(Document, func.coalesce(_CHUNK_COUNTS.c.chunk_count, 0))
+        .outerjoin(_CHUNK_COUNTS, _CHUNK_COUNTS.c.document_pk == Document.id)
+        .where(*conditions)
+        .order_by(Document.category, Document.title, Document.document_id, Document.version.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    return total, [(doc, int(count)) for doc, count in rows]
+
+
+async def document_versions(
+    session: AsyncSession, document_id: str
+) -> list[tuple[Document, int, str | None]]:
+    rows = await session.execute(
+        select(
+            Document,
+            func.coalesce(_CHUNK_COUNTS.c.chunk_count, 0),
+            _CHUNK_MODEL.c.model,
+        )
+        .outerjoin(_CHUNK_COUNTS, _CHUNK_COUNTS.c.document_pk == Document.id)
+        .outerjoin(_CHUNK_MODEL, _CHUNK_MODEL.c.document_pk == Document.id)
+        .where(Document.document_id == document_id)
+        .order_by(Document.version.desc())
+    )
+    return [(doc, int(count), model) for doc, count, model in rows]
+
+
+async def knowledge_base_counts(session: AsyncSession) -> dict[str, int]:
+    row = (
+        await session.execute(
+            text(
+                "WITH live AS (SELECT id FROM documents WHERE status = 'active' AND enabled)"
+                " SELECT (SELECT count(*) FROM live) AS documents,"
+                " count(c.id) AS chunks,"
+                " count(c.id) FILTER (WHERE c.embedding IS NOT NULL) AS embedded_chunks"
+                " FROM document_chunks c JOIN live ON live.id = c.document_pk"
+            )
+        )
+    ).one()
+    return {
+        "documents": int(row.documents),
+        "chunks": int(row.chunks),
+        "embedded_chunks": int(row.embedded_chunks),
+    }

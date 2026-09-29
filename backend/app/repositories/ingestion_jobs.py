@@ -47,7 +47,9 @@ ACTIVE_JOB_STATES = (
 )
 
 
-async def recover_interrupted_jobs(session: AsyncSession) -> list[uuid.UUID]:
+async def recover_interrupted_jobs(
+    session: AsyncSession, *, exclude: uuid.UUID | None = None
+) -> list[uuid.UUID]:
     """Mark jobs that died mid-run as failed and fail their staged documents.
 
     Only call while holding the ingestion lock: then no other job can be running, so any
@@ -55,7 +57,10 @@ async def recover_interrupted_jobs(session: AsyncSession) -> list[uuid.UUID]:
     """
     ids = list(
         await session.scalars(
-            select(IngestionJob.id).where(IngestionJob.status.in_(ACTIVE_JOB_STATES))
+            select(IngestionJob.id).where(
+                IngestionJob.status.in_(ACTIVE_JOB_STATES),
+                *([IngestionJob.id != exclude] if exclude else []),
+            )
         )
     )
     if not ids:
@@ -79,10 +84,14 @@ async def recover_interrupted_jobs(session: AsyncSession) -> list[uuid.UUID]:
 
 
 async def create_job(
-    session: AsyncSession, *, trigger: str, config: dict[str, Any]
+    session: AsyncSession,
+    *,
+    trigger: str,
+    config: dict[str, Any],
+    status: IngestionJobStatus = IngestionJobStatus.RUNNING,
 ) -> IngestionJob:
     job = IngestionJob(
-        status=IngestionJobStatus.RUNNING.value,
+        status=status.value,
         trigger=trigger,
         config=config,
         total_documents=0,
@@ -109,3 +118,38 @@ async def latest_job(session: AsyncSession) -> IngestionJob | None:
         select(IngestionJob).order_by(IngestionJob.created_at.desc()).limit(1)
     )
     return job
+
+
+async def start_job(
+    session: AsyncSession, job_id: uuid.UUID, *, config: dict[str, Any]
+) -> uuid.UUID:
+    """Move a queued job (created by the API) to running."""
+    result = await session.execute(
+        update(IngestionJob)
+        .where(
+            IngestionJob.id == job_id,
+            IngestionJob.status == IngestionJobStatus.QUEUED.value,
+        )
+        .values(
+            status=IngestionJobStatus.RUNNING.value,
+            config=config,
+            started_at=datetime.now(UTC),
+        )
+    )
+    if not result.rowcount:  # type: ignore[attr-defined]
+        raise ValueError(f"ingestion job {job_id} is not queued")
+    await session.commit()
+    return job_id
+
+
+async def fail_job(session: AsyncSession, job_id: uuid.UUID, *, error: str, message: str) -> None:
+    await session.execute(
+        update(IngestionJob)
+        .where(IngestionJob.id == job_id, IngestionJob.status.in_(ACTIVE_JOB_STATES))
+        .values(
+            status=IngestionJobStatus.FAILED.value,
+            finished_at=datetime.now(UTC),
+            error_summary=[{"error": error, "message": message[:500]}],
+        )
+    )
+    await session.commit()

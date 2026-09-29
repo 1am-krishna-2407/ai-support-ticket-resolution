@@ -92,6 +92,12 @@ class RateLimitedError(AppError):
     default_message = "Too many requests. Please retry later."
 
 
+class NotFoundError(AppError):
+    code = ErrorCode.NOT_FOUND
+    status_code = 404
+    default_message = "The requested resource was not found."
+
+
 class DocumentNotFoundError(AppError):
     code = ErrorCode.DOCUMENT_NOT_FOUND
     status_code = 404
