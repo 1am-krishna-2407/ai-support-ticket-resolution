@@ -171,3 +171,42 @@ def test_strict_schema_rules(model: Any) -> None:
     for obj in _objects(schema):
         assert obj["additionalProperties"] is False
         assert set(obj["required"]) == set(obj["properties"])
+
+
+async def test_token_bucket_paces_to_tokens_per_minute() -> None:
+    from app.providers.llm import TokenBucket
+
+    now = [0.0]
+    sleeps: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+        now[0] += seconds
+
+    bucket = TokenBucket(6000, clock=lambda: now[0], sleep=sleep)  # 100 tokens/s
+    assert await bucket.acquire(5000) == 0  # full bucket: no wait
+    waited = await bucket.acquire(3000)  # 1000 left, needs 2000 more: 20 s
+    assert waited == pytest.approx(20.0)
+    assert await bucket.acquire(99_999) == pytest.approx(60.0)  # capped at full capacity
+
+
+async def test_requests_reserve_prompt_plus_output_tokens(
+    make_settings: Callable[..., Settings],
+) -> None:
+    settings = make_settings(
+        llm_api_key=KEY, llm_base_url="https://api.groq.com/openai/v1",
+        llm_tokens_per_minute=1200, llm_max_output_tokens=1000,
+    )  # fmt: skip
+    now = [0.0]
+    sleeps: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+        now[0] += seconds
+
+    p = OpenAICompatibleChatProvider(
+        settings, transport=httpx.MockTransport(lambda r: ok()), sleep=sleep, clock=lambda: now[0]
+    )
+    await _call(p)  # ~1000+ tokens reserved from a 1200 budget
+    await _call(p)  # must wait for the budget to refill
+    assert sleeps and sum(sleeps) > 30

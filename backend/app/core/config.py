@@ -90,7 +90,10 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     llm_max_output_tokens: int = Field(default=1500, gt=0)
     llm_timeout_seconds: float = Field(default=60.0, gt=0)
-    llm_max_retries: int = Field(default=2, ge=0, le=5)
+    llm_max_retries: int = Field(default=2, ge=0, le=8)
+    # Client-side pacing to the provider's tokens-per-minute limit (Groq free tier for
+    # gpt-oss-120b: 8,000). Each request reserves prompt + max output tokens. None disables.
+    llm_tokens_per_minute: int | None = Field(default=8000, gt=0)
     llm_seed: int | None = 7
 
     # --- Embedding provider -----------------------------------------------
@@ -157,7 +160,8 @@ class Settings(BaseSettings):
     reranker_enabled: bool = False
 
     # --- Generation / grounding --------------------------------------------
-    context_max_tokens: int = Field(default=6000, gt=0)
+    # Evidence budget per draft; sized so prompt + output fit a free-tier minute budget.
+    context_max_tokens: int = Field(default=3500, gt=0)
     classification_min_confidence: float = Field(default=0.6, ge=0.0, le=1.0)
     classification_ambiguity_margin: float = Field(default=0.15, ge=0.0, le=1.0)
     claim_level_grounding_enabled: bool = False

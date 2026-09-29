@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import json
 import logging
 import random
 import time
@@ -27,6 +28,7 @@ from pydantic import BaseModel
 from app.core.config import Settings
 from app.core.errors import InvalidModelOutputError, LLMProviderError, LLMTimeoutError
 from app.core.logging import redact_text
+from app.core.tokenizer import get_tokenizer
 
 logger = logging.getLogger("app.providers.llm")
 
@@ -90,6 +92,48 @@ def strict_json_schema(model: type[BaseModel]) -> dict[str, Any]:
     return resolve(raw)  # type: ignore[no-any-return]
 
 
+class TokenBucket:
+    """Tokens-per-minute pacing: waits until a request's estimated tokens are available.
+
+    A request larger than the whole budget is let through once the bucket is full, so the
+    provider (not the client) decides; the context budget keeps requests below that size.
+    """
+
+    def __init__(
+        self,
+        tokens_per_minute: int,
+        *,
+        clock: Callable[[], float] = time.monotonic,
+        sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    ) -> None:
+        self.capacity = float(tokens_per_minute)
+        self.rate = tokens_per_minute / 60.0
+        self._tokens = self.capacity
+        self._updated = clock()
+        self._clock = clock
+        self._sleep = sleep
+        self._lock = asyncio.Lock()
+
+    def _refill(self) -> None:
+        now = self._clock()
+        self._tokens = min(self.capacity, self._tokens + (now - self._updated) * self.rate)
+        self._updated = now
+
+    async def acquire(self, tokens: int) -> float:
+        """Reserve `tokens`; returns the seconds waited."""
+        need = min(float(tokens), self.capacity)
+        waited = 0.0
+        async with self._lock:
+            self._refill()
+            while self._tokens < need:
+                delay = (need - self._tokens) / self.rate
+                await self._sleep(delay)
+                waited += delay
+                self._refill()
+            self._tokens -= need
+        return waited
+
+
 class OpenAICompatibleChatProvider:
     def __init__(
         self,
@@ -97,12 +141,19 @@ class OpenAICompatibleChatProvider:
         *,
         transport: httpx.AsyncBaseTransport | None = None,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+        clock: Callable[[], float] = time.monotonic,
     ) -> None:
         if settings.llm_api_key is None or not settings.llm_api_key.get_secret_value():
             raise LLMProviderError("LLM_API_KEY is not configured.")
         self._settings = settings
         self._sleep = sleep
         self.last_failure: dict[str, Any] | None = None  # reported by GET /ready
+        self._count = get_tokenizer(settings.tokenizer_encoding).count
+        self._bucket = (
+            TokenBucket(settings.llm_tokens_per_minute, clock=clock, sleep=sleep)
+            if settings.llm_tokens_per_minute
+            else None
+        )
         self._client = httpx.AsyncClient(
             base_url=settings.llm_base_url.rstrip("/") + "/",
             transport=transport,
@@ -167,6 +218,19 @@ class OpenAICompatibleChatProvider:
         max_tokens: int | None,
     ) -> LLMResult:
         body = self._body(messages, schema_name, schema, max_tokens)
+        if self._bucket is not None:
+            # Estimate: message text + schema (sent as part of the request) + max output.
+            estimate = (
+                sum(self._count(m.content) for m in messages)
+                + len(json.dumps(schema)) // 4
+                + int(body["max_completion_tokens"])
+            )
+            waited = await self._bucket.acquire(estimate)
+            if waited > 0.5:
+                logger.info(
+                    "llm request paced for tokens-per-minute limit",
+                    extra={"waited_seconds": round(waited, 1), "estimated_tokens": estimate},
+                )
         if self._settings.log_llm_payloads:
             logger.info("llm request", extra={"payload": body})
         retries = self._settings.llm_max_retries
