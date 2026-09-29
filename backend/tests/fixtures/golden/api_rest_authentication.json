@@ -1,0 +1,391 @@
+{
+  "title": "REST API authentication",
+  "description": "Authenticate with the GitLab REST API by using OAuth 2.0, access, and job tokens.",
+  "blocks": [
+    {
+      "text": "Most API requests require authentication, or return only public data when authentication isn’t provided. When authentication is not required, the documentation for each endpoint specifies this. For example, the `/projects/:id` endpoint does not require authentication.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "You can authenticate with the GitLab REST API in several ways:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "OAuth 2.0 tokens",
+        "Personal access tokens",
+        "Project access tokens",
+        "Group access tokens",
+        "Session cookie",
+        "CI/CD job tokens (specific endpoints only)"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Project access tokens are supported by:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "GitLab Self-Managed: Free, Premium, and Ultimate.",
+        "GitLab.com: Premium and Ultimate."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "If you are an administrator, you or your application can authenticate as a specific user, using either:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Impersonation tokens",
+        "Sudo"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "If authentication information is not valid or is missing, GitLab returns an error message with a status code of `401`:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "json",
+      "code": "{\n  \"message\": \"401 Unauthorized\"\n}",
+      "kind": "code"
+    },
+    {
+      "label": "Note",
+      "text": "Deploy tokens can’t be used with the GitLab public API. For details, see Deploy Tokens.",
+      "kind": "callout"
+    },
+    {
+      "level": 2,
+      "text": "Rate limits",
+      "anchor": "rate-limits",
+      "kind": "heading"
+    },
+    {
+      "text": "GitLab rate limits requests to the REST API. Authenticated requests receive a higher allowance than anonymous requests.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "On GitLab.com, allowances depend on your subscription plan. For more information, see GitLab.com rate limits.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "When you exceed a rate limit, GitLab returns a `429 Too Many Requests` response with a `Retry-After` header that tells you how long to wait. For the full list of rate limit headers, see response headers.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "OAuth 2.0 tokens",
+      "anchor": "oauth-20-tokens",
+      "kind": "heading"
+    },
+    {
+      "text": "You can use an OAuth 2.0 token to authenticate with the API by passing it in either the `access_token` parameter or the `Authorization` header.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Example of using the OAuth 2.0 token in a parameter:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "shell",
+      "code": "curl --request GET \\\n  --url \"https://gitlab.example.com/api/v4/projects?access_token=OAUTH-TOKEN\"",
+      "kind": "code"
+    },
+    {
+      "text": "Example of using the OAuth 2.0 token in a header:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "shell",
+      "code": "curl --request GET \\\n  --header \"Authorization: Bearer OAUTH-TOKEN\" \\\n  --url \"https://gitlab.example.com/api/v4/projects\"",
+      "kind": "code"
+    },
+    {
+      "text": "Read more about GitLab as an OAuth 2.0 provider.",
+      "kind": "paragraph"
+    },
+    {
+      "label": "Note",
+      "text": "All OAuth access tokens are valid for two hours after they are created. You can use the `refresh_token` parameter to refresh tokens. See OAuth 2.0 token documentation for how to request a new access token using a refresh token.",
+      "kind": "callout"
+    },
+    {
+      "level": 2,
+      "text": "Personal, project, and group access tokens",
+      "anchor": "personal-project-and-group-access-tokens",
+      "kind": "heading"
+    },
+    {
+      "text": "You can use access tokens to authenticate with the API. Pass the token using the `PRIVATE-TOKEN` header (recommended) or other methods.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "For example, using the recommended header method:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "shell",
+      "code": "curl --request GET \\\n  --header \"PRIVATE-TOKEN: <your_access_token>\" \\\n  --url \"https://gitlab.example.com/api/v4/projects\"",
+      "kind": "code"
+    },
+    {
+      "text": "You can also use personal, project, or group access tokens with OAuth-compliant headers. For example:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "shell",
+      "code": "curl --request GET \\\n  --header \"Authorization: Bearer <your_access_token>\" \\\n  --url \"https://gitlab.example.com/api/v4/projects\"",
+      "kind": "code"
+    },
+    {
+      "level": 2,
+      "text": "Job tokens",
+      "anchor": "job-tokens",
+      "kind": "heading"
+    },
+    {
+      "text": "You can use job tokens to authenticate with specific API endpoints. In GitLab CI/CD jobs, the token is available as the `CI_JOB_TOKEN` variable.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Pass the token using the `JOB-TOKEN` header (recommended) or other methods. For all authentication methods, see CI/CD job token authentication.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "For example, using the header method:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "shell",
+      "code": "curl --request GET \\\n  --header \"JOB-TOKEN: $CI_JOB_TOKEN\" \\\n  --url \"https://gitlab.example.com/api/v4/projects/1/releases\"",
+      "kind": "code"
+    },
+    {
+      "level": 2,
+      "text": "Session cookie",
+      "anchor": "session-cookie",
+      "kind": "heading"
+    },
+    {
+      "text": "Signing in to the main GitLab application sets a `_gitlab_session` cookie. The API uses this cookie for authentication if it’s present. Using the API to generate a new session cookie isn’t supported.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "The primary user of this authentication method is the web frontend of GitLab itself. The web frontend can use the API as the authenticated user to get a list of projects without explicitly passing an access token.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Impersonation tokens",
+      "anchor": "impersonation-tokens",
+      "kind": "heading"
+    },
+    {
+      "text": "Impersonation tokens are a type of personal access token. They can be created only by an administrator, and are used to authenticate with the API as a specific user.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Use impersonation tokens as an alternative to:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "The user’s password or one of their personal access tokens.",
+        "The Sudo feature. The user’s or administrator’s password or token may not be known, or may change over time."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "For more details, see the User tokens API documentation.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Impersonation tokens are used exactly like regular personal access tokens, and can be passed in either the `private_token` parameter or the `PRIVATE-TOKEN` header.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Disable impersonation",
+      "anchor": "disable-impersonation",
+      "kind": "heading"
+    },
+    {
+      "text": "By default, impersonation is enabled. To disable impersonation:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "Edit the `/etc/gitlab/gitlab.rb` file:\n```ruby\ngitlab_rails['impersonation_enabled'] = false\n```",
+        "Save the file, and then reconfigure GitLab for the changes to take effect."
+      ],
+      "kind": "list"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "Edit the `config/gitlab.yml` file:\n```yaml\ngitlab:\n  impersonation_enabled: false\n```",
+        "Save the file, and then restart GitLab for the changes to take effect."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To re-enable impersonation, remove this configuration and reconfigure GitLab (Linux package installations) or restart GitLab (self-compiled installations).",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Sudo",
+      "anchor": "sudo",
+      "kind": "heading"
+    },
+    {
+      "text": "All API requests support performing an API request as if you were another user, provided you’re authenticated as an administrator with an OAuth or personal access token that has the `sudo` scope. The API requests are executed with the permissions of the impersonated user.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "As an administrator, pass the `sudo` parameter either by using query string or a header with an ID or username (case-insensitive) of the user you want to perform the operation as. If passed as a header, the header name must be `Sudo`.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If a non administrative access token is provided, GitLab returns an error message with a status code of `403`:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "json",
+      "code": "{\n  \"message\": \"403 Forbidden - Must be admin to use sudo\"\n}",
+      "kind": "code"
+    },
+    {
+      "text": "If an access token without the `sudo` scope is provided, an error message is returned with a status code of `403`:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "json",
+      "code": "{\n  \"error\": \"insufficient_scope\",\n  \"error_description\": \"The request requires higher privileges than provided by the access token.\",\n  \"scope\": \"sudo\"\n}",
+      "kind": "code"
+    },
+    {
+      "text": "If the sudo user ID or username cannot be found, an error message is returned with a status code of `404`:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "json",
+      "code": "{\n  \"message\": \"404 User with ID or username '123' Not Found\"\n}",
+      "kind": "code"
+    },
+    {
+      "text": "Example of a valid API request and a request using cURL with sudo request, providing a username:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "plaintext",
+      "code": "GET /projects?private_token=<your_access_token>&sudo=username",
+      "kind": "code"
+    },
+    {
+      "language": "shell",
+      "code": "curl --request GET \\\n  --header \"PRIVATE-TOKEN: <your_access_token>\" \\\n  --header \"Sudo: username\" \\\n  --url \"https://gitlab.example.com/api/v4/projects\"",
+      "kind": "code"
+    },
+    {
+      "text": "Example of a valid API request and a request using cURL with sudo request, providing an ID:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "plaintext",
+      "code": "GET /projects?private_token=<your_access_token>&sudo=23",
+      "kind": "code"
+    },
+    {
+      "language": "shell",
+      "code": "curl --request GET \\\n  --header \"PRIVATE-TOKEN: <your_access_token>\" \\\n  --header \"Sudo: 23\" \\\n  --url \"https://gitlab.example.com/api/v4/projects\"",
+      "kind": "code"
+    }
+  ],
+  "links": [
+    {
+      "text": "/projects/:id endpoint",
+      "url": "https://docs.gitlab.com/api/projects/#retrieve-a-project"
+    },
+    {
+      "text": "OAuth 2.0 tokens",
+      "url": "https://docs.gitlab.com/api/rest/authentication/#oauth-20-tokens"
+    },
+    {
+      "text": "Personal access tokens",
+      "url": "https://docs.gitlab.com/user/profile/personal_access_tokens/"
+    },
+    {
+      "text": "Project access tokens",
+      "url": "https://docs.gitlab.com/user/project/settings/project_access_tokens/"
+    },
+    {
+      "text": "Group access tokens",
+      "url": "https://docs.gitlab.com/user/group/settings/group_access_tokens/"
+    },
+    {
+      "text": "Session cookie",
+      "url": "https://docs.gitlab.com/api/rest/authentication/#session-cookie"
+    },
+    {
+      "text": "CI/CD job tokens",
+      "url": "https://docs.gitlab.com/api/rest/authentication/#job-tokens"
+    },
+    {
+      "text": "Impersonation tokens",
+      "url": "https://docs.gitlab.com/api/rest/authentication/#impersonation-tokens"
+    },
+    {
+      "text": "Sudo",
+      "url": "https://docs.gitlab.com/api/rest/authentication/#sudo"
+    },
+    {
+      "text": "Deploy Tokens",
+      "url": "https://docs.gitlab.com/user/project/deploy_tokens/"
+    },
+    {
+      "text": "GitLab.com rate limits",
+      "url": "https://docs.gitlab.com/user/gitlab_com/rate_limits/"
+    },
+    {
+      "text": "response headers",
+      "url": "https://docs.gitlab.com/administration/settings/user_and_ip_rate_limits/#response-headers"
+    },
+    {
+      "text": "OAuth 2.0 token",
+      "url": "https://docs.gitlab.com/api/oauth2/"
+    },
+    {
+      "text": "specific API endpoints",
+      "url": "https://docs.gitlab.com/ci/jobs/ci_job_token/#job-token-access"
+    },
+    {
+      "text": "CI/CD job token authentication",
+      "url": "https://docs.gitlab.com/ci/jobs/ci_job_token/#rest-api-authentication"
+    },
+    {
+      "text": "User tokens API",
+      "url": "https://docs.gitlab.com/api/user_tokens/#create-an-impersonation-token"
+    },
+    {
+      "text": "reconfigure",
+      "url": "https://docs.gitlab.com/administration/restart_gitlab/#reconfigure-a-linux-package-installation"
+    },
+    {
+      "text": "restart",
+      "url": "https://docs.gitlab.com/administration/restart_gitlab/#self-compiled-installations"
+    },
+    {
+      "text": "administrator",
+      "url": "https://docs.gitlab.com/user/permissions/"
+    }
+  ]
+}

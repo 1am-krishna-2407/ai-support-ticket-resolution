@@ -1,5 +1,65 @@
 # Changelog
 
+## Provider change (2026-09-29)
+
+- LLM: Groq `openai/gpt-oss-120b` (OpenAI-compatible, strict JSON-schema output). Embeddings:
+  Gemini `gemini-embedding-001` at 1536 dimensions (native `batchEmbedContents`). Groq has
+  no embedding models. ADRs D1, D2, D4, D5, D13 revised; plan saved to
+  `docs/implementation-plan.md`.
+
+## Phase 4: AI resolution (in progress, not tagged)
+
+**Added** Groq chat provider (retries, timeouts, truncation detection, reasoning text never
+returned); versioned prompts (`system_v1` with ten rules, `classification_v1`,
+`ticket_analysis_v1`, `grounding_v1`); triage (classification + eight priority signals in
+one call); deterministic priority rubric; delimited, budgeted evidence context with
+injection screening; structured generation with one bounded correction attempt; citation
+validator; grounding validator (evidence, threshold, citations, cited steps, identifiers
+present in cited text, version claims, confidence calibration, grounded-flag consistency,
+optional claim-level check); human-review decision with 15 reasons; `TicketAnalysisService`;
+`POST /tickets/analyze`, `POST /tickets/classify`.
+
+**Verified** with scripted providers: valid draft, correction, double failure, hallucinated
+and out-of-set citations, invented commands, overconfidence, timeouts, provider errors,
+retrieval failure, insufficient evidence (no generation call), injection in the ticket and
+in retrieved chunks. One real Groq call confirmed strict-schema triage output (1.8 s).
+
+**Open:** the manual run on ~10 real tickets needs query embeddings, which wait on Gemini quota.
+
+## Phase 3: Retrieval (in progress, not tagged)
+
+**Added** query transformation (verbatim extraction of CI variables, flags, versions, HTTP
+codes, file names, config keys, commands, error lines, quoted strings); vector search
+(HNSW, iterative scan, active + enabled filter); OR-lexeme full-text search; exact-phrase
+search; RRF fusion with deterministic tie-breaks; dedupe and a per-document cap; reranker
+protocol (no-op default); threshold on cosine similarity with an exact-phrase override (D8);
+`POST /search`, `POST /tickets/retrieve`, `GET /documents/{id}/chunks`.
+
+**Verified** on real pgvector with a known-vector corpus: rankings for each method,
+inactive/disabled exclusion, the exact error string found when semantically distant, weak
+queries flagged insufficient, cap and dedupe, category filter, determinism, API validation.
+
+**Open:** golden queries and threshold tuning on the real corpus need query embeddings.
+
+## Phase 2: Knowledge ingestion (in progress, not tagged)
+
+**Added** 217-page manifest (curation script + priority lists); SSRF-safe fetcher (pinned IP
+with SNI, per-hop re-validation, robots.txt, size cap, pacing, retries); GitLab parser with
+golden files; structure-aware chunker; Gemini embedding provider (task types,
+normalisation, dimension checks, `RetryInfo`-aware backoff, fail-fast on daily quota);
+versioned staged publish; single-flight advisory lock; interrupted-job recovery; reuse-only
+mode after quota exhaustion; `python -m app.scripts.ingest`; migration `0004`;
+`docs/licensing.md`, `docs/ingestion.md`.
+
+**Verified:** 45 real documents (989 chunks) active; re-run detects them unchanged with zero
+embedding calls; recovery and reuse proven on a real interrupted run.
+
+**Open (exit gate):** the remaining 172 documents are deferred by the Gemini free-tier limit
+of 1,000 embedding inputs per day.
+
+**Fixed along the way:** Alembic `fileConfig` disabled the app's loggers after in-process
+migrations; cancelled jobs were finalised as `running` with a finish time.
+
 ## Phase 1: Foundation (tag `phase-1-complete`)
 
 **Added**

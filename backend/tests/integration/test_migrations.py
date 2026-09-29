@@ -190,3 +190,57 @@ def test_hnsw_dimension_limit_is_enforced(alembic_config: Config) -> None:
     command.upgrade(alembic_config, "0002")
     with pytest.raises(RuntimeError, match="exceeds the HNSW limit"):
         command.upgrade(alembic_config, "head")
+
+
+def test_resize_migration_clears_vectors_and_rebuilds_index(alembic_config: Config) -> None:
+    command.upgrade(alembic_config, "0004")
+    url = _url(alembic_config)
+
+    def _seed(conn: Connection) -> None:
+        conn.exec_driver_sql(
+            "INSERT INTO documents (id, document_id, version, title, canonical_url, category,"
+            " source_type, license, content_hash, retrieved_at, status)"
+            " VALUES (gen_random_uuid(), 'doc-1', 1, 'T', 'u', 'api', 'documentation',"
+            " 'l', 'h', now(), 'active')"
+        )
+        conn.exec_driver_sql(
+            "INSERT INTO document_chunks (id, chunk_id, document_pk, document_id,"
+            " document_version, chunk_index, title, heading_path, content, content_hash,"
+            " token_count, category, canonical_url, has_code, is_split_oversize, embedding,"
+            " embedding_model)"
+            " SELECT gen_random_uuid(), 'c1', id, 'doc-1', 1, 0, 'T', 'T', 'text', 'h', 3, 'api',"
+            " 'u', false, false, '[1,0,0,0,0,0,0,0]', 'old-model@8' FROM documents"
+        )
+        conn.commit()
+
+    _query(url, _seed)
+    alembic_config.attributes["embedding_dimension"] = 16
+    command.upgrade(alembic_config, "head")
+
+    dims = _query(
+        url,
+        _scalars(
+            "SELECT atttypmod FROM pg_attribute "
+            "WHERE attrelid = 'document_chunks'::regclass AND attname = 'embedding'"
+        ),
+    )
+    assert dims == {16}
+    rows = _query(
+        url,
+        lambda c: list(c.exec_driver_sql("SELECT embedding, embedding_model FROM document_chunks")),
+    )
+    assert [tuple(r) for r in rows] == [(None, None)]  # old vectors are incompatible
+    indexes = _query(url, _scalars("SELECT indexname FROM pg_indexes WHERE schemaname = 'public'"))
+    assert "ix_document_chunks_embedding_hnsw" in indexes
+
+
+def test_resize_migration_is_noop_when_dimension_matches(alembic_config: Config) -> None:
+    command.upgrade(alembic_config, "head")  # 0002 created vector(8); 0005 target is also 8
+    dims = _query(
+        _url(alembic_config),
+        _scalars(
+            "SELECT atttypmod FROM pg_attribute "
+            "WHERE attrelid = 'document_chunks'::regclass AND attname = 'embedding'"
+        ),
+    )
+    assert dims == {TEST_EMBEDDING_DIMENSION}

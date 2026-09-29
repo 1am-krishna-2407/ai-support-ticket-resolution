@@ -22,8 +22,9 @@ def test_defaults_are_valid(settings: Settings) -> None:
 
 
 def test_database_url_is_secret(settings: Settings) -> None:
-    assert "pass" not in repr(settings)
-    assert "pass" not in str(settings.database_url)
+    # The placeholder URL's password is "pass"; look for the credential, not the word.
+    assert "user:pass@" not in repr(settings)
+    assert "user:pass@" not in str(settings.database_url)
 
 
 @pytest.mark.parametrize("token", [None, "", "short"])

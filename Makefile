@@ -30,8 +30,8 @@ migrate: ## Apply database migrations (never run automatically)
 migrate-down: ## Roll back one migration
 	docker compose run --rm backend alembic downgrade -1
 
-ingest:
-	@echo "Ingestion is implemented in Phase 2 (python -m app.scripts.ingest)." && exit 1
+ingest: ## Fetch, parse, chunk, embed and publish the knowledge base (ARGS="--force" etc.)
+	docker compose run --rm backend python -m app.scripts.ingest $(ARGS)
 
 eval:
 	@echo "Evaluation is implemented in Phase 7 (python -m app.scripts.evaluate)." && exit 1

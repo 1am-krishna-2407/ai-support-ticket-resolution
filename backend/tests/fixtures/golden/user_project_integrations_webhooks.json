@@ -1,0 +1,1182 @@
+{
+  "title": "Webhooks",
+  "description": "Configure and manage project and group webhooks in GitLab.",
+  "blocks": [
+    {
+      "text": "Availability: Tier: Free, Premium, Ultimate; Offering: GitLab.com, GitLab Self-Managed, GitLab Dedicated",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Webhooks connect GitLab to your other tools and systems through real-time notifications. When important events happen in GitLab, webhooks send that information directly to your external applications. Build automation workflows by reacting to merge requests, code pushes, and issue updates.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "With webhooks, your team stays synchronized as changes occur:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "External issue trackers update automatically when GitLab issues change.",
+        "Chat applications notify team members about pipeline completions.",
+        "Custom scripts deploy applications when code reaches the main branch.",
+        "Monitoring systems track development activity across your entire organization."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 2,
+      "text": "Webhook events",
+      "anchor": "webhook-events",
+      "kind": "heading"
+    },
+    {
+      "text": "Various events in GitLab can trigger webhooks. For example:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Pushing code to a repository.",
+        "Posting a comment on an issue.",
+        "Creating a merge request."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 2,
+      "text": "Webhook limits",
+      "anchor": "webhook-limits",
+      "kind": "heading"
+    },
+    {
+      "text": "GitLab.com enforces webhook limits, including:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Maximum number of webhooks per project or group.",
+        "Number of webhook calls per minute.",
+        "Webhook timeout duration."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "For GitLab Self-Managed, administrators can modify these limits.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Push event limits",
+      "anchor": "push-event-limits",
+      "kind": "heading"
+    },
+    {
+      "text": "GitLab limits webhook triggers for push events that include multiple changes:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Default limit: 3 branches or tags per push.",
+        "Behavior when exceeded: No webhooks are triggered for the entire push event.",
+        "Applies to: Both project webhooks and system hooks.",
+        "Configuration: GitLab Self-Managed administrators can modify the `push_event_hooks_limit` setting through the application settings API."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "If you frequently push multiple tags or branches simultaneously and need webhook notifications, contact your GitLab administrator to increase this limit.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Group webhooks",
+      "anchor": "group-webhooks",
+      "kind": "heading"
+    },
+    {
+      "text": "Availability: Tier: Premium, Ultimate",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Group webhooks are custom HTTP callbacks that send notifications for events across all projects in a group and its subgroups.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Types of group webhook events",
+      "anchor": "types-of-group-webhook-events",
+      "kind": "heading"
+    },
+    {
+      "text": "You can configure group webhooks to listen for:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "All events that occur in projects in the group and subgroups",
+        "Group-specific events, including group member events, project events, and subgroup events"
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 3,
+      "text": "Webhooks in both a project and a group",
+      "anchor": "webhooks-in-both-a-project-and-a-group",
+      "kind": "heading"
+    },
+    {
+      "text": "If you configure identical webhooks in both a group and a project in that group, both webhooks are triggered for events in that project. This allows for flexible event handling at different levels of your GitLab organization.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Configure webhooks",
+      "anchor": "configure-webhooks",
+      "kind": "heading"
+    },
+    {
+      "text": "Create and configure webhooks in GitLab to integrate with your project’s workflow. Use these features to set up webhooks that meet your specific requirements.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Create a webhook",
+      "anchor": "create-a-webhook",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Signing token text box introduced in GitLab 19.0 with a feature flag named `webhook_signing_token`. Enabled by default.\n- Feature flag `webhook_signing_token` removed in GitLab 19.1.",
+      "kind": "callout"
+    },
+    {
+      "text": "For new webhooks, use a signing token instead of a secret token. The signing token computes an HMAC-SHA256 signature over the payload, so your endpoint can verify both the authenticity and integrity of the request. The secret token only provides a plain-text value in a header, which offers weaker guarantees. The secret token is not recommended for new webhooks.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Create a webhook to send notifications about events in your project or group.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "For project webhooks, you must have the Maintainer or Owner role for the project.",
+        "For group webhooks, you must have the Owner role for the group."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To create a webhook:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the top bar, select Search or go to and find your project or group.",
+        "In the left sidebar, select Settings > Webhooks.",
+        "Select Add new webhook.",
+        "In URL, enter the URL of the webhook endpoint. Use percent-encoding for special characters.",
+        "Optional. Enter a Name and Description for the webhook.",
+        "Optional. Configure request authentication. Use a signing token for stronger security:\n  - Signing token (recommended): Select Generate signing token. Copy and save the token now because it is displayed only once. Your webhook endpoint can use this token to verify the HMAC-SHA256 signature.\n  - Secret token (not recommended): Enter a token in the Secret token field. This token is sent as plain text in the `X-Gitlab-Token` HTTP header and provides weaker security guarantees than a signing token. Use the signing token instead for new webhooks.",
+        "In the Trigger section, select the events to trigger the webhook.",
+        "Optional. To send GitLab Duo flow lifecycle events to this webhook, under GitLab Duo Agent Platform, select the Send Duo flow events to this webhook checkbox. This section appears only where GitLab Duo flow webhook callbacks are available.",
+        "Optional. To disable SSL verification, clear the Enable SSL verification checkbox.",
+        "Select Add webhook."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 3,
+      "text": "Signing tokens",
+      "anchor": "signing-tokens",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Introduced in GitLab 19.0 with a feature flag named `webhook_signing_token`. Enabled by default.\n- Generally available in GitLab 19.1. Feature flag `webhook_signing_token` removed.",
+      "kind": "callout"
+    },
+    {
+      "text": "Use a signing token to verify that webhook payloads originate from GitLab and have not been tampered with. Unlike the secret token, the signing token is used to compute an HMAC-SHA256 signature over the payload. This means recipients can independently verify both the authenticity and integrity of the received payload.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "GitLab webhook delivery follows the Standard Webhooks specification. Every webhook request includes the `webhook-id` and `webhook-timestamp` headers. When a signing token is configured, GitLab also includes the `webhook-signature` header with the HMAC-SHA256 signature. Each signature has the format `v1,{base64_signature}`. The header might contain multiple space-separated signatures. GitLab currently sends one signature, but this might change in the future. The signature is computed over the string `{message_id}.{timestamp}.{body}`, where:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "`{message_id}` is the value of the `webhook-id` header.",
+        "`{timestamp}` is the value of the `webhook-timestamp` header.",
+        "`{body}` is the raw JSON request body."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 4,
+      "text": "Verify the signature",
+      "anchor": "verify-the-signature",
+      "kind": "heading"
+    },
+    {
+      "text": "To verify the signature in your webhook endpoint:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "Retrieve the `webhook-id`, `webhook-timestamp`, and `webhook-signature` header values.",
+        "Split the `webhook-signature` value on spaces to get the list of signatures.",
+        "Construct the message string: `\"{message_id}.{timestamp}.{body}\"`.",
+        "Decode the signing token: strip the `whsec_` prefix, then base64-decode the remainder.",
+        "Compute the HMAC-SHA256 digest using the decoded key.",
+        "Encode the digest as base64 and prefix with `v1,`.",
+        "Check whether the computed signature matches any entry in the signature list. Use a constant-time comparison to prevent timing attacks."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Example in Ruby:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "ruby",
+      "code": "require 'base64'\nrequire 'openssl'\n\ndef valid_signature?(signing_token, message_id, timestamp, body, received_signatures)\n  raw_key = Base64.strict_decode64(signing_token.delete_prefix('whsec_'))\n  message = \"#{message_id}.#{timestamp}.#{body}\"\n  digest = OpenSSL::HMAC.digest('sha256', raw_key, message)\n  expected = \"v1,#{Base64.strict_encode64(digest)}\"\n  received_signatures.split(' ').any? do |sig|\n    ActiveSupport::SecurityUtils.secure_compare(expected, sig)\n  end\nend",
+      "kind": "code"
+    },
+    {
+      "text": "Example in Python:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "python",
+      "code": "import base64\nimport hashlib\nimport hmac\n\ndef valid_signature(signing_token, message_id, timestamp, body, received_signatures):\n    raw_key = base64.b64decode(signing_token.removeprefix('whsec_'))\n    message = f\"{message_id}.{timestamp}.{body}\".encode('utf-8')\n    digest = hmac.new(raw_key, message, hashlib.sha256).digest()\n    expected = \"v1,\" + base64.b64encode(digest).decode('utf-8')\n    return any(\n        hmac.compare_digest(expected, sig)\n        for sig in received_signatures.split(' ')\n    )",
+      "kind": "code"
+    },
+    {
+      "level": 4,
+      "text": "Backward compatibility",
+      "anchor": "backward-compatibility",
+      "kind": "heading"
+    },
+    {
+      "text": "The signing token works alongside the existing secret token. You can configure both on the same webhook:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "The `X-Gitlab-Token` header is still sent if a secret token is configured.",
+        "The `webhook-signature` and `webhook-id` headers are sent if a signing token is configured."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To migrate an existing webhook using the secret token to a signing token without downtime, configure both tokens on the same webhook during the transition. Update your receiver to verify the signature when `webhook-signature` is present and fall back to the secret token otherwise.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Once your receiver handles signatures correctly, you can remove the secret token from the webhook settings.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Security considerations",
+      "anchor": "security-considerations",
+      "kind": "heading"
+    },
+    {
+      "text": "To prevent replay attacks, validate that the timestamp in `webhook-timestamp` is recent before processing the payload.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "The signing token is never returned by the API.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Mask sensitive portions of webhook URLs",
+      "anchor": "mask-sensitive-portions-of-webhook-urls",
+      "kind": "heading"
+    },
+    {
+      "text": "Mask sensitive portions of webhook URLs to enhance security. Masked portions are replaced with configured values when webhooks are executed, are not logged, and are encrypted at rest in the database.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To mask sensitive portions of a webhook URL:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the top bar, select Search or go to and find your project or group.",
+        "In the left sidebar, select Settings > Webhooks.",
+        "In URL, enter the full URL of the webhook.",
+        "To define masked portions, select Add URL masking.",
+        "In Sensitive portion of URL, enter the part of the URL you want to mask.",
+        "In How it looks in the UI, enter the value to display instead of the masked portion. Variable names must contain only lowercase letters (`a-z`), numbers (`0-9`), or underscores (`_`).",
+        "Select Save changes."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "The masked values appear hidden in the UI. For example, if you’ve defined variables `path` and `value`, the webhook URL can look like this:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "plaintext",
+      "code": "https://webhook.example.com/{path}?key={value}",
+      "kind": "code"
+    },
+    {
+      "level": 3,
+      "text": "Custom headers",
+      "anchor": "custom-headers",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Introduced in GitLab 16.11 with a feature flag named `custom_webhook_headers`. Enabled by default.\n- Generally available in GitLab 17.0. Feature flag `custom_webhook_headers` removed.",
+      "kind": "callout"
+    },
+    {
+      "text": "Add custom headers to webhook requests for authentication to external services. You can configure up to 20 custom headers per webhook.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Custom headers must:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Not override the values of delivery headers.",
+        "Contain only alphanumeric characters, periods, dashes, or underscores.",
+        "Start with a letter and end with a letter or number.",
+        "Have no consecutive periods, dashes, or underscores."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Custom headers show in Recent events with masked values.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Custom webhook template",
+      "anchor": "custom-webhook-template",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Introduced in GitLab 16.10 with a feature flag named `custom_webhook_template`. Enabled by default.\n- Generally available in GitLab 17.0. Feature flag `custom_webhook_template` removed.\n- JSON serialization of interpolated field values introduced in GitLab 18.4 with a feature flag named `custom_webhook_template_serialization`. Disabled by default.\n- JSON serialization of interpolated field values made generally available in GitLab 18.6. Feature flag `custom_webhook_template_serialization` enabled by default.\n- Feature flag `custom_webhook_template_serialization` removed in GitLab 18.10.",
+      "kind": "callout"
+    },
+    {
+      "text": "Create a custom payload template for your webhook to control the data sent in the request body.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Create a custom webhook template",
+      "anchor": "create-a-custom-webhook-template",
+      "kind": "heading"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "For project webhooks, you must have the Maintainer or Owner role for the project.",
+        "For group webhooks, you must have the Owner role for the group."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To create a custom webhook template:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "Go to your webhook configuration.",
+        "Set a custom webhook template.",
+        "Ensure the template renders as valid JSON."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Use fields from the payload of an event in your template. For example:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "`{{build_name}}` for a job event",
+        "`{{deployable_url}}` for a deployment event"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To access nested properties, use periods to separate path segments.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Example custom webhook template",
+      "anchor": "example-custom-webhook-template",
+      "kind": "heading"
+    },
+    {
+      "text": "For this custom payload template:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "json",
+      "code": "{\n  \"event\": \"{{object_kind}}\",\n  \"project_name\": \"{{project.name}}\"\n}",
+      "kind": "code"
+    },
+    {
+      "text": "The resulting request payload for a `push` event is:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "json",
+      "code": "{\n  \"event\": \"push\",\n  \"project_name\": \"Example\"\n}",
+      "kind": "code"
+    },
+    {
+      "text": "Custom webhook templates cannot access properties in arrays.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Filter push events by branch",
+      "anchor": "filter-push-events-by-branch",
+      "kind": "heading"
+    },
+    {
+      "text": "Filter `push` events sent to your webhook endpoint by the branch name. Use one of these filtering options:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "All branches: Receive push events from all branches.",
+        "Wildcard pattern: Receive push events from branches that match a wildcard pattern.",
+        "Regular expression: Receive push events from branches that match a regular expression (regex)."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 4,
+      "text": "Use a wildcard pattern",
+      "anchor": "use-a-wildcard-pattern",
+      "kind": "heading"
+    },
+    {
+      "text": "To filter by using a wildcard pattern:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the webhook configuration, select Wildcard pattern.",
+        "Enter a pattern. For example:\n  - `*-stable` to match branches ending with `-stable`.\n  - `production/*` to match branches in the `production/` namespace."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 4,
+      "text": "Use a regular expression",
+      "anchor": "use-a-regular-expression",
+      "kind": "heading"
+    },
+    {
+      "text": "To filter by using a regular expression:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the webhook configuration, select Regular expression.",
+        "Enter a regex pattern that follows the RE2 syntax."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "For example, to exclude the `main` branch, use:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "plaintext",
+      "code": "^(?:.{0,3}|.{5,}|[^m].*|m[^a].*|ma[^i].*|mai[^n].*)$",
+      "kind": "code"
+    },
+    {
+      "level": 3,
+      "text": "Configure webhooks to support mutual TLS",
+      "anchor": "configure-webhooks-to-support-mutual-tls",
+      "kind": "heading"
+    },
+    {
+      "text": "Availability: Offering: GitLab Self-Managed",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Configure webhooks to support mutual TLS by setting a global client certificate in PEM format.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You must be a GitLab administrator."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To configure mutual TLS for webhooks:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "Prepare a client certificate in PEM format.",
+        "Optional. Protect the certificate with a PEM passphrase.",
+        "Configure GitLab to use the certificate."
+      ],
+      "kind": "list"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "Edit `/etc/gitlab/gitlab.rb`:\n```ruby\ngitlab_rails['http_client']['tls_client_cert_file'] = '<PATH TO CLIENT PEM FILE>'\ngitlab_rails['http_client']['tls_client_cert_password'] = '<OPTIONAL PASSWORD>'\n```",
+        "Save the file and reconfigure GitLab:\n```shell\nsudo gitlab-ctl reconfigure\n```"
+      ],
+      "kind": "list"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "Edit `docker-compose.yml`:\n```yaml\nversion: \"3.6\"\nservices:\n  gitlab:\n    image: 'gitlab/gitlab-ee:latest'\n    restart: always\n    hostname: 'gitlab.example.com'\n    environment:\n      GITLAB_OMNIBUS_CONFIG: |\n         gitlab_rails['http_client']['tls_client_cert_file'] = '<PATH TO CLIENT PEM FILE>'\n         gitlab_rails['http_client']['tls_client_cert_password'] = '<OPTIONAL PASSWORD>'\n```",
+        "Save the file and restart GitLab:\n```shell\ndocker compose up -d\n```"
+      ],
+      "kind": "list"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "Edit `/home/git/gitlab/config/gitlab.yml`:\n```yaml\nproduction: &base\n  http_client:\n    tls_client_cert_file: '<PATH TO CLIENT PEM FILE>'\n    tls_client_cert_password: '<OPTIONAL PASSWORD>'\n```",
+        "Save the file and restart GitLab:\n```shell\n# For systems running systemd\nsudo systemctl restart gitlab.target\n\n# For systems running SysV init\nsudo service gitlab restart\n```"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "After configuration, GitLab presents this certificate to the server during TLS handshakes for webhook connections.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Configure firewalls for webhook traffic",
+      "anchor": "configure-firewalls-for-webhook-traffic",
+      "kind": "heading"
+    },
+    {
+      "text": "Configure firewalls for webhook traffic based on how GitLab sends webhooks:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Asynchronously from Sidekiq nodes (most common)",
+        "Synchronously from Rails nodes (in specific cases)"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Webhooks are sent synchronously from Rails nodes when you test or retry a webhook in the UI.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "When configuring firewalls, ensure both Sidekiq and Rails nodes can send webhook traffic.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Manage webhooks",
+      "anchor": "manage-webhooks",
+      "kind": "heading"
+    },
+    {
+      "text": "Monitor and maintain your configured webhooks in GitLab.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "View webhook request history",
+      "anchor": "view-webhook-request-history",
+      "kind": "heading"
+    },
+    {
+      "text": "View the history of webhook requests to monitor their performance and troubleshoot issues.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "For project webhooks, you must have the Maintainer or Owner role for the project.",
+        "For group webhooks, you must have the Owner role for the group."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To view the request history for a webhook:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the top bar, select Search or go to and find your project or group.",
+        "In the left sidebar, select Settings > Webhooks.",
+        "Select Edit for the webhook.",
+        "Go to the Recent events section."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "The Recent events section displays all requests made to a webhook in the last two days. The table includes:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "HTTP status code:\n  - Green for `200`-`299` codes\n  - Red for other codes\n  - `internal error` for failed deliveries",
+        "Triggered event",
+        "Elapsed time of the request",
+        "Relative time the request was made"
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 4,
+      "text": "Inspect request and response details",
+      "anchor": "inspect-request-and-response-details",
+      "kind": "heading"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "For project webhooks, you must have the Maintainer or Owner role for the project.",
+        "For group webhooks, you must have the Owner role for the group."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Each webhook request in Recent events has a Request details page. This page contains the body and headers of:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "The response GitLab received from the webhook receiver endpoint",
+        "The webhook request GitLab sent"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To inspect the request and response details of a webhook event:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the top bar, select Search or go to and find your project or group.",
+        "In the left sidebar, select Settings > Webhooks.",
+        "Select Edit for the webhook.",
+        "Go to the Recent events section.",
+        "Select View details for the event."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To send the request again with the same data and the same `Idempotency-Key` header, select Resend Request. If the webhook URL has changed, you cannot resend the request. You can also resend the request programmatically through the project webhooks API.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Test a webhook",
+      "anchor": "test-a-webhook",
+      "kind": "heading"
+    },
+    {
+      "text": "Test a webhook to ensure it’s working properly or to re-enable a disabled webhook.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Prerequisites:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "For project webhooks, you must have the Maintainer or Owner role for the project.",
+        "For group webhooks, you must have the Owner role for the group.",
+        "To test `push events`, your project must have at least one commit."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To test a webhook:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the top bar, select Search or go to and find your project or group.",
+        "In the left sidebar, select Settings > Webhooks to see all webhooks for this project.",
+        "To test a webhook directly from the list of configured webhooks:\n  1. Locate the webhook you want to test.\n  1. From the Test dropdown list, select the type of event to test.",
+        "To test a webhook while editing it:\n  1. Locate the webhook you want to test, and select Edit.\n  1. Make your changes to the webhook.\n  1. Select the Test dropdown list, then select the type of event to test."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Testing is not supported for some types of events for project and group webhooks. For more information, see issue 379201.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Webhook reference",
+      "anchor": "webhook-reference",
+      "kind": "heading"
+    },
+    {
+      "text": "Use this technical reference to:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Understand how GitLab webhooks work.",
+        "Integrate webhooks with your systems.",
+        "Set up, troubleshoot, and optimize your webhook configurations."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 3,
+      "text": "Webhook receiver requirements",
+      "anchor": "webhook-receiver-requirements",
+      "kind": "heading"
+    },
+    {
+      "text": "Implement fast and stable webhook receiver endpoints to ensure reliable webhook delivery.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Slow, unstable, or incorrectly configured receivers might be disabled automatically. Invalid HTTP responses are treated as failed requests.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To optimize your webhook receivers:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "Respond quickly with a `200` or `201` status:\n  - Avoid processing webhooks in the same request.\n  - Use a queue to handle webhooks after receiving them.\n  - Respond before the timeout limit to prevent automatic disabling on GitLab.com.",
+        "Handle potential duplicate events:\n  - Prepare for duplicate events if a webhook times out.\n  - Ensure your endpoint is consistently fast and stable.",
+        "Minimize response headers and body:\n  - GitLab stores response headers and body for later inspection.\n  - Limit the number and size of returned headers.\n  - Consider responding with an empty body.",
+        "Use appropriate status codes:\n  - Return client error status responses (`4xx` range) only for misconfigured webhooks.\n  - For unsupported events, return `400` or ignore the payload.\n  - Avoid `500` server error responses for handled events."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 3,
+      "text": "Auto-disabled webhooks",
+      "anchor": "auto-disabled-webhooks",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- Introduced for group webhooks in GitLab 15.10.\n- Disabled on GitLab Self-Managed for project webhooks in GitLab 15.10 with a feature flag named `auto_disabling_web_hooks`.\n- Fails to connect and Failing to connect renamed to Disabled and Temporarily disabled in GitLab 17.11.\n- Changed to become permanently disabled after 40 consecutive failures in GitLab 17.11.",
+      "kind": "callout"
+    },
+    {
+      "label": "Flag",
+      "text": "The availability of this feature is controlled by a feature flag. For more information, see the history.",
+      "kind": "callout"
+    },
+    {
+      "text": "GitLab automatically disables project or group webhooks that fail four consecutive times.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To view auto-disabled webhooks:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the top bar, select Search or go to and find your project or group.",
+        "In the left sidebar, select Settings > Webhooks."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "In the webhook list, auto-disabled webhooks display as:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Temporarily disabled if they fail four consecutive times",
+        "Disabled if they fail 40 consecutive times"
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 4,
+      "text": "Temporarily disabled webhooks",
+      "anchor": "temporarily-disabled-webhooks",
+      "kind": "heading"
+    },
+    {
+      "text": "Webhooks are temporarily disabled if they fail four consecutive times. If webhooks fail 40 consecutive times, they become permanently disabled.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Failure occurs when:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "The webhook receiver returns a response code in the `4xx` or `5xx` range.",
+        "The webhook experiences a timeout when attempting to connect to the webhook receiver.",
+        "The webhook encounters other HTTP errors."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Temporarily disabled webhooks are initially disabled for one minute, with the duration extending on subsequent failures up to 24 hours. After this period has elapsed, these webhooks are automatically re-enabled.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Permanently disabled webhooks",
+      "anchor": "permanently-disabled-webhooks",
+      "kind": "heading"
+    },
+    {
+      "text": "Webhooks are permanently disabled if they fail 40 consecutive times. Unlike temporarily disabled webhooks, these webhooks are not automatically re-enabled.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Webhooks that were permanently disabled in GitLab 17.10 and earlier underwent a data migration. These webhooks might display four failures in Recent events even though the UI might state they have 40 failures.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Re-enable disabled webhooks",
+      "anchor": "re-enable-disabled-webhooks",
+      "kind": "heading"
+    },
+    {
+      "text": "To re-enable a disabled webhook, send a test request. The webhook is re-enabled if the test request returns a response code in the `2xx` range.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Delivery headers",
+      "anchor": "delivery-headers",
+      "kind": "heading"
+    },
+    {
+      "label": "History",
+      "text": "- `Idempotency-Key` header introduced in GitLab 17.4.\n- `webhook-id` and `webhook-timestamp` headers introduced in GitLab 19.0.\n- `webhook-signature` header introduced in GitLab 19.0 with a feature flag named `webhook_signing_token`. Enabled by default.\n- Feature flag `webhook_signing_token` removed in GitLab 19.1.",
+      "kind": "callout"
+    },
+    {
+      "text": "GitLab includes the following headers in webhook requests to your endpoint.",
+      "kind": "paragraph"
+    },
+    {
+      "header": [
+        "Header",
+        "Description",
+        "Example"
+      ],
+      "rows": [
+        [
+          "`Idempotency-Key`",
+          "Unique ID consistent across webhook retries. Available for legacy reasons. Prefer `webhook-id`.",
+          "`\"f5e5f430-f57b-4e6e-9fac-d9128cd7232f\"`"
+        ],
+        [
+          "`User-Agent`",
+          "User agent in the format `\"Gitlab/<VERSION>\"`.",
+          "`\"GitLab/15.5.0-pre\"`"
+        ],
+        [
+          "`webhook-id`",
+          "Unique message ID consistent across webhook retries. Equal to `Idempotency-Key`.",
+          "`\"f5e5f430-f57b-4e6e-9fac-d9128cd7232f\"`"
+        ],
+        [
+          "`webhook-signature`",
+          "Space-separated list of HMAC-SHA256 signatures, each in the format `v1,{base64_signature}`. Included only when a signing token is configured.",
+          "`\"v1,abc123def456==\"`"
+        ],
+        [
+          "`webhook-timestamp`",
+          "Unix timestamp (seconds since epoch) when the request was generated.",
+          "`\"1744578123\"`"
+        ],
+        [
+          "`X-Gitlab-Event-UUID`",
+          "Unique ID for non-recursive webhooks. Recursive webhooks (triggered by earlier webhooks) share the same value.",
+          "`\"13792a34-cac6-4fda-95a8-c58e00a3954e\"`"
+        ],
+        [
+          "`X-Gitlab-Event`",
+          "Webhook type name. Corresponds to event types in the format `\"<EVENT> Hook\"`.",
+          "`\"Push Hook\"`"
+        ],
+        [
+          "`X-Gitlab-Instance`",
+          "Hostname of the GitLab instance that sent the webhook.",
+          "`\"https://gitlab.com\"`"
+        ],
+        [
+          "`X-Gitlab-Token`",
+          "Secret token for the webhook, sent as plain text. Included only when a secret token is configured.",
+          "`\"my-secret-token\"`"
+        ],
+        [
+          "`X-Gitlab-Webhook-UUID`",
+          "Unique ID for each webhook.",
+          "`\"02affd2d-2cba-4033-917d-ec22d5dc4b38\"`"
+        ]
+      ],
+      "kind": "table"
+    },
+    {
+      "level": 3,
+      "text": "Image URL display in webhook body",
+      "anchor": "image-url-display-in-webhook-body",
+      "kind": "heading"
+    },
+    {
+      "text": "GitLab rewrites relative image references to absolute URLs in webhook bodies.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Image URL rewriting example",
+      "anchor": "image-url-rewriting-example",
+      "kind": "heading"
+    },
+    {
+      "text": "If the original image reference in a merge request, comment, or wiki page is:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "markdown",
+      "code": "![A Markdown image with a relative URL.](/uploads/$sha/image.png)",
+      "kind": "code"
+    },
+    {
+      "text": "The rewritten image reference in the webhook body would be:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "markdown",
+      "code": "![A Markdown image with an absolute URL.](https://gitlab.example.com/-/project/:id/uploads/<SHA>/image.png)",
+      "kind": "code"
+    },
+    {
+      "text": "This example assumes:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "GitLab is installed at `gitlab.example.com`.",
+        "The project ID is at `123`."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 4,
+      "text": "Exceptions to image URL rewriting",
+      "anchor": "exceptions-to-image-url-rewriting",
+      "kind": "heading"
+    },
+    {
+      "text": "GitLab does not rewrite image URLs when:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "They already use HTTP, HTTPS, or protocol-relative URLs.",
+        "They use advanced Markdown features, such as link labels."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 2,
+      "text": "Related topics",
+      "anchor": "related-topics",
+      "kind": "heading"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Webhook events and JSON payloads",
+        "Webhook limits",
+        "Project webhooks API",
+        "Group webhooks API",
+        "System hooks API",
+        "Troubleshooting webhooks",
+        "Send SMS alerts with webhooks and Twilio",
+        "Applying GitLab labels automatically"
+      ],
+      "kind": "list"
+    }
+  ],
+  "links": [
+    {
+      "text": "webhook limits",
+      "url": "https://docs.gitlab.com/user/gitlab_com/#webhooks"
+    },
+    {
+      "text": "introduced",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/19367"
+    },
+    {
+      "text": "with a feature flag",
+      "url": "https://docs.gitlab.com/administration/feature_flags/"
+    },
+    {
+      "text": "removed",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/596374"
+    },
+    {
+      "text": "verify the HMAC-SHA256 signature",
+      "url": "https://docs.gitlab.com/user/project/integrations/webhooks/#verify-the-signature"
+    },
+    {
+      "text": "GitLab Duo flow webhook callbacks",
+      "url": "https://docs.gitlab.com/user/duo_agent_platform/flows/webhook_callbacks/"
+    },
+    {
+      "text": "Standard Webhooks",
+      "url": "https://www.standardwebhooks.com/"
+    },
+    {
+      "text": "Introduced",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/146702"
+    },
+    {
+      "text": "Generally available",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/448604"
+    },
+    {
+      "text": "Introduced",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/142738"
+    },
+    {
+      "text": "Generally available",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/439610"
+    },
+    {
+      "text": "introduced",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/197992"
+    },
+    {
+      "text": "generally available",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/212407"
+    },
+    {
+      "text": "removed",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/work_items/580460"
+    },
+    {
+      "text": "RE2 syntax",
+      "url": "https://github.com/google/re2/wiki/Syntax"
+    },
+    {
+      "text": "issue 379201",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/379201"
+    },
+    {
+      "text": "Introduced",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/385902"
+    },
+    {
+      "text": "Disabled on GitLab Self-Managed",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/390157"
+    },
+    {
+      "text": "renamed",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/merge_requests/166329"
+    },
+    {
+      "text": "introduced",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/388692"
+    },
+    {
+      "text": "signing token",
+      "url": "https://docs.gitlab.com/user/project/integrations/webhooks/#signing-tokens"
+    },
+    {
+      "text": "Webhook events and JSON payloads",
+      "url": "https://docs.gitlab.com/user/project/integrations/webhook_events/"
+    },
+    {
+      "text": "Project webhooks API",
+      "url": "https://docs.gitlab.com/api/project_webhooks/"
+    },
+    {
+      "text": "Group webhooks API",
+      "url": "https://docs.gitlab.com/api/group_webhooks/"
+    },
+    {
+      "text": "System hooks API",
+      "url": "https://docs.gitlab.com/api/system_hooks/"
+    },
+    {
+      "text": "Troubleshooting webhooks",
+      "url": "https://docs.gitlab.com/user/project/integrations/webhooks_troubleshooting/"
+    },
+    {
+      "text": "Send SMS alerts with webhooks and Twilio",
+      "url": "https://www.datadoghq.com/blog/send-alerts-sms-customizable-webhooks-twilio/"
+    },
+    {
+      "text": "Applying GitLab labels automatically",
+      "url": "https://about.gitlab.com/blog/applying-gitlab-labels-automatically/"
+    }
+  ]
+}

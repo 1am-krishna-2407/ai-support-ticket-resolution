@@ -1,0 +1,31 @@
+{
+  "description": "Retrieval golden queries for threshold tuning and retrieval regression checks. Test data: hand-written support questions, not real customer tickets. `expected_documents` lists manifest document_ids any of which correctly answers the query; an empty list means the query is out of scope and should report insufficient evidence.",
+  "version": "2026-09-29.1",
+  "queries": [
+    {"id": "g01", "query": "gitlab-runner register fails with x509: certificate signed by unknown authority", "expected_documents": ["runner-configuration-tls-self-signed"]},
+    {"id": "g02", "query": "How do I define a CI/CD variable in .gitlab-ci.yml for a single job?", "expected_documents": ["ci-variables"]},
+    {"id": "g03", "query": "Which predefined variable contains the commit SHA of the pipeline?", "expected_documents": ["ci-variables-predefined-variables"]},
+    {"id": "g04", "query": "My masked variable value is still printed in the job log", "expected_documents": ["ci-variables", "ci-variables-variables-troubleshooting"]},
+    {"id": "g05", "query": "API requests return 401 Unauthorized after my personal access token expired", "expected_documents": ["user-profile-personal-access-tokens", "api-rest-authentication", "api-rest-troubleshooting"]},
+    {"id": "g06", "query": "How can a CI job call the API using CI_JOB_TOKEN?", "expected_documents": ["ci-jobs-ci-job-token", "api-rest-authentication"]},
+    {"id": "g07", "query": "Our project webhook was automatically disabled after repeated failures", "expected_documents": ["user-project-integrations-webhooks", "user-project-integrations-webhooks-troubleshooting"]},
+    {"id": "g08", "query": "Set up pull mirroring from an external repository into GitLab", "expected_documents": ["user-project-repository-mirror-pull", "user-project-repository-mirror"]},
+    {"id": "g09", "query": "Protect the main branch so only maintainers can push and merge", "expected_documents": ["user-project-repository-branches-protected"]},
+    {"id": "g10", "query": "Build Docker images in CI using Docker-in-Docker with the dind service", "expected_documents": ["ci-docker-using-docker-build", "ci-docker-docker-in-docker"]},
+    {"id": "g11", "query": "Cache node_modules between pipeline jobs to speed up builds", "expected_documents": ["ci-caching"]},
+    {"id": "g12", "query": "Job artifacts are deleted too early; how do I keep them longer with expire_in?", "expected_documents": ["ci-jobs-job-artifacts"]},
+    {"id": "g13", "query": "I lost my two-factor authentication device and recovery codes", "expected_documents": ["user-profile-account-two-factor-authentication", "user-profile-account-two-factor-authentication-troubleshooting"]},
+    {"id": "g14", "query": "Configure GitLab Runner to work behind an HTTP proxy", "expected_documents": ["runner-configuration-proxy"]},
+    {"id": "g15", "query": "Set CPU and memory limits for build pods with the Kubernetes executor", "expected_documents": ["runner-executors-kubernetes"]},
+    {"id": "g16", "query": "Trigger a pipeline through the API with a pipeline trigger token", "expected_documents": ["ci-triggers", "api-pipeline-triggers"]},
+    {"id": "g17", "query": "Enable secret detection scanning in my pipeline", "expected_documents": ["user-application-security-secret-detection"]},
+    {"id": "g18", "query": "LDAP users cannot sign in after we changed the bind DN", "expected_documents": ["administration-auth-ldap", "administration-auth-ldap-ldap-troubleshooting"]},
+    {"id": "g19", "query": "Run a job only for merge request pipelines using rules:if", "expected_documents": ["ci-jobs-job-control", "ci-yaml"]},
+    {"id": "g20", "query": "Create a deploy token so our build server can pull from the container registry", "expected_documents": ["user-project-deploy-tokens"]},
+    {"id": "n01", "query": "How long should I proof sourdough bread before baking?", "expected_documents": []},
+    {"id": "n02", "query": "What is the capital city of Australia?", "expected_documents": []},
+    {"id": "n03", "query": "Recommend a good laptop for gaming under 1000 dollars", "expected_documents": []},
+    {"id": "n04", "query": "How do I change the oil in a 2015 Toyota Corolla?", "expected_documents": []},
+    {"id": "n05", "query": "Translate 'good morning' into Japanese", "expected_documents": []}
+  ]
+}

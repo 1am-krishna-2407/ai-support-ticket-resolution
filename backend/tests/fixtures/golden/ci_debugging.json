@@ -1,0 +1,1071 @@
+{
+  "title": "Debugging CI/CD pipelines",
+  "description": "Configuration validation, warnings, errors, and troubleshooting.",
+  "blocks": [
+    {
+      "text": "Availability: Tier: Free, Premium, Ultimate; Offering: GitLab.com, GitLab Self-Managed, GitLab Dedicated",
+      "kind": "paragraph"
+    },
+    {
+      "text": "GitLab provides several tools to help make it easier to debug your CI/CD configuration.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If you are unable to resolve pipeline issues, you can get help from:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "The GitLab community forum",
+        "GitLab Support"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "If you are having issues with a specific CI/CD feature, see the related troubleshooting section for that feature:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Caching",
+        "CI/CD job tokens",
+        "Container registry",
+        "Docker",
+        "Downstream pipelines",
+        "Environments",
+        "GitLab Runner",
+        "ID tokens",
+        "Jobs",
+        "Job artifacts",
+        "Merge request pipelines, merged results pipelines, and merge trains",
+        "Pipeline editor",
+        "Variables",
+        "YAML `includes` keyword",
+        "YAML `script` keyword"
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 2,
+      "text": "Debugging techniques",
+      "anchor": "debugging-techniques",
+      "kind": "heading"
+    },
+    {
+      "level": 3,
+      "text": "Verify syntax",
+      "anchor": "verify-syntax",
+      "kind": "heading"
+    },
+    {
+      "text": "An early source of problems can be incorrect syntax. The pipeline shows a `yaml invalid` badge and does not start running if any syntax or formatting problems are found.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Edit .gitlab-ci.yml with the pipeline editor",
+      "anchor": "edit-gitlab-ciyml-with-the-pipeline-editor",
+      "kind": "heading"
+    },
+    {
+      "text": "The pipeline editor is the recommended editing experience (rather than the single file editor or the Web IDE). It includes:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Code completion suggestions that ensure you are only using accepted keywords.",
+        "Automatic syntax highlighting and validation.",
+        "The CI/CD configuration visualization, a graphical representation of your `.gitlab-ci.yml` file."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 4,
+      "text": "Edit .gitlab-ci.yml locally",
+      "anchor": "edit-gitlab-ciyml-locally",
+      "kind": "heading"
+    },
+    {
+      "text": "If you prefer to edit your pipeline configuration locally, you can use the GitLab CI/CD schema in your editor to verify basic syntax issues. Any editor with Schemastore support uses the GitLab CI/CD schema by default.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If you need to link to the schema directly, use this URL:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "plaintext",
+      "code": "https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/assets/javascripts/editor/schema/ci.json",
+      "kind": "code"
+    },
+    {
+      "text": "To see the full list of custom tags covered by the CI/CD schema, check the latest version of the schema.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Verify syntax with CI Lint tool",
+      "anchor": "verify-syntax-with-ci-lint-tool",
+      "kind": "heading"
+    },
+    {
+      "text": "You can use the CI Lint tool to verify that the syntax of a CI/CD configuration snippet is correct. Paste in full `.gitlab-ci.yml` files or individual job configurations, to verify the basic syntax.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "When a `.gitlab-ci.yml` file is present in a project, you can also use the CI Lint tool to simulate the creation of a full pipeline. It does deeper verification of the configuration syntax.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Use pipeline names",
+      "anchor": "use-pipeline-names",
+      "kind": "heading"
+    },
+    {
+      "text": "Use `workflow:name` to give names to all your pipeline types, which makes it easier to identify pipelines in the pipelines list. For example:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "variables:\n  PIPELINE_NAME: \"Default pipeline name\"\n\nworkflow:\n  name: '$PIPELINE_NAME'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'\n      variables:\n        PIPELINE_NAME: \"Merge request pipeline\"\n    - if: '$CI_PIPELINE_SOURCE == \"schedule\" && $PIPELINE_SCHEDULE_TYPE == \"hourly_deploy\"'\n      variables:\n        PIPELINE_NAME: \"Hourly deployment pipeline\"\n    - if: '$CI_PIPELINE_SOURCE == \"schedule\"'\n      variables:\n        PIPELINE_NAME: \"Other scheduled pipeline\"\n    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'\n      variables:\n        PIPELINE_NAME: \"Default branch pipeline\"\n    - if: '$CI_COMMIT_BRANCH =~ /^\\d{1,2}\\.\\d{1,2}-stable$/'\n      variables:\n        PIPELINE_NAME: \"Stable branch pipeline\"",
+      "kind": "code"
+    },
+    {
+      "level": 3,
+      "text": "CI/CD variables",
+      "anchor": "cicd-variables",
+      "kind": "heading"
+    },
+    {
+      "level": 4,
+      "text": "Verify variables",
+      "anchor": "verify-variables",
+      "kind": "heading"
+    },
+    {
+      "text": "A key part of troubleshooting CI/CD is to verify which variables are present in a pipeline, and what their values are. A lot of pipeline configuration is dependent on variables, and verifying them is one of the fastest ways to find the source of a problem.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Export the full list of variables available in each problematic job. Check if the variables you expect are present, and check if their values are what you expect.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Use variables to add flags to CLI commands",
+      "anchor": "use-variables-to-add-flags-to-cli-commands",
+      "kind": "heading"
+    },
+    {
+      "text": "You can define CI/CD variables that are not used in standard pipeline runs, but can be used for debugging on demand. If you add a variable, you can set its value during manual runs of the pipeline or individual job to modify the command’s behavior. For example:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "my-flaky-job:\n  variables:\n    DEBUG_VARS: \"\"\n  script:\n    - my-test-command $DEBUG_VARS /test-dirs",
+      "kind": "code"
+    },
+    {
+      "text": "In this example, `DEBUG_VARS` is blank by default in standard pipelines. If you need to debug the job’s behavior, run the pipeline manually and set `DEBUG_VARS` to `--verbose` for additional output.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Dependencies",
+      "anchor": "dependencies",
+      "kind": "heading"
+    },
+    {
+      "text": "Dependency-related issues are another common source of unexpected issues in pipelines.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Verify dependency versions",
+      "anchor": "verify-dependency-versions",
+      "kind": "heading"
+    },
+    {
+      "text": "To validate that the correct versions of dependencies are being used in jobs, you can output them before running the main script commands. For example:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "job:\n  before_script:\n    - node --version\n    - yarn --version\n  script:\n    - my-javascript-tests.sh",
+      "kind": "code"
+    },
+    {
+      "level": 4,
+      "text": "Pin versions",
+      "anchor": "pin-versions",
+      "kind": "heading"
+    },
+    {
+      "text": "While you might want to always use the latest version of a dependency or image, an update could include breaking changes unexpectedly. Consider pinning key dependencies and images to avoid surprise changes. For example:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "variables:\n  ALPINE_VERSION: '3.18.6'\n\njob1:\n  image: alpine:$ALPINE_VERSION  # This will never change unexpectedly\n  script:\n    - my-test-script.sh\n\njob2:\n  image: alpine:latest  # This might suddenly change\n  script:\n    - my-test-script.sh",
+      "kind": "code"
+    },
+    {
+      "text": "You should still regularly check the dependency and image updates, as there might be important security updates. Then you can manually update the version as part of a process that verifies the updated image or dependency still works with your pipeline.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Verify job output",
+      "anchor": "verify-job-output",
+      "kind": "heading"
+    },
+    {
+      "level": 4,
+      "text": "Make output verbose",
+      "anchor": "make-output-verbose",
+      "kind": "heading"
+    },
+    {
+      "text": "You can use `--silent` to reduce the amount of output in a job log. However, this can make it difficult to identify what went wrong in a job. Consider using `--verbose` when possible, which shows more detail about what a command is doing.",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "job1:\n  script:\n    - my-test-tool --silent         # If this fails, it might be impossible to identify the issue.\n    - my-other-test-tool --verbose  # This command will likely be easier to debug.",
+      "kind": "code"
+    },
+    {
+      "level": 4,
+      "text": "Save output and reports as artifacts",
+      "anchor": "save-output-and-reports-as-artifacts",
+      "kind": "heading"
+    },
+    {
+      "text": "Some tools might generate files that are only needed while the job is running, but the content of these files could be used for debugging. You can save them for later analysis with `artifacts`:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "job1:\n  script:\n    - my-tool --json-output my-output.json\n  artifacts:\n    paths:\n      - my-output.json",
+      "kind": "code"
+    },
+    {
+      "text": "Reports configured with `artifacts:reports` are not available for download by default, but could also contain information to help with debugging. Use the same technique to make these reports available for inspection:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "job1:\n  script:\n    - rspec --format RspecJunitFormatter --out rspec.xml\n  artifacts:\n    reports:\n      junit: rspec.xml\n    paths:\n      - rspec.xmp",
+      "kind": "code"
+    },
+    {
+      "label": "Warning",
+      "text": "Do not save tokens, passwords, or other sensitive information in artifacts, as they could be viewed by any user with access to the pipelines.",
+      "kind": "callout"
+    },
+    {
+      "level": 3,
+      "text": "Run the job’s commands locally",
+      "anchor": "run-the-jobs-commands-locally",
+      "kind": "heading"
+    },
+    {
+      "text": "You can use a tool like Rancher Desktop or similar alternatives to run the job’s container image on your local machine. Then, run the job’s `script` commands in the container and verify the behavior.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Troubleshoot a failed job with Root Cause Analysis",
+      "anchor": "troubleshoot-a-failed-job-with-root-cause-analysis",
+      "kind": "heading"
+    },
+    {
+      "text": "You can use GitLab Duo Root Cause Analysis in GitLab Duo Chat to troubleshoot failed CI/CD jobs.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Job configuration issues",
+      "anchor": "job-configuration-issues",
+      "kind": "heading"
+    },
+    {
+      "text": "Many common pipeline issues can be fixed by analyzing the behavior of the `rules` or `only/except` configuration. This configuration is used to control when jobs are added to a pipeline. You shouldn’t use these two configurations in the same pipeline, as they behave differently. It’s hard to predict how a pipeline runs with this mixed behavior. `rules` is the preferred choice for controlling jobs, as `only` and `except` are no longer being actively developed.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If your `rules` or `only/except` configuration makes use of predefined variables like `CI_PIPELINE_SOURCE`, `CI_MERGE_REQUEST_ID`, you should verify them as the first troubleshooting step.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Jobs or pipelines don’t run when expected",
+      "anchor": "jobs-or-pipelines-dont-run-when-expected",
+      "kind": "heading"
+    },
+    {
+      "text": "The `rules` or `only/except` keywords are what determine whether or not a job is added to a pipeline. If a pipeline runs, but a job is not added to the pipeline, it’s usually due to `rules` or `only/except` configuration issues.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If a pipeline does not seem to run at all, with no error message, it may also be due to `rules` or `only/except` configuration, or the `workflow: rules` keyword.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If you are converting from `only/except` to the `rules` keyword, you should check the `rules` configuration details carefully. The behavior of `only/except` and `rules` is different and can cause unexpected behavior when migrating between the two.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "The common `if` clauses for `rules` can be very helpful for examples of how to write rules that behave the way you expect.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If a pipeline contains only jobs in the `.pre` or `.post` stages, it does not run. There must be at least one other job in a different stage.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Unexpected behavior when .gitlab-ci.yml file contains a byte order mark (BOM)",
+      "anchor": "unexpected-behavior-when-gitlab-ciyml-file-contains-a-byte-order-mark-bom",
+      "kind": "heading"
+    },
+    {
+      "text": "A UTF-8 Byte-Order Mark (BOM) in the `.gitlab-ci.yml` file or other included configuration files can lead to incorrect pipeline behavior. The byte order mark affects parsing of the file. As a result, some configuration might be ignored, jobs might be missing, and variables could have the wrong values. Some text editors could insert a BOM character if configured to do so.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If your pipeline has confusing behavior, you can check for the presence of BOM characters with a tool capable of displaying them. The pipeline editor cannot display the characters, so you must use an external tool. See issue 354026 for more details.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "A job with the changes keyword runs unexpectedly",
+      "anchor": "a-job-with-the-changes-keyword-runs-unexpectedly",
+      "kind": "heading"
+    },
+    {
+      "text": "A common reason a job is added to a pipeline unexpectedly is because the `changes` keyword always evaluates to true in certain cases. For example, `changes` is always true in certain pipeline types, including scheduled pipelines and pipelines for tags.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "The `changes` keyword is used in combination with `only/except` or `rules`. It’s recommended to only use `changes` with `if` sections in `rules` or `only/except` configuration that ensures the job is only added to branch pipelines or merge request pipelines.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Two pipelines run at the same time",
+      "anchor": "two-pipelines-run-at-the-same-time",
+      "kind": "heading"
+    },
+    {
+      "text": "Two pipelines can run when pushing a commit to a branch that has an open merge request associated with it. Usually one pipeline is a merge request pipeline, and the other is a branch pipeline.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "This situation is usually caused by the `rules` configuration, and there are several ways to prevent duplicate pipelines.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "No pipeline or the wrong type of pipeline runs",
+      "anchor": "no-pipeline-or-the-wrong-type-of-pipeline-runs",
+      "kind": "heading"
+    },
+    {
+      "text": "Before a pipeline can run, GitLab evaluates all the jobs in the configuration and tries to add them to all available pipeline types. A pipeline does not run if no jobs are added to it at the end of the evaluation.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If a pipeline did not run, it’s likely that all the jobs had `rules` or `only/except` that blocked them from being added to the pipeline.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If the wrong pipeline type ran, then the `rules` or `only/except` configuration should be checked to make sure the jobs are added to the correct pipeline type. For example, if a merge request pipeline did not run, the jobs may have been added to a branch pipeline instead.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "It’s also possible that your `workflow: rules` configuration blocked the pipeline, or allowed the wrong pipeline type.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If you are using pull mirroring, you can check the troubleshooting entry for pull mirroring pipelines.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Pipeline with many jobs fails to start",
+      "anchor": "pipeline-with-many-jobs-fails-to-start",
+      "kind": "heading"
+    },
+    {
+      "text": "A Pipeline that has more jobs than the instance’s defined CI/CD limits fails to start.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To reduce the number of jobs in a single pipeline, you can split your `.gitlab-ci.yml` configuration into more independent parent-child pipelines.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Pipeline warnings",
+      "anchor": "pipeline-warnings",
+      "kind": "heading"
+    },
+    {
+      "text": "Pipeline configuration warnings are shown when you:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Validate configuration with the CI Lint tool.",
+        "Manually run a pipeline."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 3,
+      "text": "Job may allow multiple pipelines to run for a single action warning",
+      "anchor": "job-may-allow-multiple-pipelines-to-run-for-a-single-action-warning",
+      "kind": "heading"
+    },
+    {
+      "text": "When you use `rules` with a `when` clause without an `if` clause, multiple pipelines may run. Usually this occurs when you push a commit to a branch that has an open merge request associated with it.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To prevent duplicate pipelines, use `workflow: rules` or rewrite your rules to control which pipelines can run.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Pipeline errors",
+      "anchor": "pipeline-errors",
+      "kind": "heading"
+    },
+    {
+      "level": 3,
+      "text": "Error: Identity verification is required in order to run CI jobs",
+      "anchor": "error-identity-verification-is-required-in-order-to-run-ci-jobs",
+      "kind": "heading"
+    },
+    {
+      "text": "Availability: Tier: Free; Offering: GitLab.com",
+      "kind": "paragraph"
+    },
+    {
+      "text": "When using GitLab-hosted runners on GitLab.com with a free plan, if you see an error message that says `Identity verification is required in order to run CI jobs`, you must complete identity verification.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "This requirement helps prevent abuse of free compute resources. Depending on your risk score, you may need to verify your email, phone number, or add a payment method. For more information, see identity verification.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To complete validation:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "In the alert banner, select Verify my account.",
+        "When prompted, follow the identity verification steps. You might be required to verify your phone number or add a payment method.",
+        "Create a new commit or manually trigger a new pipeline."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Alternatively, you can:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Upgrade to a paid plan.",
+        "Purchase additional compute minutes for your namespace.",
+        "Use project or group runners instead of GitLab-hosted runners.",
+        "Ask your group owner to set up self-managed runners."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 3,
+      "text": "A CI/CD pipeline must run and be successful before merge message",
+      "anchor": "a-cicd-pipeline-must-run-and-be-successful-before-merge-message",
+      "kind": "heading"
+    },
+    {
+      "text": "This message is shown if the Pipelines must succeed setting is enabled in the project and a pipeline has not yet run successfully. This also applies if the pipeline has not been created yet, or if you are waiting for an external CI service.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If you don’t use pipelines for your project, then you should disable Pipelines must succeed so you can accept merge requests.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Checking ability to merge automatically message",
+      "anchor": "checking-ability-to-merge-automatically-message",
+      "kind": "heading"
+    },
+    {
+      "text": "If your merge request is stuck with a `Checking ability to merge automatically` message that does not disappear after a few minutes, you can try one of these workarounds:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Refresh the merge request page.",
+        "Close & Re-open the merge request.",
+        "Rebase the merge request with the `/rebase` quick action.",
+        "If you have already confirmed the merge request is ready to be merged, you can merge it with the `/merge` quick action."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 3,
+      "text": "Checking pipeline status message",
+      "anchor": "checking-pipeline-status-message",
+      "kind": "heading"
+    },
+    {
+      "text": "This message displays with a spinning status icon ( ) when the merge request does not yet have a pipeline associated with the latest commit. This might be because:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "GitLab hasn’t finished creating the pipeline yet.",
+        "You are using an external CI service and GitLab hasn’t heard back from the service yet.",
+        "You are not using CI/CD pipelines in your project.",
+        "You are using CI/CD pipelines in your project, but your configuration prevented a pipeline from running on the source branch for your merge request.",
+        "The latest pipeline was deleted (this is a known issue).",
+        "The source branch of the merge request is on a private fork."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "After the pipeline is created, the message updates with the pipeline status.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "In some of these cases, the message might get stuck with the icon spinning endlessly if the Pipelines must succeed setting is enabled. See issue 334281 for more details.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Project <group/project> not found or access denied message",
+      "anchor": "project-groupproject-not-found-or-access-denied-message",
+      "kind": "heading"
+    },
+    {
+      "text": "This message is shown if configuration is added with `include` and either:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "The configuration refers to a project that can’t be found.",
+        "The user that is running the pipeline is unable to access any included projects."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To resolve this, check that:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "The path of the project is in the format `my-group/my-project` and does not include any folders in the repository.",
+        "The user running the pipeline is a member of the projects that contain the included files. Users must also have the permission to run CI/CD jobs in the same projects."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 3,
+      "text": "The parsed YAML is too big message",
+      "anchor": "the-parsed-yaml-is-too-big-message",
+      "kind": "heading"
+    },
+    {
+      "text": "This message displays when the YAML configuration is too large or nested too deeply. YAML files with a large number of includes, and thousands of lines overall, are more likely to hit this memory limit. For example, a YAML file that is 200 kb is likely to hit the default memory limit.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To reduce the configuration size, you can:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Check the length of the expanded CI/CD configuration in the pipeline editor’s Full configuration tab. Look for duplicated configuration that can be removed or simplified.",
+        "Move long or repeated `script` sections into standalone scripts in the project.",
+        "Use parent and child pipelines to move some work to jobs in an independent child pipeline."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "On GitLab Self-Managed, you can increase the size limits.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "500 error when editing the .gitlab-ci.yml file",
+      "anchor": "500-error-when-editing-the-gitlab-ciyml-file",
+      "kind": "heading"
+    },
+    {
+      "text": "A loop of included configuration files can cause a `500` error when editing the `.gitlab-ci.yml` file with the web editor.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Ensure that included configuration files do not create a loop of references to each other.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Failed to pull image messages",
+      "anchor": "failed-to-pull-image-messages",
+      "kind": "heading"
+    },
+    {
+      "text": "A runner might return a `Failed to pull image` message when trying to pull a container image in a CI/CD job.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "The runner authenticates with a CI/CD job token when fetching a container image defined with `image` from another project’s container registry.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "If the job token settings prevent access to the other project’s container registry, the runner returns an error message.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "For example:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "```plaintext\nWARNING: Failed to pull image with policy \"always\": Error response from daemon: pull access denied for registry.example.com/path/to/project, repository does not exist or may require 'docker login': denied: requested access to the resource is denied\n```",
+        "```plaintext\nWARNING: Failed to pull image with policy \"\": image pull failed: rpc error: code = Unknown desc = failed to pull and unpack image \"registry.example.com/path/to/project/image:v1.2.3\": failed to resolve reference \"registry.example.com/path/to/project/image:v1.2.3\": pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization failed\n```"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "These errors can happen if the following are both true:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "The Limit access to this project option is enabled in the private project hosting the image.",
+        "The job attempting to fetch the image is running in a project that is not listed in the private project’s allowlist."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "To resolve this issue, add any project with CI/CD jobs that fetch images from the container registry to the target project’s job token allowlist.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "These errors might also happen when trying to use a project access token to access images in another project. Project access tokens are scoped to one project, and therefore cannot access images in other projects. You must use a different token type with wider scope.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 4,
+      "text": "Random or intermittent Failed to pull image errors",
+      "anchor": "random-or-intermittent-failed-to-pull-image-errors",
+      "kind": "heading"
+    },
+    {
+      "text": "You might experience intermittent `Failed to pull image` errors in your CI/CD jobs.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "This issue can occur when users have different permissions to access images, combined with how runners cache those images. Bot users are commonly affected because they often have different permissions than other project members.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "For example, your pipeline images might be hosted in a container registry in a different project. If all users can access both projects, this is not a problem. However, if a user (like a bot user) cannot access the project hosting the images, they can get `Failed to pull image` errors.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "The error becomes intermittent when the runner successfully fetches and caches the image for a user with permission to access the image. This runner now has the image available and does not need to access the other project to fetch the image. All users, including users without access to the other project, can run CI/CD jobs with this image. However, if the runner has never fetched and cached the image, users without permission to access the image project get the `Failed to pull image` error.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To resolve this issue, make sure all users that run pipelines, including bot users, can access the project that hosts the pulled images.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Something went wrong on our end message or 500 error when running a pipeline",
+      "anchor": "something-went-wrong-on-our-end-message-or-500-error-when-running-a-pipeline",
+      "kind": "heading"
+    },
+    {
+      "text": "You might receive the following pipeline errors:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "A `Something went wrong on our end` message when pushing or creating merge requests.",
+        "A `500` error when using the API to trigger a pipeline."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "These errors can happen if records of internal IDs become out of sync after a project is imported.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "To resolve this, see the workaround in issue 352382.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "config should be an array of hashes error message",
+      "anchor": "config-should-be-an-array-of-hashes-error-message",
+      "kind": "heading"
+    },
+    {
+      "text": "You might see an error similar to the following when using multiple `!reference` tags in an array:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "plaintext",
+      "code": "This GitLab CI configuration is invalid: jobs:my_job_name:parallel:matrix config should be an array of hashes.",
+      "kind": "code"
+    },
+    {
+      "text": "While the `script`, `rules`, and `stages` keywords support using multiple reference tags, other keywords expecting an array do not. You can use nesting to work around this limitation, or use YAML anchors instead.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Error: jobs:<job-name> config should contain either a trigger or a needs:pipeline.",
+      "anchor": "error-jobsjob-name-config-should-contain-either-a-trigger-or-a-needspipeline",
+      "kind": "heading"
+    },
+    {
+      "text": "This error can happen when a job in your `.gitlab-ci.yml` uses the `needs` keyword, but does not use the `script:` or `trigger:` keywords.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Every job must use either the `script` or the `trigger` keywords, so add the appropriate keyword to any jobs not using either.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "Error: config contains unknown keys: <key-name>",
+      "anchor": "error-config-contains-unknown-keys-key-name",
+      "kind": "heading"
+    },
+    {
+      "text": "You might get an error similar to `<keyword> config contains unknown keys: <key-name>`.",
+      "kind": "paragraph"
+    },
+    {
+      "text": "This error message can be caused by several issues:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "A typo in a keyword, for example `imag` (invalid) instead of `image` (valid).",
+        "Incorrect spacing or indentation for a keyword or job."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "For example:",
+      "kind": "paragraph"
+    },
+    {
+      "language": "yaml",
+      "code": "test-job:\n  artifacts:\n    path:        # This is a typo, it should be `paths`\n      - test\n    image: test  # This indentation is incorrect, it should be at the same level as `script`.\n  script:\n    - echo",
+      "kind": "code"
+    }
+  ],
+  "links": [
+    {
+      "text": "GitLab community forum",
+      "url": "https://forum.gitlab.com/"
+    },
+    {
+      "text": "Support",
+      "url": "https://support.gitlab.com/"
+    },
+    {
+      "text": "Caching",
+      "url": "https://docs.gitlab.com/ci/caching/#troubleshooting"
+    },
+    {
+      "text": "CI/CD job tokens",
+      "url": "https://docs.gitlab.com/ci/jobs/ci_job_token/#troubleshooting"
+    },
+    {
+      "text": "Container registry",
+      "url": "https://docs.gitlab.com/user/packages/container_registry/troubleshoot_container_registry/"
+    },
+    {
+      "text": "Docker",
+      "url": "https://docs.gitlab.com/ci/docker/docker_build_troubleshooting/"
+    },
+    {
+      "text": "Downstream pipelines",
+      "url": "https://docs.gitlab.com/ci/pipelines/downstream_pipelines_troubleshooting/"
+    },
+    {
+      "text": "Environments",
+      "url": "https://docs.gitlab.com/ci/environments/#troubleshooting"
+    },
+    {
+      "text": "GitLab Runner",
+      "url": "https://docs.gitlab.com/runner/faq/"
+    },
+    {
+      "text": "ID tokens",
+      "url": "https://docs.gitlab.com/ci/secrets/id_token_authentication/#troubleshooting"
+    },
+    {
+      "text": "Jobs",
+      "url": "https://docs.gitlab.com/ci/jobs/job_troubleshooting/"
+    },
+    {
+      "text": "Job artifacts",
+      "url": "https://docs.gitlab.com/ci/jobs/job_artifacts_troubleshooting/"
+    },
+    {
+      "text": "Merge request pipelines",
+      "url": "https://docs.gitlab.com/ci/pipelines/mr_pipeline_troubleshooting/"
+    },
+    {
+      "text": "merged results pipelines",
+      "url": "https://docs.gitlab.com/ci/pipelines/merged_results_pipelines/#troubleshooting"
+    },
+    {
+      "text": "merge trains",
+      "url": "https://docs.gitlab.com/ci/pipelines/merge_trains/#troubleshooting"
+    },
+    {
+      "text": "Pipeline editor",
+      "url": "https://docs.gitlab.com/ci/pipeline_editor/#troubleshooting"
+    },
+    {
+      "text": "Variables",
+      "url": "https://docs.gitlab.com/ci/variables/variables_troubleshooting/"
+    },
+    {
+      "text": "YAML includes keyword",
+      "url": "https://docs.gitlab.com/ci/yaml/includes/#troubleshooting"
+    },
+    {
+      "text": "YAML script keyword",
+      "url": "https://docs.gitlab.com/ci/yaml/script_troubleshooting/"
+    },
+    {
+      "text": "pipeline editor",
+      "url": "https://docs.gitlab.com/ci/pipeline_editor/"
+    },
+    {
+      "text": "CI/CD configuration visualization",
+      "url": "https://docs.gitlab.com/ci/pipeline_editor/#visualize-cicd-configuration"
+    },
+    {
+      "text": "editor with Schemastore support",
+      "url": "https://www.schemastore.org/"
+    },
+    {
+      "text": "CI Lint tool",
+      "url": "https://docs.gitlab.com/ci/yaml/lint/"
+    },
+    {
+      "text": "simulate the creation of a full pipeline",
+      "url": "https://docs.gitlab.com/ci/yaml/lint/#simulate-a-pipeline"
+    },
+    {
+      "text": "workflow:name",
+      "url": "https://docs.gitlab.com/ci/yaml/#workflowname"
+    },
+    {
+      "text": "Export the full list of variables",
+      "url": "https://docs.gitlab.com/ci/variables/variables_troubleshooting/#list-all-variables"
+    },
+    {
+      "text": "pipeline",
+      "url": "https://docs.gitlab.com/ci/pipelines/#run-a-pipeline-manually"
+    },
+    {
+      "text": "individual job",
+      "url": "https://docs.gitlab.com/ci/jobs/job_control/#run-a-manual-job"
+    },
+    {
+      "text": "artifacts",
+      "url": "https://docs.gitlab.com/ci/yaml/#artifacts"
+    },
+    {
+      "text": "artifacts:reports",
+      "url": "https://docs.gitlab.com/ci/yaml/artifacts_reports/"
+    },
+    {
+      "text": "Rancher Desktop",
+      "url": "https://rancherdesktop.io/"
+    },
+    {
+      "text": "troubleshoot failed CI/CD jobs",
+      "url": "https://docs.gitlab.com/user/gitlab_duo_chat/examples/#troubleshoot-failed-cicd-jobs-with-root-cause-analysis"
+    },
+    {
+      "text": "control when jobs are added to a pipeline",
+      "url": "https://docs.gitlab.com/ci/jobs/job_control/"
+    },
+    {
+      "text": "predefined variables",
+      "url": "https://docs.gitlab.com/ci/variables/predefined_variables/"
+    },
+    {
+      "text": "verify them",
+      "url": "https://docs.gitlab.com/ci/debugging/#verify-variables"
+    },
+    {
+      "text": "rules configuration details",
+      "url": "https://docs.gitlab.com/ci/yaml/#rules"
+    },
+    {
+      "text": "common if clauses for rules",
+      "url": "https://docs.gitlab.com/ci/jobs/job_rules/#common-if-clauses-with-predefined-variables"
+    },
+    {
+      "text": "UTF-8 Byte-Order Mark (BOM)",
+      "url": "https://en.wikipedia.org/wiki/Byte_order_mark"
+    },
+    {
+      "text": "issue 354026",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/354026"
+    },
+    {
+      "text": "only/except",
+      "url": "https://docs.gitlab.com/ci/yaml/deprecated_keywords/#onlychanges--exceptchanges"
+    },
+    {
+      "text": "rules",
+      "url": "https://docs.gitlab.com/ci/yaml/#ruleschanges"
+    },
+    {
+      "text": "prevent duplicate pipelines",
+      "url": "https://docs.gitlab.com/ci/jobs/job_rules/#avoid-duplicate-pipelines"
+    },
+    {
+      "text": "workflow: rules",
+      "url": "https://docs.gitlab.com/ci/yaml/#workflow"
+    },
+    {
+      "text": "troubleshooting entry for pull mirroring pipelines",
+      "url": "https://docs.gitlab.com/user/project/repository/mirror/troubleshooting/#pull-mirroring-is-not-triggering-pipelines"
+    },
+    {
+      "text": "CI/CD limits",
+      "url": "https://docs.gitlab.com/administration/cicd/limits/#maximum-number-of-jobs-in-a-pipeline"
+    },
+    {
+      "text": "parent-child pipelines",
+      "url": "https://docs.gitlab.com/ci/pipelines/pipeline_architectures/#parent-child-pipelines"
+    },
+    {
+      "text": "identity verification",
+      "url": "https://docs.gitlab.com/security/identity_verification/"
+    },
+    {
+      "text": "Pipelines must succeed",
+      "url": "https://docs.gitlab.com/user/project/merge_requests/auto_merge/#require-a-successful-pipeline-for-merge"
+    },
+    {
+      "text": "/rebase quick action",
+      "url": "https://docs.gitlab.com/user/project/quick_actions/#rebase"
+    },
+    {
+      "text": "known issue",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/214323"
+    },
+    {
+      "text": "issue 334281",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/334281"
+    },
+    {
+      "text": "include",
+      "url": "https://docs.gitlab.com/ci/yaml/#include"
+    },
+    {
+      "text": "member of the projects",
+      "url": "https://docs.gitlab.com/user/project/members/#add-users-to-a-project"
+    },
+    {
+      "text": "permission",
+      "url": "https://docs.gitlab.com/user/permissions/#project-cicd"
+    },
+    {
+      "text": "Full configuration",
+      "url": "https://docs.gitlab.com/ci/pipeline_editor/#view-full-configuration"
+    },
+    {
+      "text": "parent and child pipelines",
+      "url": "https://docs.gitlab.com/ci/pipelines/downstream_pipelines/#parent-child-pipelines"
+    },
+    {
+      "text": "increase the size limits",
+      "url": "https://docs.gitlab.com/administration/cicd/limits/#maximum-size-and-depth-of-cicd-configuration-yaml-files"
+    },
+    {
+      "text": "web editor",
+      "url": "https://docs.gitlab.com/user/project/repository/web_editor/"
+    },
+    {
+      "text": "CI/CD job token",
+      "url": "https://docs.gitlab.com/ci/jobs/ci_job_token/"
+    },
+    {
+      "text": "image",
+      "url": "https://docs.gitlab.com/ci/yaml/#image"
+    },
+    {
+      "text": "Limit access to this project",
+      "url": "https://docs.gitlab.com/ci/jobs/ci_job_token/#limit-job-token-scope-for-public-or-internal-projects"
+    },
+    {
+      "text": "job token allowlist",
+      "url": "https://docs.gitlab.com/ci/jobs/ci_job_token/#add-a-group-or-project-to-the-job-token-allowlist"
+    },
+    {
+      "text": "project access token",
+      "url": "https://docs.gitlab.com/user/project/settings/project_access_tokens/"
+    },
+    {
+      "text": "a different token type",
+      "url": "https://docs.gitlab.com/security/tokens/"
+    },
+    {
+      "text": "workaround in issue 352382",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/352382#workaround"
+    },
+    {
+      "text": "!reference tags",
+      "url": "https://docs.gitlab.com/ci/yaml/yaml_optimization/#reference-tags"
+    },
+    {
+      "text": "use nesting to work around this limitation",
+      "url": "https://gitlab.com/gitlab-org/gitlab/-/issues/439828#note_1918858137"
+    },
+    {
+      "text": "YAML anchors",
+      "url": "https://docs.gitlab.com/ci/yaml/yaml_optimization/#anchors"
+    }
+  ]
+}

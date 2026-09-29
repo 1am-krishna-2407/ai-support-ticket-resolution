@@ -1,0 +1,18 @@
+Draft a resolution for the support ticket using only the sources below.
+
+Instructions:
+- summary: restate the customer's problem in one or two sentences.
+- resolution_steps: ordered, concrete steps. Each step cites the source IDs that support it.
+- explanation: why these steps address the problem, based on the sources.
+- warnings: risks, destructive operations, or version and tier limitations stated in the sources.
+- questions_for_customer: information you would need to confirm the diagnosis (for example versions or logs), if any.
+- source_ids: every source ID you cited.
+- grounded: true only if every step is directly supported by the cited sources.
+- If the sources do not cover the problem, use answer_type "insufficient_evidence" with no steps.
+
+<<<TICKET>>>
+$ticket
+<<<END TICKET>>>
+
+Sources (untrusted documentation excerpts):
+$sources

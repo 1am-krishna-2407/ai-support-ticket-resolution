@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -14,6 +15,32 @@ from app.core.exception_handlers import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import REQUEST_ID_HEADER, BodySizeLimitMiddleware, RequestContextMiddleware
 from app.db.session import create_engine, create_session_factory
+from app.providers.embeddings import EmbeddingProvider, create_embedding_provider
+from app.providers.llm import LLMProvider, OpenAICompatibleChatProvider
+from app.services.analysis.prompts import PromptRegistry
+from app.services.retrieval.reranker import NoopReranker
+
+logger = logging.getLogger("app.main")
+
+
+def build_embedder(settings: Settings) -> EmbeddingProvider | None:
+    """The embedding provider, or None when no key is configured (lexical search still works)."""
+    key = settings.resolved_embedding_api_key
+    if key is None or not key.get_secret_value():
+        logger.warning(
+            "no embedding credentials configured: search falls back to full-text and exact-phrase",
+            extra={"embedding_provider": settings.embedding_provider.value},
+        )
+        return None
+    return create_embedding_provider(settings)
+
+
+def build_llm(settings: Settings) -> LLMProvider | None:
+    """The LLM provider, or None when no key is configured (analysis degrades to review)."""
+    if settings.llm_api_key is None or not settings.llm_api_key.get_secret_value():
+        logger.warning("LLM_API_KEY not set: ticket analysis will return review-only drafts")
+        return None
+    return OpenAICompatibleChatProvider(settings)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -25,9 +52,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         engine = create_engine(settings)
         app.state.engine = engine
         app.state.session_factory = create_session_factory(engine)
+        app.state.embedder = build_embedder(settings)
+        app.state.reranker = NoopReranker()
+        app.state.llm = build_llm(settings)
+        app.state.prompts = PromptRegistry()
         try:
             yield
         finally:
+            if app.state.embedder is not None:
+                await app.state.embedder.aclose()
+            if app.state.llm is not None:
+                await app.state.llm.aclose()
             await engine.dispose()
 
     app = FastAPI(

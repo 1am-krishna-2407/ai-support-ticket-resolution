@@ -1,5 +1,8 @@
 # Windows equivalent of the Makefile. Usage: ./tasks.ps1 <target>
-param([Parameter(Position = 0)][string]$Target = "help")
+param(
+    [Parameter(Position = 0)][string]$Target = "help",
+    [Parameter(ValueFromRemainingArguments = $true)][string[]]$Rest = @()
+)
 $ErrorActionPreference = "Stop"
 $Root = $PSScriptRoot
 $Py = Join-Path $Root "backend/.venv/Scripts/python.exe"
@@ -24,7 +27,7 @@ switch ($Target) {
     "logs"         { docker compose logs -f backend }
     "migrate"      { Invoke-Checked { docker compose run --rm backend alembic upgrade head } }
     "migrate-down" { Invoke-Checked { docker compose run --rm backend alembic downgrade -1 } }
-    "ingest"       { Write-Error "Ingestion is implemented in Phase 2 (python -m app.scripts.ingest)." }
+    "ingest"       { Invoke-Checked { docker compose run --rm backend python -m app.scripts.ingest @Rest } }
     "eval"         { Write-Error "Evaluation is implemented in Phase 7 (python -m app.scripts.evaluate)." }
     "test" {
         In-Dir "backend" { & $Py -m pytest }

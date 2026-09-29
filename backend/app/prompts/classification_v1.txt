@@ -1,0 +1,22 @@
+Triage the support ticket below.
+
+Choose the single best category and, if another category also fits, a secondary category:
+$categories
+
+Report your confidence in each category as a number between 0 and 1. If no secondary category fits, set secondary_category to null and secondary_confidence to 0.
+
+Also extract these priority signals from what the ticket actually says (do not assume facts that are not stated):
+- production_impact: "none", "degraded", or "outage" for the customer's production systems.
+- users_affected: "single_user", "team", "many_users", or "all_users".
+- security_concern: a possible vulnerability, exposed secret, unauthorised access, or compromised account.
+- data_loss_risk: data has been, or could be, lost or corrupted.
+- blocks_ci_cd_or_deployments: pipelines, jobs, or deployments are blocked.
+- workaround_available: the ticket says a workaround exists or is in use.
+- time_sensitive: a deadline, release, or urgent timeline is mentioned.
+- regression: something that previously worked has stopped working.
+
+Keep the rationale to one or two sentences.
+
+<<<TICKET>>>
+$ticket
+<<<END TICKET>>>

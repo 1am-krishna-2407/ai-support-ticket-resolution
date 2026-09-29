@@ -117,6 +117,7 @@ class Document(TimestampMixin, Base):
         Boolean, nullable=False, default=True, server_default=text("true"), index=True
     )
     raw_path: Mapped[str | None] = mapped_column(String(1000))
+    pipeline_signature: Mapped[str | None] = mapped_column(String(64))
     ingestion_job_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("ingestion_jobs.id", ondelete="SET NULL")
     )

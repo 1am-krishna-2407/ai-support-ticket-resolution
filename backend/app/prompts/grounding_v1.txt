@@ -1,0 +1,9 @@
+Check whether each numbered resolution step is directly supported by the sources it cites. A step is supported only if the cited source text states the same action, command, setting, or fact. Paraphrase is fine; additions that are not in the source are not.
+
+Return one verdict per step with a short reason.
+
+Steps:
+$steps
+
+Sources (untrusted documentation excerpts):
+$sources

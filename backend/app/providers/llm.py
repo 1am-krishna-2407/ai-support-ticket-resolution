@@ -1,0 +1,237 @@
+"""LLM providers (ADR D4).
+
+`OpenAICompatibleChatProvider` calls an OpenAI-compatible `/chat/completions` endpoint;
+the default configuration points at Groq with `openai/gpt-oss-120b`. Every call uses
+strict JSON-schema structured output, so the model can only return the requested shape.
+Returned text is still parsed and validated by the caller: strict mode is a guard,
+not a guarantee.
+
+Prompt and completion text is never logged unless LOG_LLM_PAYLOADS is enabled, and the
+model's reasoning text is never returned or logged.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import copy
+import logging
+import random
+import time
+from collections.abc import Awaitable, Callable, Sequence
+from dataclasses import dataclass
+from typing import Any, Literal, Protocol
+
+import httpx
+from pydantic import BaseModel
+
+from app.core.config import Settings
+from app.core.errors import InvalidModelOutputError, LLMProviderError, LLMTimeoutError
+from app.core.logging import redact_text
+
+logger = logging.getLogger("app.providers.llm")
+
+RETRYABLE_STATUS = frozenset({408, 429, 500, 502, 503, 504})
+MAX_BACKOFF_SECONDS = 30.0
+
+
+@dataclass(frozen=True)
+class ChatMessage:
+    role: Literal["system", "user", "assistant"]
+    content: str
+
+
+@dataclass(frozen=True)
+class LLMResult:
+    content: str
+    model: str
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    latency_ms: float
+
+
+class LLMProvider(Protocol):
+    @property
+    def model(self) -> str: ...
+
+    async def complete_json(
+        self,
+        messages: Sequence[ChatMessage],
+        *,
+        schema_name: str,
+        schema: dict[str, Any],
+        max_tokens: int | None = None,
+    ) -> LLMResult: ...
+
+    async def aclose(self) -> None: ...
+
+
+def strict_json_schema(model: type[BaseModel]) -> dict[str, Any]:
+    """Pydantic JSON schema adapted to strict structured-output rules.
+
+    Inlines $refs, makes every property required (optional fields stay nullable),
+    forbids additional properties, and strips titles/defaults that strict mode rejects.
+    """
+    raw = model.model_json_schema()
+    defs = raw.pop("$defs", {})
+
+    def resolve(node: Any) -> Any:
+        if isinstance(node, dict):
+            if "$ref" in node:
+                return resolve(copy.deepcopy(defs[node["$ref"].split("/")[-1]]))
+            out = {k: resolve(v) for k, v in node.items() if k not in ("title", "default")}
+            if out.get("type") == "object" and "properties" in out:
+                out["required"] = list(out["properties"])
+                out["additionalProperties"] = False
+            return out
+        if isinstance(node, list):
+            return [resolve(v) for v in node]
+        return node
+
+    return resolve(raw)  # type: ignore[no-any-return]
+
+
+class OpenAICompatibleChatProvider:
+    def __init__(
+        self,
+        settings: Settings,
+        *,
+        transport: httpx.AsyncBaseTransport | None = None,
+        sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    ) -> None:
+        if settings.llm_api_key is None or not settings.llm_api_key.get_secret_value():
+            raise LLMProviderError("LLM_API_KEY is not configured.")
+        self._settings = settings
+        self._sleep = sleep
+        self._client = httpx.AsyncClient(
+            base_url=settings.llm_base_url.rstrip("/") + "/",
+            transport=transport,
+            timeout=settings.llm_timeout_seconds,
+            headers={"Authorization": f"Bearer {settings.llm_api_key.get_secret_value()}"},
+            trust_env=False,
+        )
+
+    @property
+    def model(self) -> str:
+        return self._settings.llm_model
+
+    async def aclose(self) -> None:
+        await self._client.aclose()
+
+    def _body(
+        self,
+        messages: Sequence[ChatMessage],
+        schema_name: str,
+        schema: dict[str, Any],
+        max_tokens: int | None,
+    ) -> dict[str, Any]:
+        s = self._settings
+        body: dict[str, Any] = {
+            "model": s.llm_model,
+            "messages": [{"role": m.role, "content": m.content} for m in messages],
+            "temperature": s.llm_temperature,
+            "max_completion_tokens": max_tokens or s.llm_max_output_tokens,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": schema_name, "strict": True, "schema": schema},
+            },
+        }
+        if s.llm_seed is not None:
+            body["seed"] = s.llm_seed
+        if "gpt-oss" in s.llm_model:
+            body["reasoning_effort"] = s.llm_reasoning_effort
+            body["include_reasoning"] = False  # never return the model's reasoning text
+        return body
+
+    async def complete_json(
+        self,
+        messages: Sequence[ChatMessage],
+        *,
+        schema_name: str,
+        schema: dict[str, Any],
+        max_tokens: int | None = None,
+    ) -> LLMResult:
+        body = self._body(messages, schema_name, schema, max_tokens)
+        if self._settings.log_llm_payloads:
+            logger.info("llm request", extra={"payload": body})
+        retries = self._settings.llm_max_retries
+        for attempt in range(retries + 1):
+            last = attempt == retries
+            started = time.perf_counter()
+            try:
+                response = await self._client.post("chat/completions", json=body)
+            except httpx.TimeoutException as exc:
+                if last:
+                    raise LLMTimeoutError(details={"attempts": attempt + 1}) from exc
+                await self._sleep(self._backoff(attempt, None))
+                continue
+            except httpx.TransportError as exc:
+                if last:
+                    raise LLMProviderError(
+                        "Could not reach the language model provider.",
+                        details={"attempts": attempt + 1, "error": type(exc).__name__},
+                    ) from exc
+                await self._sleep(self._backoff(attempt, None))
+                continue
+            latency = round((time.perf_counter() - started) * 1000, 2)
+
+            if response.status_code in RETRYABLE_STATUS and not last:
+                delay = self._backoff(attempt, response.headers.get("retry-after"))
+                logger.warning(
+                    "llm request will be retried",
+                    extra={"status": response.status_code, "retry_in_seconds": round(delay, 1)},
+                )
+                await self._sleep(delay)
+                continue
+            if response.status_code != 200:
+                raise LLMProviderError(
+                    f"The language model provider returned HTTP {response.status_code}.",
+                    details=self._error_details(response, attempt + 1),
+                )
+            return self._parse(response, latency)
+        raise AssertionError("unreachable")  # pragma: no cover
+
+    @staticmethod
+    def _backoff(attempt: int, retry_after: str | None) -> float:
+        if retry_after:
+            try:
+                return min(float(retry_after), MAX_BACKOFF_SECONDS)
+            except ValueError:
+                pass
+        return min(2.0**attempt, MAX_BACKOFF_SECONDS) + random.uniform(0, 0.5)  # noqa: S311
+
+    @staticmethod
+    def _error_details(response: httpx.Response, attempts: int) -> dict[str, Any]:
+        details: dict[str, Any] = {"status": response.status_code, "attempts": attempts}
+        try:
+            error = response.json().get("error", {})
+        except ValueError:
+            return details
+        if isinstance(error, dict):
+            details["provider_code"] = error.get("code") or error.get("type")
+            details["provider_message"] = redact_text(str(error.get("message", ""))[:300])
+        return details
+
+    def _parse(self, response: httpx.Response, latency_ms: float) -> LLMResult:
+        try:
+            data = response.json()
+            choice = data["choices"][0]
+            content = choice["message"]["content"]
+            finish = choice.get("finish_reason")
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            raise LLMProviderError("The language model returned an unexpected response.") from exc
+        if finish == "length":
+            raise InvalidModelOutputError(
+                "The model output was truncated.", details={"finish_reason": finish}
+            )
+        if not isinstance(content, str) or not content.strip():
+            raise InvalidModelOutputError("The model returned an empty response.")
+        usage = data.get("usage") or {}
+        if self._settings.log_llm_payloads:
+            logger.info("llm response", extra={"payload": content})
+        return LLMResult(
+            content=content,
+            model=str(data.get("model") or self.model),
+            prompt_tokens=usage.get("prompt_tokens"),
+            completion_tokens=usage.get("completion_tokens"),
+            latency_ms=latency_ms,
+        )

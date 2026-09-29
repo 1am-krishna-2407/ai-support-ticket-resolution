@@ -1,0 +1,2172 @@
+[
+  {
+    "document_id": "ci-variables-variables-troubleshooting",
+    "title": "Variables troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/ci/variables/variables_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-jobs-job-artifacts-troubleshooting",
+    "title": "Job artifacts troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/ci/jobs/job_artifacts_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-docker-docker-build-troubleshooting",
+    "title": "Docker build troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/ci/docker/docker_build_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-rest-troubleshooting",
+    "title": "Troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/api/rest/troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-integrations-webhooks-troubleshooting",
+    "title": "Webhooks troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/user/project/integrations/webhooks_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-repository-mirror-troubleshooting",
+    "title": "Troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/user/project/repository/mirror/troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-profile-account-two-factor-authentication-troubleshooting",
+    "title": "Two factor authentication troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/user/profile/account/two_factor_authentication_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-auth-ldap-ldap-troubleshooting",
+    "title": "Ldap troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/auth/ldap/ldap-troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-integrations-gitlab-slack-app-troubleshooting",
+    "title": "Gitlab slack app troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/user/project/integrations/gitlab_slack_app_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-backup-restore-troubleshooting-backup-gitlab",
+    "title": "Troubleshooting backup gitlab",
+    "canonical_url": "https://docs.gitlab.com/administration/backup_restore/troubleshooting_backup_gitlab/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-packages-container-registry-troubleshooting",
+    "title": "Container registry troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/packages/container_registry_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-cicd-job-artifacts-troubleshooting",
+    "title": "Job artifacts troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/cicd/job_artifacts_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-troubleshooting",
+    "title": "Troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "artifact-registry-troubleshooting",
+    "title": "Troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/artifact-registry/troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-kerberos-troubleshooting",
+    "title": "Kerberos troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/integration/kerberos_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "omnibus-troubleshooting",
+    "title": "Troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/omnibus/troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-ssh-troubleshooting",
+    "title": "Ssh troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/user/ssh_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-gitaly-troubleshooting",
+    "title": "Troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/gitaly/troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-gitlab-duo-self-hosted-troubleshooting",
+    "title": "Troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/gitlab_duo_self_hosted/troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-packages-container-registry-metadata-database-troubleshooting",
+    "title": "Container registry metadata database troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/packages/container_registry_metadata_database_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-pages-troubleshooting",
+    "title": "Troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/pages/troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-postgresql-replication-and-failover-troubleshooting",
+    "title": "Replication and failover troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/postgresql/replication_and_failover_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-raketasks-import-export-rake-tasks-troubleshooting",
+    "title": "Import export rake tasks troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/raketasks/import_export_rake_tasks_troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-redis-troubleshooting",
+    "title": "Troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/redis/troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-secrets-manager-troubleshooting",
+    "title": "Troubleshooting",
+    "canonical_url": "https://docs.gitlab.com/administration/secrets_manager/troubleshooting/",
+    "category": "troubleshooting",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-integrations-webhooks",
+    "title": "Webhooks",
+    "canonical_url": "https://docs.gitlab.com/user/project/integrations/webhooks/",
+    "category": "webhooks",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-integrations-webhook-events",
+    "title": "Webhook events",
+    "canonical_url": "https://docs.gitlab.com/user/project/integrations/webhook_events/",
+    "category": "webhooks",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-system-hooks",
+    "title": "System hooks",
+    "canonical_url": "https://docs.gitlab.com/administration/system_hooks/",
+    "category": "webhooks",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-system-hooks",
+    "title": "System hooks",
+    "canonical_url": "https://docs.gitlab.com/api/system_hooks/",
+    "category": "webhooks",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-webhooks",
+    "title": "Webhooks",
+    "canonical_url": "https://docs.gitlab.com/security/webhooks/",
+    "category": "webhooks",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-file-hooks",
+    "title": "File hooks",
+    "canonical_url": "https://docs.gitlab.com/administration/file_hooks/",
+    "category": "webhooks",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-rest-authentication",
+    "title": "Authentication",
+    "canonical_url": "https://docs.gitlab.com/api/rest/authentication/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-profile-personal-access-tokens",
+    "title": "Personal access tokens",
+    "canonical_url": "https://docs.gitlab.com/user/profile/personal_access_tokens/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-profile-account-two-factor-authentication",
+    "title": "Two factor authentication",
+    "canonical_url": "https://docs.gitlab.com/user/profile/account/two_factor_authentication/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-two-factor-authentication",
+    "title": "Two factor authentication",
+    "canonical_url": "https://docs.gitlab.com/security/two_factor_authentication/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-jobs-ci-job-token",
+    "title": "Ci job token",
+    "canonical_url": "https://docs.gitlab.com/ci/jobs/ci_job_token/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-deploy-tokens",
+    "title": "Deploy tokens",
+    "canonical_url": "https://docs.gitlab.com/user/project/deploy_tokens/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-deploy-keys",
+    "title": "Deploy keys",
+    "canonical_url": "https://docs.gitlab.com/user/project/deploy_keys/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-oauth2",
+    "title": "Oauth2",
+    "canonical_url": "https://docs.gitlab.com/api/oauth2/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-ssh",
+    "title": "Ssh",
+    "canonical_url": "https://docs.gitlab.com/user/ssh/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-group-saml-sso",
+    "title": "Saml sso",
+    "canonical_url": "https://docs.gitlab.com/user/group/saml_sso/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-auth-ldap",
+    "title": "Ldap",
+    "canonical_url": "https://docs.gitlab.com/administration/auth/ldap/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-auth-oidc",
+    "title": "Oidc",
+    "canonical_url": "https://docs.gitlab.com/administration/auth/oidc/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-personal-access-tokens",
+    "title": "Personal access tokens",
+    "canonical_url": "https://docs.gitlab.com/api/personal_access_tokens/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-tokens",
+    "title": "Tokens",
+    "canonical_url": "https://docs.gitlab.com/security/tokens/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-auth",
+    "title": "Auth",
+    "canonical_url": "https://docs.gitlab.com/administration/auth/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-oauth-provider",
+    "title": "Oauth provider",
+    "canonical_url": "https://docs.gitlab.com/integration/oauth_provider/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-omniauth",
+    "title": "Omniauth",
+    "canonical_url": "https://docs.gitlab.com/integration/omniauth/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-saml",
+    "title": "Saml",
+    "canonical_url": "https://docs.gitlab.com/integration/saml/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-ssh-advanced",
+    "title": "Ssh advanced",
+    "canonical_url": "https://docs.gitlab.com/user/ssh_advanced/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-auth-atlassian",
+    "title": "Atlassian",
+    "canonical_url": "https://docs.gitlab.com/administration/auth/atlassian/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-auth-cognito",
+    "title": "Cognito",
+    "canonical_url": "https://docs.gitlab.com/administration/auth/cognito/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-auth-crowd",
+    "title": "Crowd",
+    "canonical_url": "https://docs.gitlab.com/administration/auth/crowd/",
+    "category": "authentication",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-runners",
+    "title": "Runners",
+    "canonical_url": "https://docs.gitlab.com/ci/runners/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner",
+    "title": "Runner",
+    "canonical_url": "https://docs.gitlab.com/runner/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-install",
+    "title": "Install",
+    "canonical_url": "https://docs.gitlab.com/runner/install/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-register",
+    "title": "Register",
+    "canonical_url": "https://docs.gitlab.com/runner/register/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-configuration-advanced-configuration",
+    "title": "Advanced configuration",
+    "canonical_url": "https://docs.gitlab.com/runner/configuration/advanced-configuration/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-configuration-tls-self-signed",
+    "title": "Tls self signed",
+    "canonical_url": "https://docs.gitlab.com/runner/configuration/tls-self-signed/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-executors",
+    "title": "Executors",
+    "canonical_url": "https://docs.gitlab.com/runner/executors/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-executors-docker",
+    "title": "Docker",
+    "canonical_url": "https://docs.gitlab.com/runner/executors/docker/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-executors-kubernetes",
+    "title": "Kubernetes",
+    "canonical_url": "https://docs.gitlab.com/runner/executors/kubernetes/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-executors-shell",
+    "title": "Shell",
+    "canonical_url": "https://docs.gitlab.com/runner/executors/shell/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-faq",
+    "title": "Faq",
+    "canonical_url": "https://docs.gitlab.com/runner/faq/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-commands",
+    "title": "Commands",
+    "canonical_url": "https://docs.gitlab.com/runner/commands/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-configuration-proxy",
+    "title": "Proxy",
+    "canonical_url": "https://docs.gitlab.com/runner/configuration/proxy/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-security",
+    "title": "Security",
+    "canonical_url": "https://docs.gitlab.com/runner/security/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-runners-configure-runners",
+    "title": "Configure runners",
+    "canonical_url": "https://docs.gitlab.com/ci/runners/configure_runners/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-runners-hosted-runners",
+    "title": "Hosted runners",
+    "canonical_url": "https://docs.gitlab.com/ci/runners/hosted_runners/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-runners",
+    "title": "Runners",
+    "canonical_url": "https://docs.gitlab.com/api/runners/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-agents",
+    "title": "Agents",
+    "canonical_url": "https://docs.gitlab.com/runner/agents/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-claude",
+    "title": "Claude",
+    "canonical_url": "https://docs.gitlab.com/runner/claude/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-configuration",
+    "title": "Configuration",
+    "canonical_url": "https://docs.gitlab.com/runner/configuration/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-development",
+    "title": "Development",
+    "canonical_url": "https://docs.gitlab.com/runner/development/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "runner-fleet-scaling",
+    "title": "Fleet scaling",
+    "canonical_url": "https://docs.gitlab.com/runner/fleet_scaling/",
+    "category": "runners",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci",
+    "title": "Ci",
+    "canonical_url": "https://docs.gitlab.com/ci/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-yaml",
+    "title": "Yaml",
+    "canonical_url": "https://docs.gitlab.com/ci/yaml/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-variables",
+    "title": "Variables",
+    "canonical_url": "https://docs.gitlab.com/ci/variables/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-variables-predefined-variables",
+    "title": "Predefined variables",
+    "canonical_url": "https://docs.gitlab.com/ci/variables/predefined_variables/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-variables-where-variables-can-be-used",
+    "title": "Where variables can be used",
+    "canonical_url": "https://docs.gitlab.com/ci/variables/where_variables_can_be_used/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-pipelines",
+    "title": "Pipelines",
+    "canonical_url": "https://docs.gitlab.com/ci/pipelines/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-jobs",
+    "title": "Jobs",
+    "canonical_url": "https://docs.gitlab.com/ci/jobs/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-jobs-job-control",
+    "title": "Job control",
+    "canonical_url": "https://docs.gitlab.com/ci/jobs/job_control/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-jobs-job-artifacts",
+    "title": "Job artifacts",
+    "canonical_url": "https://docs.gitlab.com/ci/jobs/job_artifacts/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-caching",
+    "title": "Caching",
+    "canonical_url": "https://docs.gitlab.com/ci/caching/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-environments",
+    "title": "Environments",
+    "canonical_url": "https://docs.gitlab.com/ci/environments/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-triggers",
+    "title": "Triggers",
+    "canonical_url": "https://docs.gitlab.com/ci/triggers/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-docker",
+    "title": "Docker",
+    "canonical_url": "https://docs.gitlab.com/ci/docker/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-docker-using-docker-build",
+    "title": "Using docker build",
+    "canonical_url": "https://docs.gitlab.com/ci/docker/using_docker_build/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-docker-docker-in-docker",
+    "title": "Docker in docker",
+    "canonical_url": "https://docs.gitlab.com/ci/docker/docker_in_docker/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-docker-authenticate-registry",
+    "title": "Authenticate registry",
+    "canonical_url": "https://docs.gitlab.com/ci/docker/authenticate_registry/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-secrets",
+    "title": "Secrets",
+    "canonical_url": "https://docs.gitlab.com/ci/secrets/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-debugging",
+    "title": "Debugging",
+    "canonical_url": "https://docs.gitlab.com/ci/debugging/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-pipeline-security",
+    "title": "Pipeline security",
+    "canonical_url": "https://docs.gitlab.com/ci/pipeline_security/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-chatops",
+    "title": "Chatops",
+    "canonical_url": "https://docs.gitlab.com/ci/chatops/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-ci-cd-for-external-repos",
+    "title": "Ci cd for external repos",
+    "canonical_url": "https://docs.gitlab.com/ci/ci_cd_for_external_repos/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-cloud-deployment",
+    "title": "Cloud deployment",
+    "canonical_url": "https://docs.gitlab.com/ci/cloud_deployment/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-cloud-services",
+    "title": "Cloud services",
+    "canonical_url": "https://docs.gitlab.com/ci/cloud_services/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-components",
+    "title": "Components",
+    "canonical_url": "https://docs.gitlab.com/ci/components/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-examples",
+    "title": "Examples",
+    "canonical_url": "https://docs.gitlab.com/ci/examples/",
+    "category": "ci_cd",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-rest",
+    "title": "Rest",
+    "canonical_url": "https://docs.gitlab.com/api/rest/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-projects",
+    "title": "Projects",
+    "canonical_url": "https://docs.gitlab.com/api/projects/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-merge-requests",
+    "title": "Merge requests",
+    "canonical_url": "https://docs.gitlab.com/api/merge_requests/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-pipelines",
+    "title": "Pipelines",
+    "canonical_url": "https://docs.gitlab.com/api/pipelines/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-jobs",
+    "title": "Jobs",
+    "canonical_url": "https://docs.gitlab.com/api/jobs/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-users",
+    "title": "Users",
+    "canonical_url": "https://docs.gitlab.com/api/users/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-groups",
+    "title": "Groups",
+    "canonical_url": "https://docs.gitlab.com/api/groups/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-repository-files",
+    "title": "Repository files",
+    "canonical_url": "https://docs.gitlab.com/api/repository_files/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-project-level-variables",
+    "title": "Project level variables",
+    "canonical_url": "https://docs.gitlab.com/api/project_level_variables/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-pipeline-triggers",
+    "title": "Pipeline triggers",
+    "canonical_url": "https://docs.gitlab.com/api/pipeline_triggers/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-job-artifacts",
+    "title": "Job artifacts",
+    "canonical_url": "https://docs.gitlab.com/api/job_artifacts/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-rest-third-party-clients",
+    "title": "Third party clients",
+    "canonical_url": "https://docs.gitlab.com/api/rest/third_party_clients/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-protected-branches",
+    "title": "Protected branches",
+    "canonical_url": "https://docs.gitlab.com/api/protected_branches/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-deploy-tokens",
+    "title": "Deploy tokens",
+    "canonical_url": "https://docs.gitlab.com/api/deploy_tokens/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-deploy-keys",
+    "title": "Deploy keys",
+    "canonical_url": "https://docs.gitlab.com/api/deploy_keys/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-merge-request-approvals",
+    "title": "Merge request approvals",
+    "canonical_url": "https://docs.gitlab.com/api/merge_request_approvals/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api",
+    "title": "Api",
+    "canonical_url": "https://docs.gitlab.com/api/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-access-requests",
+    "title": "Access requests",
+    "canonical_url": "https://docs.gitlab.com/api/access_requests/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-admin-sidekiq-queues",
+    "title": "Admin sidekiq queues",
+    "canonical_url": "https://docs.gitlab.com/api/admin_sidekiq_queues/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-alert-management-alerts",
+    "title": "Alert management alerts",
+    "canonical_url": "https://docs.gitlab.com/api/alert_management_alerts/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-api-resources",
+    "title": "Api resources",
+    "canonical_url": "https://docs.gitlab.com/api/api_resources/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "api-appearance",
+    "title": "Appearance",
+    "canonical_url": "https://docs.gitlab.com/api/appearance/",
+    "category": "api",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-permissions",
+    "title": "Permissions",
+    "canonical_url": "https://docs.gitlab.com/user/permissions/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-members",
+    "title": "Members",
+    "canonical_url": "https://docs.gitlab.com/user/project/members/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-custom-roles",
+    "title": "Custom roles",
+    "canonical_url": "https://docs.gitlab.com/user/custom_roles/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-repository-branches-protected",
+    "title": "Protected",
+    "canonical_url": "https://docs.gitlab.com/user/project/repository/branches/protected/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-protected-tags",
+    "title": "Protected tags",
+    "canonical_url": "https://docs.gitlab.com/user/project/protected_tags/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-merge-requests-approvals",
+    "title": "Approvals",
+    "canonical_url": "https://docs.gitlab.com/user/project/merge_requests/approvals/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-settings-visibility-and-access-controls",
+    "title": "Visibility and access controls",
+    "canonical_url": "https://docs.gitlab.com/administration/settings/visibility_and_access_controls/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-members-sharing-projects-groups",
+    "title": "Sharing projects groups",
+    "canonical_url": "https://docs.gitlab.com/user/project/members/sharing_projects_groups/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "ci-jobs-fine-grained-permissions",
+    "title": "Fine grained permissions",
+    "canonical_url": "https://docs.gitlab.com/ci/jobs/fine_grained_permissions/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-custom-roles-abilities",
+    "title": "Abilities",
+    "canonical_url": "https://docs.gitlab.com/user/custom_roles/abilities/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-group-manage",
+    "title": "Manage",
+    "canonical_url": "https://docs.gitlab.com/user/group/manage/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-merge-requests-approvals-rules",
+    "title": "Rules",
+    "canonical_url": "https://docs.gitlab.com/user/project/merge_requests/approvals/rules/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-merge-requests-approvals-settings",
+    "title": "Settings",
+    "canonical_url": "https://docs.gitlab.com/user/project/merge_requests/approvals/settings/",
+    "category": "permissions",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security",
+    "title": "Security",
+    "canonical_url": "https://docs.gitlab.com/security/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-application-security",
+    "title": "Application security",
+    "canonical_url": "https://docs.gitlab.com/user/application_security/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-application-security-secret-detection",
+    "title": "Secret detection",
+    "canonical_url": "https://docs.gitlab.com/user/application_security/secret_detection/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-application-security-sast",
+    "title": "Sast",
+    "canonical_url": "https://docs.gitlab.com/user/application_security/sast/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-application-security-dependency-scanning",
+    "title": "Dependency scanning",
+    "canonical_url": "https://docs.gitlab.com/user/application_security/dependency_scanning/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-rate-limits",
+    "title": "Rate limits",
+    "canonical_url": "https://docs.gitlab.com/security/rate_limits/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-asset-proxy",
+    "title": "Asset proxy",
+    "canonical_url": "https://docs.gitlab.com/security/asset_proxy/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-compliance-security-policy-management",
+    "title": "Compliance security policy management",
+    "canonical_url": "https://docs.gitlab.com/security/compliance_security_policy_management/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-crime-vulnerability",
+    "title": "Crime vulnerability",
+    "canonical_url": "https://docs.gitlab.com/security/crime_vulnerability/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-dedicated-for-government-secure-config-guide",
+    "title": "Dedicated for government secure config guide",
+    "canonical_url": "https://docs.gitlab.com/security/dedicated_for_government_secure_config_guide/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-dedicated-for-government-shared-responsibility-model",
+    "title": "Dedicated for government shared responsibility model",
+    "canonical_url": "https://docs.gitlab.com/security/dedicated_for_government_shared_responsibility_model/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-email-verification",
+    "title": "Email verification",
+    "canonical_url": "https://docs.gitlab.com/security/email_verification/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-hardening",
+    "title": "Hardening",
+    "canonical_url": "https://docs.gitlab.com/security/hardening/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-hardening-application-recommendations",
+    "title": "Hardening application recommendations",
+    "canonical_url": "https://docs.gitlab.com/security/hardening_application_recommendations/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-hardening-cicd-recommendations",
+    "title": "Hardening cicd recommendations",
+    "canonical_url": "https://docs.gitlab.com/security/hardening_cicd_recommendations/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-hardening-configuration-recommendations",
+    "title": "Hardening configuration recommendations",
+    "canonical_url": "https://docs.gitlab.com/security/hardening_configuration_recommendations/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-hardening-general-concepts",
+    "title": "Hardening general concepts",
+    "canonical_url": "https://docs.gitlab.com/security/hardening_general_concepts/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-hardening-nist-800-53",
+    "title": "Hardening nist 800 53",
+    "canonical_url": "https://docs.gitlab.com/security/hardening_nist_800_53/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-hardening-operating-system-recommendations",
+    "title": "Hardening operating system recommendations",
+    "canonical_url": "https://docs.gitlab.com/security/hardening_operating_system_recommendations/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "security-identity-verification",
+    "title": "Identity verification",
+    "canonical_url": "https://docs.gitlab.com/security/identity_verification/",
+    "category": "security",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-integrations",
+    "title": "Integrations",
+    "canonical_url": "https://docs.gitlab.com/user/project/integrations/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration",
+    "title": "Integration",
+    "canonical_url": "https://docs.gitlab.com/integration/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-jira",
+    "title": "Jira",
+    "canonical_url": "https://docs.gitlab.com/integration/jira/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-integrations-slack",
+    "title": "Slack",
+    "canonical_url": "https://docs.gitlab.com/user/project/integrations/slack/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-integrations-gitlab-slack-application",
+    "title": "Gitlab slack application",
+    "canonical_url": "https://docs.gitlab.com/user/project/integrations/gitlab_slack_application/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-akismet",
+    "title": "Akismet",
+    "canonical_url": "https://docs.gitlab.com/integration/akismet/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-alicloud",
+    "title": "Alicloud",
+    "canonical_url": "https://docs.gitlab.com/integration/alicloud/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-auth0",
+    "title": "Auth0",
+    "canonical_url": "https://docs.gitlab.com/integration/auth0/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-azure",
+    "title": "Azure",
+    "canonical_url": "https://docs.gitlab.com/integration/azure/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-bitbucket",
+    "title": "Bitbucket",
+    "canonical_url": "https://docs.gitlab.com/integration/bitbucket/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-clickhouse",
+    "title": "Clickhouse",
+    "canonical_url": "https://docs.gitlab.com/integration/clickhouse/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-datadog",
+    "title": "Datadog",
+    "canonical_url": "https://docs.gitlab.com/integration/datadog/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-diffblue-cover",
+    "title": "Diffblue cover",
+    "canonical_url": "https://docs.gitlab.com/integration/diffblue_cover/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-external-issue-tracker",
+    "title": "External issue tracker",
+    "canonical_url": "https://docs.gitlab.com/integration/external-issue-tracker/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-github",
+    "title": "Github",
+    "canonical_url": "https://docs.gitlab.com/integration/github/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-gitlab",
+    "title": "Gitlab",
+    "canonical_url": "https://docs.gitlab.com/integration/gitlab/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-gitpod",
+    "title": "Gitpod",
+    "canonical_url": "https://docs.gitlab.com/integration/gitpod/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "integration-gmail-action-buttons-for-gitlab",
+    "title": "Gmail action buttons for gitlab",
+    "canonical_url": "https://docs.gitlab.com/integration/gmail_action_buttons_for_gitlab/",
+    "category": "integrations",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project",
+    "title": "Project",
+    "canonical_url": "https://docs.gitlab.com/user/project/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-repository",
+    "title": "Repository",
+    "canonical_url": "https://docs.gitlab.com/user/project/repository/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-merge-requests",
+    "title": "Merge requests",
+    "canonical_url": "https://docs.gitlab.com/user/project/merge_requests/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-settings",
+    "title": "Settings",
+    "canonical_url": "https://docs.gitlab.com/user/project/settings/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-repository-mirror",
+    "title": "Mirror",
+    "canonical_url": "https://docs.gitlab.com/user/project/repository/mirror/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-repository-mirror-push",
+    "title": "Push",
+    "canonical_url": "https://docs.gitlab.com/user/project/repository/mirror/push/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-repository-mirror-pull",
+    "title": "Pull",
+    "canonical_url": "https://docs.gitlab.com/user/project/repository/mirror/pull/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-pages",
+    "title": "Pages",
+    "canonical_url": "https://docs.gitlab.com/user/project/pages/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-autocomplete-characters",
+    "title": "Autocomplete characters",
+    "canonical_url": "https://docs.gitlab.com/user/project/autocomplete_characters/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-badges",
+    "title": "Badges",
+    "canonical_url": "https://docs.gitlab.com/user/project/badges/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-canary-deployments",
+    "title": "Canary deployments",
+    "canonical_url": "https://docs.gitlab.com/user/project/canary_deployments/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-changelogs",
+    "title": "Changelogs",
+    "canonical_url": "https://docs.gitlab.com/user/project/changelogs/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-clusters",
+    "title": "Clusters",
+    "canonical_url": "https://docs.gitlab.com/user/project/clusters/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-code-intelligence",
+    "title": "Code intelligence",
+    "canonical_url": "https://docs.gitlab.com/user/project/code_intelligence/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-code-navigation",
+    "title": "Code navigation",
+    "canonical_url": "https://docs.gitlab.com/user/project/code_navigation/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-codeowners",
+    "title": "Codeowners",
+    "canonical_url": "https://docs.gitlab.com/user/project/codeowners/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-deploy-boards",
+    "title": "Deploy boards",
+    "canonical_url": "https://docs.gitlab.com/user/project/deploy_boards/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-description-templates",
+    "title": "Description templates",
+    "canonical_url": "https://docs.gitlab.com/user/project/description_templates/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-file-lock",
+    "title": "File lock",
+    "canonical_url": "https://docs.gitlab.com/user/project/file_lock/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-insights",
+    "title": "Insights",
+    "canonical_url": "https://docs.gitlab.com/user/project/insights/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-issue-board",
+    "title": "Issue board",
+    "canonical_url": "https://docs.gitlab.com/user/project/issue_board/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "user-project-issues",
+    "title": "Issues",
+    "canonical_url": "https://docs.gitlab.com/user/project/issues/",
+    "category": "projects",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration",
+    "title": "Administration",
+    "canonical_url": "https://docs.gitlab.com/administration/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-settings",
+    "title": "Settings",
+    "canonical_url": "https://docs.gitlab.com/administration/settings/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-environment-variables",
+    "title": "Environment variables",
+    "canonical_url": "https://docs.gitlab.com/administration/environment_variables/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-instance-limits",
+    "title": "Instance limits",
+    "canonical_url": "https://docs.gitlab.com/administration/instance_limits/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-logs",
+    "title": "Logs",
+    "canonical_url": "https://docs.gitlab.com/administration/logs/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-packages-container-registry",
+    "title": "Container registry",
+    "canonical_url": "https://docs.gitlab.com/administration/packages/container_registry/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-incoming-email",
+    "title": "Incoming email",
+    "canonical_url": "https://docs.gitlab.com/administration/incoming_email/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-reply-by-email",
+    "title": "Reply by email",
+    "canonical_url": "https://docs.gitlab.com/administration/reply_by_email/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-raketasks",
+    "title": "Raketasks",
+    "canonical_url": "https://docs.gitlab.com/administration/raketasks/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-settings-rate-limits-on-raw-endpoints",
+    "title": "Rate limits on raw endpoints",
+    "canonical_url": "https://docs.gitlab.com/administration/settings/rate_limits_on_raw_endpoints/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-settings-rate-limits-on-git-ssh-operations",
+    "title": "Rate limits on git ssh operations",
+    "canonical_url": "https://docs.gitlab.com/administration/settings/rate_limits_on_git_ssh_operations/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "install",
+    "title": "Install",
+    "canonical_url": "https://docs.gitlab.com/install/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-admin-area",
+    "title": "Admin area",
+    "canonical_url": "https://docs.gitlab.com/administration/admin_area/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-administer-users",
+    "title": "Administer users",
+    "canonical_url": "https://docs.gitlab.com/administration/administer_users/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-analytics",
+    "title": "Analytics",
+    "canonical_url": "https://docs.gitlab.com/administration/analytics/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-appearance",
+    "title": "Appearance",
+    "canonical_url": "https://docs.gitlab.com/administration/appearance/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-application-settings-cache",
+    "title": "Application settings cache",
+    "canonical_url": "https://docs.gitlab.com/administration/application_settings_cache/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-auditor-users",
+    "title": "Auditor users",
+    "canonical_url": "https://docs.gitlab.com/administration/auditor_users/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-backup-restore",
+    "title": "Backup restore",
+    "canonical_url": "https://docs.gitlab.com/administration/backup_restore/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-broadcast-messages",
+    "title": "Broadcast messages",
+    "canonical_url": "https://docs.gitlab.com/administration/broadcast_messages/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-cells",
+    "title": "Cells",
+    "canonical_url": "https://docs.gitlab.com/administration/cells/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  },
+  {
+    "document_id": "administration-cicd",
+    "title": "Cicd",
+    "canonical_url": "https://docs.gitlab.com/administration/cicd/",
+    "category": "configuration",
+    "source_type": "product_documentation",
+    "license": "CC BY-SA 4.0",
+    "source_version": null,
+    "enabled": true
+  }
+]

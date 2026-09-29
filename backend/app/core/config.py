@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 from functools import lru_cache
-from typing import Annotated, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -32,6 +32,17 @@ class AdminMode(StrEnum):
     TOKEN = "token"  # noqa: S105 (mode name, not a credential)
     LOCAL = "local"
     DEV = "dev"
+
+
+class EmbeddingProviderName(StrEnum):
+    HUGGINGFACE = "huggingface"
+    GEMINI = "gemini"
+
+
+_DEFAULT_EMBEDDING_BASE_URLS = {
+    EmbeddingProviderName.HUGGINGFACE: "https://router.huggingface.co/deepinfra/v1/openai",
+    EmbeddingProviderName.GEMINI: "https://generativelanguage.googleapis.com/v1beta",
+}
 
 
 def _split_csv(value: object) -> object:
@@ -70,27 +81,41 @@ class Settings(BaseSettings):
     admin_mode: AdminMode = AdminMode.TOKEN
     admin_token: SecretStr | None = None
 
-    # --- LLM provider (OpenAI-compatible) ----------------------------------
-    llm_base_url: str = "https://api.openai.com/v1"
+    # --- LLM provider (OpenAI-compatible chat completions; default: Groq) ---
+    llm_base_url: str = "https://api.groq.com/openai/v1"
     llm_api_key: SecretStr | None = None
-    llm_model: str = "gpt-4o-mini"
+    llm_model: str = "openai/gpt-oss-120b"
+    # gpt-oss models are reasoning models; this bounds hidden reasoning tokens.
+    llm_reasoning_effort: Literal["low", "medium", "high"] = "medium"
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     llm_max_output_tokens: int = Field(default=1500, gt=0)
     llm_timeout_seconds: float = Field(default=60.0, gt=0)
     llm_max_retries: int = Field(default=2, ge=0, le=5)
     llm_seed: int | None = 7
 
-    # --- Embedding provider (OpenAI-compatible) ----------------------------
-    embedding_base_url: str = "https://api.openai.com/v1"
+    # --- Embedding provider -----------------------------------------------
+    # huggingface: OpenAI-style embeddings via the Hugging Face Inference Providers router
+    #              (Qwen3-Embedding-0.6B served by DeepInfra), authenticated with HF_TOKEN.
+    # gemini:      Gemini native batchEmbedContents, authenticated with EMBEDDING_API_KEY.
+    embedding_provider: EmbeddingProviderName = EmbeddingProviderName.HUGGINGFACE
+    embedding_base_url: str | None = None  # None = the provider's default (see below)
     embedding_api_key: SecretStr | None = None
-    embedding_model: str = "text-embedding-3-small"
-    # The pgvector column is created with this dimension at migration time.
-    # Changing it requires a new migration and a full re-embed.
-    embedding_dimension: int = Field(default=1536, gt=0, le=16_000)
-    embedding_batch_size: int = Field(default=64, gt=0, le=2048)
+    hf_token: SecretStr | None = None
+    embedding_model: str = "Qwen/Qwen3-Embedding-0.6B"
+    # Qwen3 embeddings expect queries (not documents) to carry a task instruction.
+    embedding_query_instruction: str = (
+        "Given a technical support ticket or question, retrieve documentation passages "
+        "that help resolve it"
+    )
+    # The pgvector column is created with this dimension at migration time; changing it
+    # needs a migration (0005 resizes to this value) and a re-embed. HNSW allows <= 2000.
+    embedding_dimension: int = Field(default=1024, gt=0, le=2000)
+    # Gemini accepts at most 100 inputs per batch; checked below.
+    embedding_batch_size: int = Field(default=64, gt=0, le=256)
+    embedding_max_requests_per_minute: int = Field(default=60, gt=0)
     embedding_concurrency: int = Field(default=2, gt=0, le=16)
     embedding_timeout_seconds: float = Field(default=60.0, gt=0)
-    embedding_max_retries: int = Field(default=3, ge=0, le=8)
+    embedding_max_retries: int = Field(default=5, ge=0, le=8)
 
     # --- Knowledge ingestion -----------------------------------------------
     allowed_source_domains: Annotated[list[str], NoDecode] = Field(
@@ -108,7 +133,8 @@ class Settings(BaseSettings):
     chunk_target_tokens: int = Field(default=450, gt=0)
     chunk_overlap_tokens: int = Field(default=60, ge=0)
     chunk_hard_max_tokens: int = Field(default=900, gt=0)
-    tokenizer_encoding: str = "cl100k_base"
+    # o200k_base matches the gpt-oss tokenizer family closely enough for budgeting.
+    tokenizer_encoding: str = "o200k_base"
 
     # --- Retrieval ---------------------------------------------------------
     retrieval_candidate_k: int = Field(default=40, gt=0, le=500)
@@ -178,7 +204,25 @@ class Settings(BaseSettings):
             raise ValueError("RETRIEVAL_TOP_K must be <= RETRIEVAL_CANDIDATE_K")
         if not self.allowed_source_domains:
             raise ValueError("ALLOWED_SOURCE_DOMAINS must not be empty")
+        if (
+            self.embedding_provider is EmbeddingProviderName.GEMINI
+            and self.embedding_batch_size > 100
+        ):
+            raise ValueError("EMBEDDING_BATCH_SIZE must be <= 100 for the Gemini provider")
         return self
+
+    @property
+    def resolved_embedding_base_url(self) -> str:
+        if self.embedding_base_url:
+            return self.embedding_base_url
+        return _DEFAULT_EMBEDDING_BASE_URLS[self.embedding_provider]
+
+    @property
+    def resolved_embedding_api_key(self) -> SecretStr | None:
+        """HF_TOKEN for Hugging Face (EMBEDDING_API_KEY may hold another provider's key)."""
+        if self.embedding_provider is EmbeddingProviderName.HUGGINGFACE:
+            return self.hf_token or self.embedding_api_key
+        return self.embedding_api_key
 
 
 @lru_cache(maxsize=1)

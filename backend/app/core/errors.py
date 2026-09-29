@@ -122,6 +122,13 @@ class EmbeddingProviderError(AppError):
     default_message = "The embedding provider failed to respond correctly."
 
 
+class EmbeddingQuotaExhaustedError(EmbeddingProviderError):
+    """The provider's daily quota is used up; retrying before the quota resets is pointless."""
+
+    status_code = 503
+    default_message = "The embedding provider's daily quota is exhausted."
+
+
 class LLMProviderError(AppError):
     code = ErrorCode.LLM_PROVIDER_ERROR
     status_code = 502

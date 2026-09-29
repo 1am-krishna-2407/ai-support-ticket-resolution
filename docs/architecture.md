@@ -5,8 +5,8 @@
 ```
 browser ──► frontend (nginx, :8080) ──/api/──► backend (FastAPI, :8000) ──► postgres + pgvector
                  static SPA                         │
-                                                    ├──► LLM provider (OpenAI-compatible)      [Phase 4]
-                                                    └──► embedding provider (OpenAI-compatible) [Phase 2]
+                                                    ├──► LLM: Groq, openai/gpt-oss-120b (OpenAI-compatible chat API) [Phase 4]
+                                                    └──► Embeddings: Qwen3-Embedding-0.6B via Hugging Face router (DeepInfra) [Phase 2]
 ```
 
 - **Frontend**: static React build served by unprivileged nginx. `/api/*` is
@@ -54,11 +54,12 @@ phase that depends on it.
 
 | # | Decision | Status | Notes |
 |---|---|---|---|
-| D1 | Knowledge source: GitLab docs (`docs.gitlab.com`), curated manifest of ~150–300 pages across 11 categories | Provisional | Confirm before Phase 2. `ALLOWED_SOURCE_DOMAINS` defaults to `docs.gitlab.com` |
-| D2 | Verify licence and robots.txt before any fetch; record the verified text in `docs/licensing.md` and on each document | Accepted | Not yet verified. This is a Phase 2 entry gate |
+| D1 | Knowledge source: GitLab docs (`docs.gitlab.com`), curated manifest of ~150–300 pages across 11 categories | Accepted | Selected from the published English sitemap, so every URL exists |
+| D2 | Verify licence and robots.txt before any fetch; record the verified text in `docs/licensing.md` and on each document | Accepted | Verified 2026-09-29: CC BY-SA 4.0 (footer `rel="license"` link). robots.txt allows the curated paths, and the fetcher enforces robots.txt on every request |
 | D3 | Fetch rendered HTML from the allowlisted domain and parse the main content region | Accepted | Phase 2 |
-| D4 | One OpenAI-compatible HTTP client (`httpx`) for LLM and embeddings, with configurable base URL, model, and key | Accepted | Provider and model choice still open |
-| D5 | Embedding dimension is fixed by config (`EMBEDDING_DIMENSION`, default 1536) and applied when migration `0002` creates `vector(N)` | Provisional | Changing it later needs a new migration and a full re-embed. `embedding_model` is stored per chunk |
+| D4 | Providers: **LLM = Groq `openai/gpt-oss-120b`** through its OpenAI-compatible chat-completions API. **Embeddings = `Qwen/Qwen3-Embedding-0.6B`** through the Hugging Face Inference Providers router (`https://router.huggingface.co/deepinfra/v1/openai/embeddings`, authenticated with `HF_TOKEN`). Gemini `gemini-embedding-001` remains selectable with `EMBEDDING_PROVIDER=gemini`. All providers sit behind the `LLMProvider` / `EmbeddingProvider` protocols | Accepted (revised 2026-09-29) | Gemini was dropped as the default because its free tier caps embeddings at 1,000 inputs per day per project, with each batch item counted separately (about a fifth of the corpus). For this model the router maps to DeepInfra: Hugging Face's own `hf-inference` backend reported an error status for it. Qwen3 expects an instruction on queries only (`Instruct: …
+Query:…`, `EMBEDDING_QUERY_INSTRUCTION`); documents are embedded as-is. HTTP 402 (credits used up) fails fast into reuse-only ingestion |
+| D5 | Embedding dimension **1024** (Qwen3-Embedding-0.6B native size; sent as `dimensions`). Migration `0005` resized the column from 1536 and cleared the Gemini vectors | Accepted (revised 2026-09-29) | Vectors from different models are not comparable, so a model change always means a re-embed. The embedding spec (`Qwen/Qwen3-Embedding-0.6B@1024`) is part of each document's pipeline signature, so the next ingest re-embeds automatically. Ingestion refuses to start if the column dimension and the provider disagree. Vectors are L2-normalised client-side regardless of provider |
 | D6 | HNSW index with `vector_cosine_ops` | Accepted | HNSW on `vector` supports ≤ 2000 dimensions; migration `0003` refuses larger values rather than silently skipping the index. A 3072-dim model would need `halfvec` or reduced dimensions |
 | D7 | Lexical search: generated `tsvector` + GIN, queried with `websearch_to_tsquery`, plus an exact-phrase pass for quoted error strings | Accepted | Column and index exist; queries are Phase 3 |
 | D8 | Apply the relevance threshold to a comparable score (reranker score, else max cosine similarity), never to RRF scores | Accepted | Phase 3 |
@@ -66,5 +67,5 @@ phase that depends on it.
 | D10 | Admin protection: `ADMIN_MODE` = `token` \| `local` \| `dev` | Accepted | Implemented and tested. `token` (the default) needs `ADMIN_TOKEN` ≥ 16 chars and uses constant-time comparison. `local` trusts only the socket peer, never `X-Forwarded-For`; behind the bundled nginx proxy the peer is nginx, so `local` effectively blocks proxied admin calls. `dev` is refused when `ENVIRONMENT=production` |
 | D11 | Grounding: deterministic checks mandatory; claim-level LLM verification optional (`CLAIM_LEVEL_GROUNDING_ENABLED`) | Accepted | Phase 4 |
 | D12 | Rate limiting: in-process token bucket keyed by client IP + route class | Accepted | Phase 8. Uvicorn only trusts proxy headers from `127.0.0.1`, so behind nginx the client IP needs revisiting then |
-| D13 | Tokenizer: `tiktoken` (`TOKENIZER_ENCODING`) | Accepted | Phase 2 |
+| D13 | Tokenizer: `tiktoken` with `o200k_base` (`TOKENIZER_ENCODING`), close to gpt-oss's tokenizer, for chunk sizing and context budgets | Accepted | The encoding file is baked into the backend image, so there are no runtime downloads. Each embedding provider declares a safe input size (Qwen3: 8,000; Gemini: 1,800 of its 2,048); the 900-token chunk hard maximum stays well below both |
 | D14 | Integration tests use a real Postgres + pgvector (`<db>_test` in the Compose Postgres) | Accepted | Implemented |

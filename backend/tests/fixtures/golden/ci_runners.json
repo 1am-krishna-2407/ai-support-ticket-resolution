@@ -1,0 +1,211 @@
+{
+  "title": "Runners",
+  "description": "Configuration and job execution.",
+  "blocks": [
+    {
+      "text": "Runners are the agents that run the GitLab Runner application, to execute GitLab CI/CD jobs in a pipeline. They are responsible for running your builds, tests, deployments, and other CI/CD tasks defined in `.gitlab-ci.yml` files.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Runner execution flow",
+      "anchor": "runner-execution-flow",
+      "kind": "heading"
+    },
+    {
+      "text": "The following is a basic workflow of how runners work:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": true,
+      "items": [
+        "A runner must first be registered with GitLab, which establishes a persistent connection between the runner and GitLab.",
+        "When a pipeline is triggered, GitLab makes the jobs available to the registered runners.",
+        "Matching runners pick up jobs, one job per runner, and execute them.",
+        "Results are reported back to GitLab in real-time."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "For more information, see Runner execution flow.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Runner job scheduling and execution",
+      "anchor": "runner-job-scheduling-and-execution",
+      "kind": "heading"
+    },
+    {
+      "text": "When a CI/CD job needs to be executed, GitLab creates a job based on the tasks defined in the `.gitlab-ci.yml` file. The jobs are placed in a queue. GitLab checks for available runners that match:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Runner tags.",
+        "Runner types (like shared or group)",
+        "Runner status and capacity",
+        "Required capabilities"
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "The assigned runner receives the job details. The runner prepares the environment and runs the job’s commands as specified in the `.gitlab-ci.yml` file.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 2,
+      "text": "Runner categories",
+      "anchor": "runner-categories",
+      "kind": "heading"
+    },
+    {
+      "text": "When deciding on which runners you want to execute your CI/CD jobs, you can choose:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "GitLab-hosted runners for GitLab.com or GitLab Dedicated users.",
+        "Self-managed runners for all GitLab installations."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Runners can be group, project, or instance runners. GitLab-hosted runners are instance runners.",
+      "kind": "paragraph"
+    },
+    {
+      "level": 3,
+      "text": "GitLab-hosted runners",
+      "anchor": "gitlab-hosted-runners",
+      "kind": "heading"
+    },
+    {
+      "text": "Availability: Tier: Free, Premium, Ultimate; Offering: GitLab.com, GitLab Dedicated",
+      "kind": "paragraph"
+    },
+    {
+      "text": "GitLab-hosted runners are:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Fully managed by GitLab.",
+        "Available immediately without setup.",
+        "Run on fresh VMs for each job.",
+        "Include Linux, Windows, and macOS options.",
+        "Automatically scaled based on demand."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Choose GitLab-hosted runners when:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You want zero-maintenance CI/CD.",
+        "You need quick setup without infrastructure management.",
+        "Your jobs require isolation between runs.",
+        "You’re working with standard build environments.",
+        "You’re using GitLab.com or GitLab Dedicated."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 3,
+      "text": "Self-managed runners",
+      "anchor": "self-managed-runners",
+      "kind": "heading"
+    },
+    {
+      "text": "Availability: Tier: Free, Premium, Ultimate; Offering: GitLab.com, GitLab Self-Managed, GitLab Dedicated",
+      "kind": "paragraph"
+    },
+    {
+      "text": "Self-managed runners are:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Installed and managed by you.",
+        "Run on your own infrastructure.",
+        "Customizable to your needs.",
+        "Support various executors (including Shell, Docker, and Kubernetes).",
+        "Can be shared or set to specific projects or groups."
+      ],
+      "kind": "list"
+    },
+    {
+      "text": "Choose self-managed runners when:",
+      "kind": "paragraph"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "You need custom configurations.",
+        "You want to run jobs in your private network.",
+        "You require specific security controls.",
+        "You require project or group runners.",
+        "You need to optimize for speed with runner reuse.",
+        "You want to manage your own infrastructure."
+      ],
+      "kind": "list"
+    },
+    {
+      "level": 2,
+      "text": "Related topics",
+      "anchor": "related-topics",
+      "kind": "heading"
+    },
+    {
+      "ordered": false,
+      "items": [
+        "Install GitLab Runner",
+        "Configure GitLab Runner",
+        "Administer GitLab Runner",
+        "Hosted runners for GitLab Dedicated"
+      ],
+      "kind": "list"
+    }
+  ],
+  "links": [
+    {
+      "text": "GitLab Runner",
+      "url": "https://docs.gitlab.com/runner/"
+    },
+    {
+      "text": "registered",
+      "url": "https://docs.gitlab.com/runner/register/"
+    },
+    {
+      "text": "Runner execution flow",
+      "url": "https://docs.gitlab.com/runner/#runner-execution-flow"
+    },
+    {
+      "text": "Runner tags",
+      "url": "https://docs.gitlab.com/ci/yaml/#tags"
+    },
+    {
+      "text": "GitLab-hosted runners",
+      "url": "https://docs.gitlab.com/ci/runners/hosted_runners/"
+    },
+    {
+      "text": "Install GitLab Runner",
+      "url": "https://docs.gitlab.com/runner/install/"
+    },
+    {
+      "text": "Configure GitLab Runner",
+      "url": "https://docs.gitlab.com/runner/configuration/"
+    },
+    {
+      "text": "Hosted runners for GitLab Dedicated",
+      "url": "https://docs.gitlab.com/administration/dedicated/hosted_runners/"
+    }
+  ]
+}
