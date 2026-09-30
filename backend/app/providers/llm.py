@@ -25,7 +25,7 @@ from typing import Any, Literal, Protocol
 import httpx
 from pydantic import BaseModel
 
-from app.core.config import Settings
+from app.core.config import LLMProviderName, Settings
 from app.core.errors import InvalidModelOutputError, LLMProviderError, LLMTimeoutError
 from app.core.logging import redact_text
 from app.core.tokenizer import get_tokenizer
@@ -155,8 +155,14 @@ class OpenAICompatibleChatProvider:
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
-        if settings.llm_api_key is None or not settings.llm_api_key.get_secret_value():
-            raise LLMProviderError("LLM_API_KEY is not configured.")
+        api_key = settings.resolved_llm_api_key
+        if api_key is None:
+            name = (
+                "NEMOTRON_API_KEY"
+                if settings.llm_provider is LLMProviderName.NVIDIA
+                else "LLM_API_KEY"
+            )
+            raise LLMProviderError(f"{name} is not configured.")
         self._settings = settings
         self._sleep = sleep
         self.last_failure: dict[str, Any] | None = None  # reported by GET /ready
@@ -166,11 +172,17 @@ class OpenAICompatibleChatProvider:
             if settings.llm_tokens_per_minute
             else None
         )
+        # Request-count pacing: a bucket of N "tokens" per minute, one per request.
+        self._request_bucket = (
+            TokenBucket(settings.llm_requests_per_minute, clock=clock, sleep=sleep)
+            if settings.llm_requests_per_minute
+            else None
+        )
         self._client = httpx.AsyncClient(
             base_url=settings.llm_base_url.rstrip("/") + "/",
             transport=transport,
             timeout=settings.llm_timeout_seconds,
-            headers={"Authorization": f"Bearer {settings.llm_api_key.get_secret_value()}"},
+            headers={"Authorization": f"Bearer {api_key.get_secret_value()}"},
             trust_env=False,
         )
 
@@ -201,7 +213,12 @@ class OpenAICompatibleChatProvider:
         }
         if s.llm_seed is not None:
             body["seed"] = s.llm_seed
-        if "gpt-oss" in s.llm_model:
+        if s.llm_provider is LLMProviderName.NVIDIA:
+            # NVIDIA's API takes max_tokens; Nemotron's reasoning is a chat-template switch and
+            # arrives in a separate reasoning_content field, which is never read.
+            body["max_tokens"] = body.pop("max_completion_tokens")
+            body["chat_template_kwargs"] = {"enable_thinking": s.llm_enable_thinking}
+        elif "gpt-oss" in s.llm_model:
             body["reasoning_effort"] = s.llm_reasoning_effort
             body["include_reasoning"] = False  # never return the model's reasoning text
         return body
@@ -235,7 +252,7 @@ class OpenAICompatibleChatProvider:
             estimate = (
                 sum(self._count(m.content) for m in messages)
                 + len(json.dumps(schema)) // 4
-                + int(body["max_completion_tokens"])
+                + int(body.get("max_completion_tokens") or body["max_tokens"])
             )
             waited = await self._bucket.acquire(estimate)
             if waited > 0.5:
@@ -243,6 +260,8 @@ class OpenAICompatibleChatProvider:
                     "llm request paced for tokens-per-minute limit",
                     extra={"waited_seconds": round(waited, 1), "estimated_tokens": estimate},
                 )
+        if self._request_bucket is not None:
+            await self._request_bucket.acquire(1)
         if self._settings.log_llm_payloads:
             logger.info("llm request", extra={"payload": body})
         retries = self._settings.llm_max_retries

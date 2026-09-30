@@ -244,3 +244,81 @@ async def test_daily_token_limit_fails_fast(llm_settings: Settings) -> None:
         await _call(p)
     assert calls == 1 and sleeps == []  # no futile retries
     assert info.value.details and info.value.details["daily_limit"] is True
+
+
+NV_KEY = "nvapi-test_key_000000000"
+
+
+def test_provider_defaults(make_settings: Callable[..., Settings]) -> None:
+    groq = make_settings(llm_api_key=KEY)
+    assert groq.llm_base_url == "https://api.groq.com/openai/v1"
+    assert groq.llm_model == "openai/gpt-oss-120b" and groq.llm_tokens_per_minute == 8000
+    nv = make_settings(llm_provider="nvidia", llm_api_key=KEY, nemotron_api_key=NV_KEY)
+    assert nv.llm_base_url == "https://integrate.api.nvidia.com/v1"
+    assert nv.llm_model.startswith("nvidia/nemotron")
+    assert nv.llm_tokens_per_minute is None and nv.llm_requests_per_minute == 30
+    assert nv.resolved_llm_api_key is not None
+    assert nv.resolved_llm_api_key.get_secret_value() == NV_KEY  # not the Groq key
+    explicit = make_settings(llm_provider="nvidia", llm_model="x/y", llm_requests_per_minute=None)
+    assert explicit.llm_model == "x/y" and explicit.llm_requests_per_minute is None
+
+
+def test_missing_nemotron_key_is_reported(make_settings: Callable[..., Settings]) -> None:
+    with pytest.raises(LLMProviderError, match="NEMOTRON_API_KEY"):
+        OpenAICompatibleChatProvider(
+            make_settings(llm_provider="nvidia", llm_api_key=None, nemotron_api_key=None)
+        )
+
+
+async def test_nvidia_request_shape(make_settings: Callable[..., Settings]) -> None:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(
+            200,
+            json={
+                "model": "nvidia/nemotron-3-super-120b-a12b",
+                "choices": [
+                    {
+                        "message": {"content": '{"a": 1}', "reasoning_content": "hidden"},
+                        "finish_reason": "stop",
+                    }
+                ],
+                "usage": {"prompt_tokens": 10, "completion_tokens": 5},
+            },
+        )
+
+    settings = make_settings(llm_provider="nvidia", llm_api_key=KEY, nemotron_api_key=NV_KEY)
+    p, _ = provider(settings, handler)
+    result = await _call(p)
+    assert result.content == '{"a": 1}'
+    request = seen[0]
+    assert str(request.url) == "https://integrate.api.nvidia.com/v1/chat/completions"
+    assert request.headers["authorization"] == f"Bearer {NV_KEY}"
+    body = json.loads(request.content)
+    assert body["chat_template_kwargs"] == {"enable_thinking": True}
+    assert body["max_tokens"] == settings.llm_max_output_tokens
+    assert "max_completion_tokens" not in body and "reasoning_effort" not in body
+    assert body["response_format"]["json_schema"]["strict"] is True
+
+
+async def test_requests_are_paced_per_minute(make_settings: Callable[..., Settings]) -> None:
+    settings = make_settings(
+        llm_provider="nvidia", nemotron_api_key=NV_KEY, llm_requests_per_minute=2
+    )
+    now = [0.0]
+    sleeps: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+        now[0] += seconds
+
+    p = OpenAICompatibleChatProvider(
+        settings, transport=httpx.MockTransport(lambda r: ok()), sleep=sleep, clock=lambda: now[0]
+    )
+    await _call(p)
+    await _call(p)
+    assert sleeps == []
+    await _call(p)  # the third request in the same minute waits
+    assert sum(sleeps) == pytest.approx(30.0)

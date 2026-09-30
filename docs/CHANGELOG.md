@@ -1,5 +1,14 @@
 # Changelog
 
+## LLM provider change (2026-09-30)
+
+- LLM: NVIDIA `nvidia/nemotron-3-super-120b-a12b` via the NVIDIA API catalog
+  (`LLM_PROVIDER=nvidia`, key in `NEMOTRON_API_KEY`). Groq `gpt-oss-120b` stays selectable
+  with `LLM_PROVIDER=groq`. Base URL, model and pacing default per provider; Groq keeps
+  tokens-per-minute pacing, NVIDIA gets requests-per-minute pacing. A per-day 429 (Groq's
+  200,000 tokens/day) now fails fast. Grounding accepts identifiers that appear in the
+  ticket itself (the customer's own hostname is not a product claim). ADR D4 revised.
+
 ## Provider change (2026-09-29)
 
 - LLM: Groq `openai/gpt-oss-120b` (OpenAI-compatible, strict JSON-schema output). Embeddings:

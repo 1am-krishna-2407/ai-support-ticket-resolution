@@ -7,6 +7,7 @@ names, or thresholds.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from enum import StrEnum
 from functools import lru_cache
 from typing import Annotated, Literal, Self
@@ -38,6 +39,30 @@ class EmbeddingProviderName(StrEnum):
     HUGGINGFACE = "huggingface"
     GEMINI = "gemini"
 
+
+class LLMProviderName(StrEnum):
+    GROQ = "groq"
+    NVIDIA = "nvidia"
+
+
+@dataclass(frozen=True)
+class _LLMDefaults:
+    base_url: str
+    model: str
+    tokens_per_minute: int | None  # client-side pacing to the provider's free-tier limits
+    requests_per_minute: int | None
+
+
+_LLM_DEFAULTS = {
+    # Groq free tier for gpt-oss-120b: 8,000 tokens/minute (and 200,000 tokens/day).
+    LLMProviderName.GROQ: _LLMDefaults(
+        "https://api.groq.com/openai/v1", "openai/gpt-oss-120b", 8000, None
+    ),
+    # NVIDIA API catalog (build.nvidia.com) free tier: limited by requests/minute (~40).
+    LLMProviderName.NVIDIA: _LLMDefaults(
+        "https://integrate.api.nvidia.com/v1", "nvidia/nemotron-3-super-120b-a12b", None, 30
+    ),
+}
 
 _DEFAULT_EMBEDDING_BASE_URLS = {
     EmbeddingProviderName.HUGGINGFACE: "https://router.huggingface.co/deepinfra/v1/openai",
@@ -81,20 +106,28 @@ class Settings(BaseSettings):
     admin_mode: AdminMode = AdminMode.TOKEN
     admin_token: SecretStr | None = None
 
-    # --- LLM provider (OpenAI-compatible chat completions; default: Groq) ---
-    llm_base_url: str = "https://api.groq.com/openai/v1"
+    # --- LLM provider (OpenAI-compatible chat completions) --------------------
+    # groq: gpt-oss-120b with LLM_API_KEY. nvidia: Nemotron via the NVIDIA API catalog,
+    # authenticated with NEMOTRON_API_KEY (falls back to LLM_API_KEY).
+    llm_provider: LLMProviderName = LLMProviderName.GROQ
+    # Empty means the provider's default (see _LLM_DEFAULTS).
+    llm_base_url: str = ""
     llm_api_key: SecretStr | None = None
-    llm_model: str = "openai/gpt-oss-120b"
+    nemotron_api_key: SecretStr | None = None
+    llm_model: str = ""
     # gpt-oss models are reasoning models; this bounds hidden reasoning tokens.
     llm_reasoning_effort: Literal["low", "medium", "high"] = "low"
+    # Nemotron reasoning ("thinking") on/off; its reasoning text is never returned or logged.
+    llm_enable_thinking: bool = True
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     # Reasoning tokens count toward this limit on gpt-oss; 1,500 truncated some drafts.
     llm_max_output_tokens: int = Field(default=2500, gt=0)
     llm_timeout_seconds: float = Field(default=60.0, gt=0)
     llm_max_retries: int = Field(default=2, ge=0, le=8)
-    # Client-side pacing to the provider's tokens-per-minute limit (Groq free tier for
-    # gpt-oss-120b: 8,000). Each request reserves prompt + max output tokens. None disables.
-    llm_tokens_per_minute: int | None = Field(default=8000, gt=0)
+    # Client-side pacing to the provider's limits. Each request reserves prompt + max output
+    # tokens. Unset means the provider's default; None disables.
+    llm_tokens_per_minute: int | None = Field(default=None, gt=0)
+    llm_requests_per_minute: int | None = Field(default=None, gt=0)
     llm_seed: int | None = 7
 
     # --- Embedding provider -----------------------------------------------
@@ -204,6 +237,13 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _cross_field_checks(self) -> Self:
+        defaults = _LLM_DEFAULTS[self.llm_provider]
+        self.llm_base_url = self.llm_base_url or defaults.base_url
+        self.llm_model = self.llm_model or defaults.model
+        if "llm_tokens_per_minute" not in self.model_fields_set:
+            self.llm_tokens_per_minute = defaults.tokens_per_minute
+        if "llm_requests_per_minute" not in self.model_fields_set:
+            self.llm_requests_per_minute = defaults.requests_per_minute
         if self.admin_mode is AdminMode.TOKEN:
             token = self.admin_token.get_secret_value() if self.admin_token else ""
             if len(token) < 16:
@@ -230,6 +270,14 @@ class Settings(BaseSettings):
         if self.embedding_base_url:
             return self.embedding_base_url
         return _DEFAULT_EMBEDDING_BASE_URLS[self.embedding_provider]
+
+    @property
+    def resolved_llm_api_key(self) -> SecretStr | None:
+        """NEMOTRON_API_KEY for NVIDIA (LLM_API_KEY may hold another provider's key)."""
+        key = self.llm_api_key
+        if self.llm_provider is LLMProviderName.NVIDIA:
+            key = self.nemotron_api_key or self.llm_api_key
+        return key if key is not None and key.get_secret_value() else None
 
     @property
     def resolved_embedding_api_key(self) -> SecretStr | None:

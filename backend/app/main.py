@@ -40,8 +40,11 @@ def build_embedder(settings: Settings) -> EmbeddingProvider | None:
 
 def build_llm(settings: Settings) -> LLMProvider | None:
     """The LLM provider, or None when no key is configured (analysis degrades to review)."""
-    if settings.llm_api_key is None or not settings.llm_api_key.get_secret_value():
-        logger.warning("LLM_API_KEY not set: ticket analysis will return review-only drafts")
+    if settings.resolved_llm_api_key is None:
+        logger.warning(
+            "no LLM API key configured: ticket analysis will return review-only drafts",
+            extra={"llm_provider": settings.llm_provider.value},
+        )
         return None
     return OpenAICompatibleChatProvider(settings)
 
