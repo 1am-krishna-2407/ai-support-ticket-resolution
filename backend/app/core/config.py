@@ -51,16 +51,24 @@ class _LLMDefaults:
     model: str
     tokens_per_minute: int | None  # client-side pacing to the provider's free-tier limits
     requests_per_minute: int | None
+    # Added to every request's output limit: hidden reasoning counts toward it.
+    reasoning_tokens: int
+    timeout_seconds: float
 
 
 _LLM_DEFAULTS = {
     # Groq free tier for gpt-oss-120b: 8,000 tokens/minute (and 200,000 tokens/day).
     LLMProviderName.GROQ: _LLMDefaults(
-        "https://api.groq.com/openai/v1", "openai/gpt-oss-120b", 8000, None
+        "https://api.groq.com/openai/v1", "openai/gpt-oss-120b", 8000, None, 0, 60.0
     ),
     # NVIDIA API catalog (build.nvidia.com) free tier: limited by requests/minute (~40).
     LLMProviderName.NVIDIA: _LLMDefaults(
-        "https://integrate.api.nvidia.com/v1", "nvidia/nemotron-3-super-120b-a12b", None, 30
+        "https://integrate.api.nvidia.com/v1",
+        "nvidia/nemotron-3-super-120b-a12b",
+        None,
+        30,
+        4000,  # triage at 1,200 was truncated by reasoning on 7 of 10 real tickets
+        180.0,
     ),
 }
 
@@ -122,7 +130,9 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     # Reasoning tokens count toward this limit on gpt-oss; 1,500 truncated some drafts.
     llm_max_output_tokens: int = Field(default=2500, gt=0)
+    # Unset means the provider's default.
     llm_timeout_seconds: float = Field(default=60.0, gt=0)
+    llm_reasoning_tokens: int = Field(default=0, ge=0)
     llm_max_retries: int = Field(default=2, ge=0, le=8)
     # Client-side pacing to the provider's limits. Each request reserves prompt + max output
     # tokens. Unset means the provider's default; None disables.
@@ -242,6 +252,10 @@ class Settings(BaseSettings):
         self.llm_model = self.llm_model or defaults.model
         if "llm_tokens_per_minute" not in self.model_fields_set:
             self.llm_tokens_per_minute = defaults.tokens_per_minute
+        if "llm_reasoning_tokens" not in self.model_fields_set:
+            self.llm_reasoning_tokens = defaults.reasoning_tokens
+        if "llm_timeout_seconds" not in self.model_fields_set:
+            self.llm_timeout_seconds = defaults.timeout_seconds
         if "llm_requests_per_minute" not in self.model_fields_set:
             self.llm_requests_per_minute = defaults.requests_per_minute
         if self.admin_mode is AdminMode.TOKEN:

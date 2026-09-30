@@ -135,3 +135,34 @@ this was fixed, wrongly counted them as false refusals.
   Docker-build pages above the install page.
 - Latency: median about 1 s per case; p95 about 19-24 s, dominated by retry backoff on
   provider 402s rather than search time.
+
+### Real ticket run (2026-09-30, Nemotron)
+
+`python -m app.scripts.sample_tickets` over `evaluation/sample_tickets.json` (10 tickets),
+LLM `nvidia/nemotron-3-super-120b-a12b` with thinking on, embeddings Qwen3-Embedding-0.6B,
+hybrid retrieval, threshold 0.45.
+
+| Ticket | Category (conf.) | Priority | Outcome | Why |
+|---|---|---|---|---|
+| t01 | runners (0.9) | high | draft, grounded | self-signed CA; 3 cited sources |
+| t02 | ci_cd (0.9) | high | draft, grounded | masked variable leaked; flagged `security_concern` |
+| t03 | api (0.9) | low | insufficient_evidence | the model judged 8 sources insufficient for the question |
+| t04 | webhooks (0.95) | medium | draft, grounded | |
+| t05 | ci_cd (0.95) | low | draft, grounded | |
+| t06 | permissions (0.9) | medium | draft, grounded | |
+| t07 | projects (0.9) | low | draft, grounded | |
+| t08 | runners (0.9) | high | withheld | `/etc/gitlab-runner/config.toml` stated, but not in the sources it cited (it is in other pages of the corpus) |
+| t09 | troubleshooting (0.2) | low | insufficient_evidence | out of scope: 0 sources above the threshold, no generation call |
+| t10 | runners (0.9) | low | draft, grounded | injection text in the ticket detected and flagged |
+
+7 grounded drafts, 0 published drafts with unsupported content, every ticket routed to
+human review with a stated reason. Latency: triage 8-42 s, generation 9-215 s (Nemotron
+reasoning plus occasional 503 retries from the free endpoint).
+
+**History.** Groq `gpt-oss-120b` runs produced 3 grounded drafts before its free-tier
+200,000 tokens/day limit stopped the rest (5 of 10 unavailable). The first Nemotron run
+failed triage on 7 of 10 tickets: reasoning tokens exhausted the 1,200-token triage limit
+(`finish_reason=length`). A per-provider reasoning allowance (`LLM_REASONING_TOKENS`, 4,000
+for NVIDIA) fixed it. The live `POST /api/v1/tickets/analyze` returned a grounded 5-step
+draft for t04 in 117 s.
+

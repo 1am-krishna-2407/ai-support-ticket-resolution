@@ -416,3 +416,9 @@ def test_values_from_the_ticket_are_not_product_claims() -> None:
     assert "identifiers_supported" not in failed(report)
     _, _, inputs = grounding(res, ticket="an unrelated ticket")
     assert inputs.unsupported_identifiers == ["gitlab.internal"]
+
+
+def test_model_doubt_is_reported_as_a_failed_check() -> None:
+    report, _, _ = grounding(resolution(grounded=False))
+    assert not report.grounded
+    assert "model_self_assessed_grounded" in failed(report)

@@ -8,6 +8,9 @@
   tokens-per-minute pacing, NVIDIA gets requests-per-minute pacing. A per-day 429 (Groq's
   200,000 tokens/day) now fails fast. Grounding accepts identifiers that appear in the
   ticket itself (the customer's own hostname is not a product claim). ADR D4 revised.
+- Reasoning allowance: `LLM_REASONING_TOKENS` (NVIDIA 4,000, Groq 0) is added to every
+  request's output limit, and the NVIDIA timeout is 180 s. The grounding report now names the
+  model's own doubt (`model_self_assessed_grounded`) when that is why a draft is withheld.
 
 ## Provider change (2026-09-29)
 
@@ -16,7 +19,7 @@
   no embedding models. ADRs D1, D2, D4, D5, D13 revised; plan saved to
   `docs/implementation-plan.md`.
 
-## Phase 4: AI resolution (in progress, not tagged)
+## Phase 4: AI resolution (`phase-4-complete`, 2026-09-30)
 
 **Added** Groq chat provider (retries, timeouts, truncation detection, reasoning text never
 returned); versioned prompts (`system_v1` with ten rules, `classification_v1`,
@@ -33,9 +36,11 @@ and out-of-set citations, invented commands, overconfidence, timeouts, provider 
 retrieval failure, insufficient evidence (no generation call), injection in the ticket and
 in retrieved chunks. One real Groq call confirmed strict-schema triage output (1.8 s).
 
-**Open:** the manual run on ~10 real tickets needs query embeddings, which wait on Gemini quota.
+**Real run** (docs/evaluation.md): 10 tickets on Nemotron, 7 grounded drafts, 1 withheld for an
+identifier missing from its cited sources, 2 insufficient-evidence (one out of scope). Every
+status shown to the user comes with its reason.
 
-## Phase 3: Retrieval (in progress, not tagged)
+## Phase 3: Retrieval (`phase-3-complete`, 2026-09-30)
 
 **Added** query transformation (verbatim extraction of CI variables, flags, versions, HTTP
 codes, file names, config keys, commands, error lines, quoted strings); vector search

@@ -29,9 +29,9 @@ This plan turns the spec into an ordered, verifiable build. Section references l
 |---|---|---|---|---|
 | 0 | Decisions & prerequisites | 0.5-1 d | Provider keys work; source licence verified | Done |
 | 1 | Foundation | 2-3 d | `docker compose up` gives healthy frontend, backend, Postgres with pgvector; migration runs | Done (`phase-1-complete`) |
-| 2 | Knowledge ingestion | 5-7 d | Real docs fetched, chunked, embedded, stored, versioned; re-run skips unchanged docs | |
-| 3 | Retrieval | 3-4 d | Vector, lexical, hybrid retrieval via API with scores and threshold | |
-| 4 | AI resolution | 5-6 d | Ticket → classification → priority → grounded, validated draft; all failure paths tested with fakes | |
+| 2 | Knowledge ingestion | 5-7 d | Real docs fetched, chunked, embedded, stored, versioned; re-run skips unchanged docs | Done (`phase-2-complete`) |
+| 3 | Retrieval | 3-4 d | Vector, lexical, hybrid retrieval via API with scores and threshold | Done (`phase-3-complete`) |
+| 4 | AI resolution | 5-6 d | Ticket → classification → priority → grounded, validated draft; all failure paths tested with fakes | Done (`phase-4-complete`) |
 | 5 | API completion & contracts | 2 d | All 15 routes implemented, error contract, OpenAPI accurate | |
 | 6 | Frontend | 6-8 d | All 7 pages on real APIs, all UI states handled | |
 | 7 | Evaluation | 4-5 d | Cases authored, runner, metrics, experiments stored, UI shows real metrics | |

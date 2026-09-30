@@ -205,7 +205,8 @@ class OpenAICompatibleChatProvider:
             "model": s.llm_model,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
             "temperature": s.llm_temperature,
-            "max_completion_tokens": max_tokens or s.llm_max_output_tokens,
+            "max_completion_tokens": (max_tokens or s.llm_max_output_tokens)
+            + s.llm_reasoning_tokens,
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {"name": schema_name, "strict": True, "schema": schema},

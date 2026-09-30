@@ -298,7 +298,8 @@ async def test_nvidia_request_shape(make_settings: Callable[..., Settings]) -> N
     assert request.headers["authorization"] == f"Bearer {NV_KEY}"
     body = json.loads(request.content)
     assert body["chat_template_kwargs"] == {"enable_thinking": True}
-    assert body["max_tokens"] == settings.llm_max_output_tokens
+    assert body["max_tokens"] == settings.llm_max_output_tokens + 4000  # reasoning allowance
+    assert settings.llm_timeout_seconds == 180.0
     assert "max_completion_tokens" not in body and "reasoning_effort" not in body
     assert body["response_format"]["json_schema"]["strict"] is True
 

@@ -238,6 +238,13 @@ def check_grounding(inputs: GroundingInputs) -> GroundingReport:
 
     mandatory_ok = all(ch.passed for ch in checks)
     add(
+        "model_self_assessed_grounded",
+        r.grounded,
+        "The model judged its draft grounded in the evidence."
+        if r.grounded
+        else "The model itself judged its draft not fully grounded in the evidence.",
+    )
+    add(
         "grounded_flag_consistent",
         r.grounded == mandatory_ok or not r.grounded,
         "Model's grounded flag agrees with validation."
