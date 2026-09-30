@@ -44,15 +44,17 @@ def _response(
     )
 
 
-async def _app_error(_: Request, exc: Exception) -> JSONResponse:
+async def _app_error(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, AppError)
+    request.state.error_code = exc.code.value
     if exc.status_code >= 500:
         logger.warning("dependency or internal error", extra={"error_code": exc.code.value})
-    return _response(exc.status_code, exc.code, exc.message, exc.details)
+    return _response(exc.status_code, exc.code, exc.message, exc.details, exc.headers)
 
 
-async def _validation_error(_: Request, exc: Exception) -> JSONResponse:
+async def _validation_error(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, RequestValidationError)
+    request.state.error_code = ErrorCode.INVALID_REQUEST.value
     # Echo locations and messages only; never echo the submitted input values.
     errors = [
         {

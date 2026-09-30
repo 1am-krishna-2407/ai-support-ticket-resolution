@@ -19,7 +19,8 @@ function In-Dir([string]$Dir, [scriptblock]$Block) {
 switch ($Target) {
     "setup" {
         Invoke-Checked { python -m venv (Join-Path $Root "backend/.venv") }
-        Invoke-Checked { & $Py -m pip install -e "$Root/backend[dev]" }
+        Invoke-Checked { & $Py -m pip install --require-hashes -r "$Root/backend/requirements-dev.lock" }
+        Invoke-Checked { & $Py -m pip install --no-deps -e "$Root/backend" }
         In-Dir "frontend" { npm ci }
     }
     "up"           { Invoke-Checked { docker compose up -d --build } }
@@ -28,10 +29,16 @@ switch ($Target) {
     "migrate"      { Invoke-Checked { docker compose run --rm backend alembic upgrade head } }
     "migrate-down" { Invoke-Checked { docker compose run --rm backend alembic downgrade -1 } }
     "ingest"       { Invoke-Checked { docker compose run --rm backend python -m app.scripts.ingest @Rest } }
-    "eval"         { Write-Error "Evaluation is implemented in Phase 7 (python -m app.scripts.evaluate)." }
+    "eval"         { Invoke-Checked { docker compose run --rm backend python -m app.scripts.evaluate @Rest } }
     "test" {
         In-Dir "backend" { & $Py -m pytest }
         In-Dir "frontend" { npm test }
+    }
+    "test-security" { In-Dir "backend" { & $Py -m pytest tests/security } }
+    "openapi"      { In-Dir "backend" { & $Py -m app.scripts.export_openapi } }
+    "lock" {
+        In-Dir "backend" { uv pip compile pyproject.toml --universal --python-version 3.12 --generate-hashes -o requirements.lock }
+        In-Dir "backend" { uv pip compile pyproject.toml --extra dev --universal --python-version 3.12 --generate-hashes -o requirements-dev.lock }
     }
     "lint" {
         In-Dir "backend" { & $Py -m ruff check . }
@@ -41,8 +48,8 @@ switch ($Target) {
         In-Dir "frontend" { npm run lint }
     }
     "audit" {
-        In-Dir "backend" { & $Py -m pip_audit }
-        In-Dir "frontend" { npm audit --omit=dev }
+        In-Dir "backend" { & $Py -m pip_audit -r requirements-dev.lock --disable-pip --no-deps }
+        In-Dir "frontend" { npm audit }
     }
-    default { "Targets: setup up down logs migrate migrate-down ingest eval test lint audit" }
+    default { "Targets: setup up down logs migrate migrate-down ingest eval test test-security lint audit lock openapi" }
 }

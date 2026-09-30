@@ -11,6 +11,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, FastAPI, Query, Request, status
 
 from app.api.deps import SessionDep, SettingsDep
+from app.api.responses import ADMIN, READ, errors
 from app.core.errors import (
     AppError,
     EvaluationAlreadyRunningError,
@@ -51,6 +52,7 @@ def _running(app: FastAPI) -> bool:
 
 @router.post(
     "/evaluations/run",
+    responses=ADMIN | errors(400, 502),
     response_model=EvaluationRunView,
     status_code=status.HTTP_202_ACCEPTED,
     dependencies=[Depends(require_admin)],
@@ -120,7 +122,12 @@ async def _run_in_background(
                 await session.commit()
 
 
-@router.get("/evaluations", response_model=EvaluationRunList, summary="Recent evaluation runs")
+@router.get(
+    "/evaluations",
+    responses=READ,
+    response_model=EvaluationRunList,
+    summary="Recent evaluation runs",
+)
 async def evaluations(
     request: Request,
     session: SessionDep,
@@ -132,6 +139,7 @@ async def evaluations(
 
 @router.get(
     "/evaluations/{evaluation_id}",
+    responses=READ | errors(404),
     response_model=EvaluationRunDetail,
     summary="One evaluation run with per-case results",
 )

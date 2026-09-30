@@ -18,7 +18,7 @@ def test_defaults_are_valid(settings: Settings) -> None:
     assert settings.admin_mode is AdminMode.TOKEN
     assert settings.retrieval_top_k <= settings.retrieval_candidate_k
     assert settings.log_llm_payloads is False
-    assert settings.persist_ticket_bodies is False
+    assert settings.request_log_enabled is True and settings.request_log_retention_days == 30
 
 
 def test_database_url_is_secret(settings: Settings) -> None:

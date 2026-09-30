@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query
 
 from app.api.deps import SessionDep
+from app.api.responses import READ, errors
 from app.core.categories import Category
 from app.core.errors import DocumentNotFoundError
 from app.db.models import Document, DocumentStatus
@@ -37,7 +38,12 @@ def _summary(doc: Document, chunk_count: int) -> DocumentSummary:
     )
 
 
-@router.get("/documents", response_model=DocumentPage, summary="List knowledge-base documents")
+@router.get(
+    "/documents",
+    responses=READ,
+    response_model=DocumentPage,
+    summary="List knowledge-base documents",
+)
 async def list_documents(
     session: SessionDep,
     search: Annotated[str | None, Query(max_length=200)] = None,
@@ -69,6 +75,7 @@ async def list_documents(
 
 @router.get(
     "/documents/{document_id}",
+    responses=READ | errors(404),
     response_model=DocumentDetail,
     summary="A document's current state and version history",
 )

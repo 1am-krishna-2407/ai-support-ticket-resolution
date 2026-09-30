@@ -13,6 +13,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core.errors import ErrorCode, build_error_payload
 from app.core.logging import request_id_var
+from app.services.request_log import SKIPPED_ROUTES
 
 REQUEST_ID_HEADER = "X-Request-ID"
 _VALID_REQUEST_ID = re.compile(r"^[A-Za-z0-9._\-]{1,128}$")
@@ -43,6 +44,38 @@ def _incoming_request_id(scope: Scope) -> str | None:
                 return candidate
             return None
     return None
+
+
+def _record(scope: Scope, request_id: str, status_code: int, latency_ms: float) -> None:
+    """Hand one metadata row to the request-log writer (API routes only)."""
+    app = scope.get("app")
+    writer = getattr(getattr(app, "state", None), "request_log_writer", None)
+    route = scope.get("route")
+    template = getattr(route, "path", None)
+    if writer is None or not template:
+        return  # no writer, or no matched route (404s, 405s, rejected bodies)
+    prefix = getattr(getattr(app, "state", None), "api_prefix", "") or ""
+    if prefix and template.startswith(prefix):
+        relative = template[len(prefix) :]
+    else:
+        relative, template = template, prefix + template
+    if relative in SKIPPED_ROUTES:
+        return
+    state = scope.get("state", {})
+    extra = state.get("request_log") or {}
+    writer.submit(
+        {
+            "request_id": request_id,
+            "method": str(scope.get("method", ""))[:10],
+            "path": template[:500],
+            "route_class": relative.strip("/").split("/")[0][:50] or None,
+            "status_code": status_code,
+            "latency_ms": latency_ms,
+            "error_code": state.get("error_code"),
+            "stage_timings": extra.get("stage_timings"),
+            "outcome": extra.get("outcome"),
+        }
+    )
 
 
 class RequestContextMiddleware:
@@ -87,15 +120,17 @@ class RequestContextMiddleware:
                 send_wrapper, 500, ErrorCode.INTERNAL_ERROR, "An internal error occurred."
             )
         finally:
+            latency_ms = round((time.perf_counter() - started) * 1000, 2)
             logger.info(
                 "request completed",
                 extra={
                     "method": scope.get("method"),
                     "path": scope.get("path"),
                     "status_code": status_code,
-                    "latency_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "latency_ms": latency_ms,
                 },
             )
+            _record(scope, request_id, status_code, latency_ms)
             request_id_var.reset(token)
 
 

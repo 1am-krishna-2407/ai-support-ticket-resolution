@@ -7,6 +7,7 @@ names, or thresholds.
 
 from __future__ import annotations
 
+import ipaddress
 from dataclasses import dataclass
 from enum import StrEnum
 from functools import lru_cache
@@ -218,12 +219,16 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     rate_limit_analyze_per_minute: int = Field(default=20, gt=0)
     rate_limit_search_per_minute: int = Field(default=60, gt=0)
+    # Peers allowed to set X-Forwarded-For (the frontend's nginx). Empty: never trusted.
+    trusted_proxy_cidrs: Annotated[list[str], NoDecode] = Field(default_factory=list)
 
     # --- Observability / privacy -------------------------------------------
     log_llm_payloads: bool = False
-    persist_ticket_bodies: bool = False
+    # One metadata row per API request in request_logs (never ticket text or model output).
+    request_log_enabled: bool = True
+    request_log_retention_days: int = Field(default=30, gt=0)
 
-    @field_validator("cors_origins", "allowed_source_domains", mode="before")
+    @field_validator("cors_origins", "allowed_source_domains", "trusted_proxy_cidrs", mode="before")
     @classmethod
     def _parse_csv(cls, value: object) -> object:
         return _split_csv(value)
@@ -270,6 +275,11 @@ class Settings(BaseSettings):
             raise ValueError("CHUNK_HARD_MAX_TOKENS must be >= CHUNK_TARGET_TOKENS")
         if self.retrieval_top_k > self.retrieval_candidate_k:
             raise ValueError("RETRIEVAL_TOP_K must be <= RETRIEVAL_CANDIDATE_K")
+        for cidr in self.trusted_proxy_cidrs:
+            try:
+                ipaddress.ip_network(cidr, strict=False)
+            except ValueError as exc:
+                raise ValueError(f"TRUSTED_PROXY_CIDRS has an invalid network: {cidr!r}") from exc
         if not self.allowed_source_domains:
             raise ValueError("ALLOWED_SOURCE_DOMAINS must not be empty")
         if (

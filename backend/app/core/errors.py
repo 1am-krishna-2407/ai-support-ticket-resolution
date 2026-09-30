@@ -56,9 +56,16 @@ class AppError(Exception):
     status_code: int = 500
     default_message: str = "An internal error occurred."
 
-    def __init__(self, message: str | None = None, *, details: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        message: str | None = None,
+        *,
+        details: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ):
         self.message = message or self.default_message
         self.details = details
+        self.headers = headers
         super().__init__(self.message)
 
 

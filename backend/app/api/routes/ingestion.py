@@ -9,6 +9,7 @@ import uuid
 from fastapi import APIRouter, Depends, FastAPI, Request, status
 
 from app.api.deps import SessionDep, SettingsDep
+from app.api.responses import ADMIN, READ, errors
 from app.core.config import Settings
 from app.core.errors import (
     AppError,
@@ -38,6 +39,7 @@ def _running(request: Request) -> bool:
 
 @router.post(
     "/ingestion/run",
+    responses=ADMIN | errors(502, 503),
     response_model=IngestionJobView,
     status_code=status.HTTP_202_ACCEPTED,
     dependencies=[Depends(require_admin)],
@@ -101,7 +103,12 @@ async def ingestion_status(request: Request, session: SessionDep) -> IngestionSt
     return IngestionStatus(running=_running(request), latest=_view(latest) if latest else None)
 
 
-@router.get("/ingestion/{job_id}", response_model=IngestionJobView, summary="One ingestion job")
+@router.get(
+    "/ingestion/{job_id}",
+    responses=READ | errors(404),
+    response_model=IngestionJobView,
+    summary="One ingestion job",
+)
 async def ingestion_job(job_id: uuid.UUID, session: SessionDep) -> IngestionJobView:
     job = await job_repo.get_job(session, job_id)
     if job is None:

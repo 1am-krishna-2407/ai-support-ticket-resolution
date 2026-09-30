@@ -130,3 +130,39 @@ async def test_ticket_validation(client: Any, payload: dict[str, Any]) -> None:
     for path in ("/api/v1/tickets/analyze", "/api/v1/tickets/classify"):
         r = await c.post(path, json=payload)
         assert r.status_code == 422 and r.json()["error"]["code"] == "INVALID_REQUEST"
+
+
+async def test_request_logs_hold_metadata_but_never_ticket_text(client: Any) -> None:
+    from sqlalchemy import select
+
+    from app.db.models import RequestLog
+
+    app, c = client
+    app.state.llm = FakeLLMProvider({"triage": [triage_json()], "resolution": [RESOLUTION]})
+    r = await c.post("/api/v1/tickets/analyze", json=TICKET)
+    assert r.status_code == 200
+    bad = await c.post("/api/v1/tickets/analyze", json={"title": ""})
+    assert bad.status_code == 422
+    await c.get("/api/v1/health")  # skipped: polled by health checks
+    await app.state.request_log_writer.flush()
+
+    async with app.state.session_factory() as session:
+        rows = (
+            (await session.execute(select(RequestLog).order_by(RequestLog.created_at)))
+            .scalars()
+            .all()
+        )
+    assert [(row.path, row.status_code) for row in rows] == [
+        ("/api/v1/tickets/analyze", 200),
+        ("/api/v1/tickets/analyze", 422),
+    ]
+    ok, invalid = rows
+    assert ok.request_id == r.headers["x-request-id"] and ok.route_class == "tickets"
+    assert ok.outcome and ok.outcome["status"] == "draft" and ok.outcome["grounded"] is True
+    assert ok.stage_timings and "total" in ok.stage_timings
+    assert invalid.error_code == "INVALID_REQUEST"
+    stored = json.dumps(
+        [[row.path, row.outcome, row.stage_timings, row.error_code] for row in rows]
+    )
+    for text in (TICKET["title"], TICKET["description"], "gitlab-runner register"):
+        assert text not in stored

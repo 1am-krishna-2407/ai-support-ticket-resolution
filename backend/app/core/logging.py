@@ -23,6 +23,11 @@ _SENSITIVE_KEY = re.compile(
 _SECRET_PATTERNS = (
     re.compile(r"(?i)bearer\s+[a-z0-9._\-]+"),
     re.compile(r"\bsk-[A-Za-z0-9_\-]{16,}\b"),
+    # Provider keys used by this platform (Groq, NVIDIA, Hugging Face, Google) and GitLab
+    # tokens that customers paste into tickets.
+    re.compile(r"\b(?:gsk|nvapi|hf|glpat|glrt|gldt|glptt)[_-][A-Za-z0-9_\-]{16,}"),
+    re.compile(r"\bAIza[0-9A-Za-z_\-]{30,}"),
+    re.compile(r"\bAQ\.[0-9A-Za-z_\-]{30,}"),
     re.compile(r"(?i)(postgres(?:ql)?(?:\+asyncpg)?://[^:\s]+:)[^@\s]+(@)"),
 )
 REDACTED = "[REDACTED]"

@@ -16,11 +16,13 @@ from app.core.config import Settings, get_settings
 from app.core.exception_handlers import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import REQUEST_ID_HEADER, BodySizeLimitMiddleware, RequestContextMiddleware
+from app.core.rate_limit import build_limiters
 from app.db.session import create_engine, create_session_factory
 from app.providers.embeddings import EmbeddingProvider, create_embedding_provider
 from app.providers.llm import LLMProvider, OpenAICompatibleChatProvider
 from app.services.analysis.prompts import PromptRegistry
 from app.services.ingestion.fetcher import HttpDocumentFetcher
+from app.services.request_log import RequestLogWriter
 from app.services.retrieval.reranker import NoopReranker
 
 logger = logging.getLogger("app.main")
@@ -67,9 +69,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.ingestion_task = None
         app.state.evaluation_start_lock = asyncio.Lock()
         app.state.evaluation_task = None
+        app.state.request_log_writer = None
+        if settings.request_log_enabled:
+            writer = RequestLogWriter(app.state.session_factory)
+            try:
+                pruned = await writer.prune(settings.request_log_retention_days)
+                if pruned:
+                    logger.info("pruned old request logs", extra={"rows": pruned})
+            except Exception as exc:  # the database may be down at startup; /ready reports it
+                logger.warning("request log pruning skipped", extra={"error": type(exc).__name__})
+            writer.start()
+            app.state.request_log_writer = writer
         try:
             yield
         finally:
+            if app.state.request_log_writer is not None:
+                await app.state.request_log_writer.stop()
             for task in (app.state.ingestion_task, app.state.evaluation_task):
                 if task is not None and not task.done():
                     # Rows keep their stage; the next run's recovery marks them failed.
@@ -91,6 +106,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.dependency_overrides[get_settings] = lambda: settings
+    app.state.rate_limiters = build_limiters(settings)
+    app.state.api_prefix = settings.api_prefix
 
     # Order: added last runs first. RequestContext must wrap everything so that
     # every response (including 413s and CORS preflights) carries a request ID.

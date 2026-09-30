@@ -99,6 +99,17 @@ describe("Ticket Analysis", () => {
     expect(within(alert).getByText("Service unavailable")).toBeInTheDocument();
     expect(within(alert).getByText("Request ID: req-503")).toBeInTheDocument();
   });
+
+  it("tells the user how long to wait when rate limited", async () => {
+    const body = errorBody("RATE_LIMITED", "Too many requests. Please retry later.", "req-429");
+    body.error.details = { retry_after_seconds: 42, group: "analyze" } as unknown as null;
+    stubApi([health, { method: "POST", path: "/tickets/analyze", status: 429, body }]);
+    renderAt("/tickets");
+    await fillTicket("Runner TLS error", "x509: certificate signed by unknown authority");
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByText("Too many requests")).toBeInTheDocument();
+    expect(within(alert).getByText("Please wait 42 s and try again.")).toBeInTheDocument();
+  });
 });
 
 describe("Retrieval Explorer", () => {

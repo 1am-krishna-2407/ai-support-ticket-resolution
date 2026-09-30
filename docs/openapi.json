@@ -1,0 +1,3499 @@
+{
+  "components": {
+    "schemas": {
+      "Category": {
+        "enum": [
+          "authentication",
+          "api",
+          "ci_cd",
+          "runners",
+          "projects",
+          "permissions",
+          "integrations",
+          "webhooks",
+          "troubleshooting",
+          "security",
+          "configuration"
+        ],
+        "title": "Category",
+        "type": "string"
+      },
+      "ChunkPage": {
+        "properties": {
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ChunkView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "document_id",
+          "version",
+          "total",
+          "offset",
+          "limit",
+          "items"
+        ],
+        "title": "ChunkPage",
+        "type": "object"
+      },
+      "ChunkView": {
+        "properties": {
+          "anchor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor"
+          },
+          "chunk_id": {
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "chunk_index": {
+            "title": "Chunk Index",
+            "type": "integer"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "document_version": {
+            "title": "Document Version",
+            "type": "integer"
+          },
+          "embedding_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Model"
+          },
+          "has_code": {
+            "title": "Has Code",
+            "type": "boolean"
+          },
+          "heading_path": {
+            "title": "Heading Path",
+            "type": "string"
+          },
+          "is_split_oversize": {
+            "title": "Is Split Oversize",
+            "type": "boolean"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "subsection": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subsection"
+          },
+          "token_count": {
+            "title": "Token Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "chunk_index",
+          "document_version",
+          "heading_path",
+          "section",
+          "subsection",
+          "anchor",
+          "content",
+          "token_count",
+          "has_code",
+          "is_split_oversize",
+          "embedding_model",
+          "content_hash"
+        ],
+        "title": "ChunkView",
+        "type": "object"
+      },
+      "Citation": {
+        "properties": {
+          "excerpt": {
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "final_score": {
+            "title": "Final Score",
+            "type": "number"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "semantic_score": {
+            "title": "Semantic Score",
+            "type": "number"
+          },
+          "source_id": {
+            "pattern": "^SRC-\\d{3}$",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "title",
+          "section",
+          "url",
+          "excerpt",
+          "semantic_score",
+          "final_score"
+        ],
+        "title": "Citation",
+        "type": "object"
+      },
+      "ClassificationView": {
+        "properties": {
+          "ambiguous": {
+            "title": "Ambiguous",
+            "type": "boolean"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "secondary_category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "secondary_confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secondary Confidence"
+          }
+        },
+        "required": [
+          "category",
+          "confidence",
+          "secondary_category",
+          "secondary_confidence",
+          "ambiguous",
+          "rationale"
+        ],
+        "title": "ClassificationView",
+        "type": "object"
+      },
+      "ClassifyResponse": {
+        "properties": {
+          "classification": {
+            "$ref": "#/components/schemas/ClassificationView"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/StageError"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "human_review": {
+            "$ref": "#/components/schemas/HumanReviewDecision"
+          },
+          "label": {
+            "default": "AI-generated draft. Not reviewed or approved by a human.",
+            "title": "Label",
+            "type": "string"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelInfo"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/PriorityView"
+          },
+          "timings_ms": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Timings Ms",
+            "type": "object"
+          }
+        },
+        "required": [
+          "classification",
+          "priority",
+          "human_review",
+          "errors",
+          "timings_ms",
+          "model"
+        ],
+        "title": "ClassifyResponse",
+        "type": "object"
+      },
+      "DependencyCheck": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DependencyStatus"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "detail"
+        ],
+        "title": "DependencyCheck",
+        "type": "object"
+      },
+      "DependencyStatus": {
+        "enum": [
+          "ok",
+          "degraded",
+          "unavailable",
+          "not_configured"
+        ],
+        "title": "DependencyStatus",
+        "type": "string"
+      },
+      "DocumentDetail": {
+        "properties": {
+          "attribution": {
+            "default": "Content from GitLab Docs (https://docs.gitlab.com), licensed under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/). This project is not affiliated with or endorsed by GitLab Inc.",
+            "title": "Attribution",
+            "type": "string"
+          },
+          "canonical_url": {
+            "title": "Canonical Url",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "chunk_count": {
+            "title": "Chunk Count",
+            "type": "integer"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "embedding_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Model"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "license": {
+            "title": "License",
+            "type": "string"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "source_type": {
+            "title": "Source Type",
+            "type": "string"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Version"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentVersion"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "document_id",
+          "title",
+          "canonical_url",
+          "category",
+          "source_type",
+          "license",
+          "version",
+          "status",
+          "enabled",
+          "content_hash",
+          "retrieved_at",
+          "published_at",
+          "chunk_count",
+          "source_version",
+          "embedding_model",
+          "versions"
+        ],
+        "title": "DocumentDetail",
+        "type": "object"
+      },
+      "DocumentPage": {
+        "properties": {
+          "attribution": {
+            "default": "Content from GitLab Docs (https://docs.gitlab.com), licensed under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/). This project is not affiliated with or endorsed by GitLab Inc.",
+            "title": "Attribution",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "offset",
+          "limit",
+          "items"
+        ],
+        "title": "DocumentPage",
+        "type": "object"
+      },
+      "DocumentStatus": {
+        "enum": [
+          "staged",
+          "active",
+          "superseded",
+          "failed"
+        ],
+        "title": "DocumentStatus",
+        "type": "string"
+      },
+      "DocumentSummary": {
+        "properties": {
+          "canonical_url": {
+            "title": "Canonical Url",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "chunk_count": {
+            "title": "Chunk Count",
+            "type": "integer"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "license": {
+            "title": "License",
+            "type": "string"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "source_type": {
+            "title": "Source Type",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "document_id",
+          "title",
+          "canonical_url",
+          "category",
+          "source_type",
+          "license",
+          "version",
+          "status",
+          "enabled",
+          "content_hash",
+          "retrieved_at",
+          "published_at",
+          "chunk_count"
+        ],
+        "title": "DocumentSummary",
+        "type": "object"
+      },
+      "DocumentVersion": {
+        "properties": {
+          "chunk_count": {
+            "title": "Chunk Count",
+            "type": "integer"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "embedding_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Model"
+          },
+          "ingestion_job_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ingestion Job Id"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "status",
+          "content_hash",
+          "retrieved_at",
+          "published_at",
+          "chunk_count",
+          "embedding_model",
+          "ingestion_job_id"
+        ],
+        "title": "DocumentVersion",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ErrorCode"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorCode": {
+        "enum": [
+          "INVALID_REQUEST",
+          "NOT_FOUND",
+          "METHOD_NOT_ALLOWED",
+          "PAYLOAD_TOO_LARGE",
+          "UNAUTHORIZED",
+          "FORBIDDEN",
+          "RATE_LIMITED",
+          "DOCUMENT_NOT_FOUND",
+          "INGESTION_ALREADY_RUNNING",
+          "EVALUATION_ALREADY_RUNNING",
+          "RETRIEVAL_UNAVAILABLE",
+          "EMBEDDING_PROVIDER_ERROR",
+          "LLM_PROVIDER_ERROR",
+          "LLM_TIMEOUT",
+          "INVALID_MODEL_OUTPUT",
+          "INSUFFICIENT_EVIDENCE",
+          "GROUNDING_FAILED",
+          "CITATION_VALIDATION_FAILED",
+          "SERVICE_UNAVAILABLE",
+          "INTERNAL_ERROR"
+        ],
+        "title": "ErrorCode",
+        "type": "string"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "EvaluationCaseView": {
+        "properties": {
+          "actual": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "case_type": {
+            "title": "Case Type",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "expected": {
+            "additionalProperties": true,
+            "title": "Expected",
+            "type": "object"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metrics"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          }
+        },
+        "required": [
+          "case_id",
+          "case_type",
+          "expected",
+          "actual",
+          "metrics",
+          "passed",
+          "latency_ms",
+          "error"
+        ],
+        "title": "EvaluationCaseView",
+        "type": "object"
+      },
+      "EvaluationRunDetail": {
+        "properties": {
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/EvaluationCaseView"
+            },
+            "title": "Cases",
+            "type": "array"
+          },
+          "completed_cases": {
+            "title": "Completed Cases",
+            "type": "integer"
+          },
+          "config": {
+            "additionalProperties": true,
+            "title": "Config",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dataset_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataset Version"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metrics"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_cases": {
+            "title": "Total Cases",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status",
+          "config",
+          "metrics",
+          "dataset_version",
+          "total_cases",
+          "completed_cases",
+          "error",
+          "created_at",
+          "started_at",
+          "finished_at",
+          "cases"
+        ],
+        "title": "EvaluationRunDetail",
+        "type": "object"
+      },
+      "EvaluationRunList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EvaluationRunView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "running": {
+            "title": "Running",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "items",
+          "running"
+        ],
+        "title": "EvaluationRunList",
+        "type": "object"
+      },
+      "EvaluationRunRequest": {
+        "properties": {
+          "case_types": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Case Types",
+            "type": "array"
+          },
+          "generation": {
+            "default": false,
+            "title": "Generation",
+            "type": "boolean"
+          },
+          "k": {
+            "default": 5,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "K",
+            "type": "integer"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "maximum": 500.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit"
+          },
+          "method": {
+            "$ref": "#/components/schemas/RetrievalMethod",
+            "default": "hybrid"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "top_k": {
+            "anyOf": [
+              {
+                "maximum": 50.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top K"
+          }
+        },
+        "title": "EvaluationRunRequest",
+        "type": "object"
+      },
+      "EvaluationRunView": {
+        "properties": {
+          "completed_cases": {
+            "title": "Completed Cases",
+            "type": "integer"
+          },
+          "config": {
+            "additionalProperties": true,
+            "title": "Config",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dataset_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataset Version"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metrics"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_cases": {
+            "title": "Total Cases",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status",
+          "config",
+          "metrics",
+          "dataset_version",
+          "total_cases",
+          "completed_cases",
+          "error",
+          "created_at",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "EvaluationRunView",
+        "type": "object"
+      },
+      "GroundingCheck": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "passed",
+          "detail"
+        ],
+        "title": "GroundingCheck",
+        "type": "object"
+      },
+      "GroundingReport": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/GroundingCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "claim_level": {
+            "title": "Claim Level",
+            "type": "boolean"
+          },
+          "grounded": {
+            "title": "Grounded",
+            "type": "boolean"
+          },
+          "score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "grounded",
+          "score",
+          "checks",
+          "claim_level"
+        ],
+        "title": "GroundingReport",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "description": "Liveness only: the API process is up and serving requests.\n\nDependency readiness (database, pgvector, knowledge base) is reported by\n`GET /ready`.",
+        "properties": {
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "HumanReviewDecision": {
+        "properties": {
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewReason"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "required",
+          "reasons"
+        ],
+        "title": "HumanReviewDecision",
+        "type": "object"
+      },
+      "ImpactLevel": {
+        "enum": [
+          "none",
+          "degraded",
+          "outage"
+        ],
+        "title": "ImpactLevel",
+        "type": "string"
+      },
+      "IngestionJobView": {
+        "properties": {
+          "changed_documents": {
+            "title": "Changed Documents",
+            "type": "integer"
+          },
+          "config": {
+            "additionalProperties": true,
+            "title": "Config",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "embedding_calls": {
+            "title": "Embedding Calls",
+            "type": "integer"
+          },
+          "error_summary": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Error Summary",
+            "type": "array"
+          },
+          "failed_documents": {
+            "title": "Failed Documents",
+            "type": "integer"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "processed_documents": {
+            "title": "Processed Documents",
+            "type": "integer"
+          },
+          "reused_embeddings": {
+            "title": "Reused Embeddings",
+            "type": "integer"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_chunks": {
+            "title": "Total Chunks",
+            "type": "integer"
+          },
+          "total_documents": {
+            "title": "Total Documents",
+            "type": "integer"
+          },
+          "trigger": {
+            "title": "Trigger",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "trigger",
+          "config",
+          "total_documents",
+          "processed_documents",
+          "changed_documents",
+          "failed_documents",
+          "total_chunks",
+          "embedding_calls",
+          "reused_embeddings",
+          "error_summary",
+          "created_at",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "IngestionJobView",
+        "type": "object"
+      },
+      "IngestionRunRequest": {
+        "properties": {
+          "force": {
+            "default": false,
+            "title": "Force",
+            "type": "boolean"
+          },
+          "only": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 300,
+            "title": "Only",
+            "type": "array"
+          }
+        },
+        "title": "IngestionRunRequest",
+        "type": "object"
+      },
+      "IngestionStatus": {
+        "properties": {
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IngestionJobView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "running": {
+            "title": "Running",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "running",
+          "latest"
+        ],
+        "title": "IngestionStatus",
+        "type": "object"
+      },
+      "ListRanks": {
+        "properties": {
+          "lexical": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lexical"
+          },
+          "phrase": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phrase"
+          },
+          "semantic": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semantic"
+          }
+        },
+        "required": [
+          "semantic",
+          "lexical",
+          "phrase"
+        ],
+        "title": "ListRanks",
+        "type": "object"
+      },
+      "ModelInfo": {
+        "properties": {
+          "embedding": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding"
+          },
+          "llm": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm"
+          },
+          "prompt_versions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Prompt Versions",
+            "type": "object"
+          }
+        },
+        "required": [
+          "llm",
+          "embedding",
+          "prompt_versions"
+        ],
+        "title": "ModelInfo",
+        "type": "object"
+      },
+      "PriorityLevel": {
+        "enum": [
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ],
+        "title": "PriorityLevel",
+        "type": "string"
+      },
+      "PrioritySignals": {
+        "additionalProperties": false,
+        "description": "The eight rubric factors (docs/priority-rubric.md), extracted from the ticket text.",
+        "properties": {
+          "blocks_ci_cd_or_deployments": {
+            "title": "Blocks Ci Cd Or Deployments",
+            "type": "boolean"
+          },
+          "data_loss_risk": {
+            "title": "Data Loss Risk",
+            "type": "boolean"
+          },
+          "production_impact": {
+            "$ref": "#/components/schemas/ImpactLevel"
+          },
+          "regression": {
+            "title": "Regression",
+            "type": "boolean"
+          },
+          "security_concern": {
+            "title": "Security Concern",
+            "type": "boolean"
+          },
+          "time_sensitive": {
+            "title": "Time Sensitive",
+            "type": "boolean"
+          },
+          "users_affected": {
+            "$ref": "#/components/schemas/UsersAffected"
+          },
+          "workaround_available": {
+            "title": "Workaround Available",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "production_impact",
+          "users_affected",
+          "security_concern",
+          "data_loss_risk",
+          "blocks_ci_cd_or_deployments",
+          "workaround_available",
+          "time_sensitive",
+          "regression"
+        ],
+        "title": "PrioritySignals",
+        "type": "object"
+      },
+      "PriorityView": {
+        "properties": {
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "is_estimate": {
+            "default": true,
+            "title": "Is Estimate",
+            "type": "boolean"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriorityLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "signals": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PrioritySignals"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "triggered_factors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Triggered Factors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "level",
+          "explanation",
+          "triggered_factors",
+          "signals"
+        ],
+        "title": "PriorityView",
+        "type": "object"
+      },
+      "ReadinessResponse": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/DependencyCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "knowledge_base": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Knowledge Base"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DependencyStatus"
+          }
+        },
+        "required": [
+          "status",
+          "checks",
+          "knowledge_base"
+        ],
+        "title": "ReadinessResponse",
+        "type": "object"
+      },
+      "ResolutionStepView": {
+        "properties": {
+          "instruction": {
+            "title": "Instruction",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "number",
+          "instruction",
+          "source_ids"
+        ],
+        "title": "ResolutionStepView",
+        "type": "object"
+      },
+      "ResolutionView": {
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "questions_for_customer": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Questions For Customer",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "insufficient_evidence",
+              "withheld",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ResolutionStepView"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "summary",
+          "steps",
+          "explanation",
+          "warnings",
+          "questions_for_customer",
+          "confidence"
+        ],
+        "title": "ResolutionView",
+        "type": "object"
+      },
+      "RetrievalDiagnostics": {
+        "properties": {
+          "after_dedupe": {
+            "title": "After Dedupe",
+            "type": "integer"
+          },
+          "candidates": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Candidates",
+            "type": "object"
+          },
+          "embedding_spec": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Spec"
+          },
+          "reranker": {
+            "title": "Reranker",
+            "type": "string"
+          },
+          "timings_ms": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Timings Ms",
+            "type": "object"
+          }
+        },
+        "required": [
+          "candidates",
+          "after_dedupe",
+          "timings_ms",
+          "embedding_spec",
+          "reranker"
+        ],
+        "title": "RetrievalDiagnostics",
+        "type": "object"
+      },
+      "RetrievalMethod": {
+        "enum": [
+          "vector",
+          "lexical",
+          "hybrid"
+        ],
+        "title": "RetrievalMethod",
+        "type": "string"
+      },
+      "RetrievalResult": {
+        "properties": {
+          "degraded": {
+            "default": false,
+            "description": "True when embeddings were unavailable and only full-text and exact-phrase matching was used; then only exact-phrase matches count as evidence.",
+            "title": "Degraded",
+            "type": "boolean"
+          },
+          "diagnostics": {
+            "$ref": "#/components/schemas/RetrievalDiagnostics"
+          },
+          "evidence_sufficient": {
+            "title": "Evidence Sufficient",
+            "type": "boolean"
+          },
+          "extracted_terms": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Extracted Terms",
+            "type": "object"
+          },
+          "method": {
+            "$ref": "#/components/schemas/RetrievalMethod"
+          },
+          "phrases": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Phrases",
+            "type": "array"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/RetrievedChunk"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "retrieval_query": {
+            "title": "Retrieval Query",
+            "type": "string"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "number"
+          },
+          "threshold_basis": {
+            "title": "Threshold Basis",
+            "type": "string"
+          },
+          "top_k": {
+            "title": "Top K",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "query",
+          "retrieval_query",
+          "extracted_terms",
+          "phrases",
+          "method",
+          "top_k",
+          "threshold",
+          "threshold_basis",
+          "evidence_sufficient",
+          "reason",
+          "results",
+          "diagnostics"
+        ],
+        "title": "RetrievalResult",
+        "type": "object"
+      },
+      "RetrievalSummary": {
+        "properties": {
+          "candidates": {
+            "title": "Candidates",
+            "type": "integer"
+          },
+          "degraded": {
+            "default": false,
+            "title": "Degraded",
+            "type": "boolean"
+          },
+          "evidence_sufficient": {
+            "title": "Evidence Sufficient",
+            "type": "boolean"
+          },
+          "evidence_used": {
+            "title": "Evidence Used",
+            "type": "integer"
+          },
+          "excluded_for_injection": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Excluded For Injection",
+            "type": "array"
+          },
+          "method": {
+            "$ref": "#/components/schemas/RetrievalMethod"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "number"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "method",
+          "evidence_sufficient",
+          "reason",
+          "threshold",
+          "candidates",
+          "evidence_used",
+          "excluded_for_injection"
+        ],
+        "title": "RetrievalSummary",
+        "type": "object"
+      },
+      "RetrievedChunk": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "chunk_id": {
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "document_version": {
+            "title": "Document Version",
+            "type": "integer"
+          },
+          "exact_phrase_match": {
+            "title": "Exact Phrase Match",
+            "type": "boolean"
+          },
+          "heading_path": {
+            "title": "Heading Path",
+            "type": "string"
+          },
+          "passes_threshold": {
+            "title": "Passes Threshold",
+            "type": "boolean"
+          },
+          "ranks": {
+            "$ref": "#/components/schemas/ListRanks"
+          },
+          "scores": {
+            "$ref": "#/components/schemas/ScoreBreakdown"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "source_id": {
+            "pattern": "^SRC-\\d{3}$",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "subsection": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subsection"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "token_count": {
+            "title": "Token Count",
+            "type": "integer"
+          },
+          "url": {
+            "description": "Canonical URL, with the section anchor when available.",
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "chunk_id",
+          "document_id",
+          "document_version",
+          "title",
+          "section",
+          "subsection",
+          "heading_path",
+          "url",
+          "category",
+          "content",
+          "token_count",
+          "exact_phrase_match",
+          "passes_threshold",
+          "scores",
+          "ranks"
+        ],
+        "title": "RetrievedChunk",
+        "type": "object"
+      },
+      "ReviewReason": {
+        "enum": [
+          "insufficient_evidence",
+          "retrieval_unavailable",
+          "retrieval_degraded",
+          "grounding_failed",
+          "citation_invalid",
+          "unsupported_identifiers",
+          "invalid_model_output",
+          "llm_unavailable",
+          "classification_unavailable",
+          "low_classification_confidence",
+          "ambiguous_category",
+          "high_or_critical_priority",
+          "security_concern",
+          "data_loss_risk",
+          "needs_more_information",
+          "prompt_injection_suspected"
+        ],
+        "title": "ReviewReason",
+        "type": "string"
+      },
+      "ScoreBreakdown": {
+        "properties": {
+          "final": {
+            "description": "Score compared with the relevance threshold.",
+            "title": "Final",
+            "type": "number"
+          },
+          "fused": {
+            "description": "Reciprocal Rank Fusion score; orders results only.",
+            "title": "Fused",
+            "type": "number"
+          },
+          "lexical": {
+            "description": "Full-text rank (ts_rank_cd, normalised to [0, 1)).",
+            "title": "Lexical",
+            "type": "number"
+          },
+          "rerank": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Reranker score, when a reranker is enabled.",
+            "title": "Rerank"
+          },
+          "semantic": {
+            "description": "Cosine similarity between query and chunk embeddings.",
+            "title": "Semantic",
+            "type": "number"
+          }
+        },
+        "required": [
+          "semantic",
+          "lexical",
+          "fused",
+          "rerank",
+          "final"
+        ],
+        "title": "ScoreBreakdown",
+        "type": "object"
+      },
+      "SearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Category"
+                },
+                "maxItems": 11,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categories"
+          },
+          "method": {
+            "$ref": "#/components/schemas/RetrievalMethod",
+            "default": "hybrid"
+          },
+          "query": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "top_k": {
+            "anyOf": [
+              {
+                "maximum": 50.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top K"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "SearchRequest",
+        "type": "object"
+      },
+      "StageError": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stage",
+          "code",
+          "message"
+        ],
+        "title": "StageError",
+        "type": "object"
+      },
+      "TicketAnalysisResponse": {
+        "properties": {
+          "classification": {
+            "$ref": "#/components/schemas/ClassificationView"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/StageError"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "grounding": {
+            "$ref": "#/components/schemas/GroundingReport"
+          },
+          "human_review": {
+            "$ref": "#/components/schemas/HumanReviewDecision"
+          },
+          "label": {
+            "default": "AI-generated draft. Not reviewed or approved by a human.",
+            "title": "Label",
+            "type": "string"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelInfo"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/PriorityView"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/ResolutionView"
+          },
+          "retrieval": {
+            "$ref": "#/components/schemas/RetrievalSummary"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "timings_ms": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Timings Ms",
+            "type": "object"
+          }
+        },
+        "required": [
+          "classification",
+          "priority",
+          "resolution",
+          "sources",
+          "grounding",
+          "human_review",
+          "retrieval",
+          "errors",
+          "timings_ms",
+          "model"
+        ],
+        "title": "TicketAnalysisResponse",
+        "type": "object"
+      },
+      "TicketEnvironment": {
+        "additionalProperties": false,
+        "properties": {
+          "component": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Component"
+          },
+          "deployment": {
+            "anyOf": [
+              {
+                "enum": [
+                  "gitlab.com",
+                  "self-managed",
+                  "dedicated"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deployment"
+          },
+          "gitlab_version": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gitlab Version"
+          },
+          "runner_executor": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runner Executor"
+          }
+        },
+        "title": "TicketEnvironment",
+        "type": "object"
+      },
+      "TicketInput": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 20000,
+            "minLength": 10,
+            "title": "Description",
+            "type": "string"
+          },
+          "environment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TicketEnvironment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 3,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "description"
+        ],
+        "title": "TicketInput",
+        "type": "object"
+      },
+      "TicketRetrieveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 20000,
+            "minLength": 10,
+            "title": "Description",
+            "type": "string"
+          },
+          "environment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TicketEnvironment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "method": {
+            "$ref": "#/components/schemas/RetrievalMethod",
+            "default": "hybrid"
+          },
+          "title": {
+            "maxLength": 300,
+            "minLength": 3,
+            "title": "Title",
+            "type": "string"
+          },
+          "top_k": {
+            "anyOf": [
+              {
+                "maximum": 50.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top K"
+          }
+        },
+        "required": [
+          "title",
+          "description"
+        ],
+        "title": "TicketRetrieveRequest",
+        "type": "object"
+      },
+      "UsersAffected": {
+        "enum": [
+          "single_user",
+          "team",
+          "many_users",
+          "all_users"
+        ],
+        "title": "UsersAffected",
+        "type": "string"
+      },
+      "VersionResponse": {
+        "properties": {
+          "api_version": {
+            "title": "Api Version",
+            "type": "string"
+          },
+          "environment": {
+            "title": "Environment",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "api_version",
+          "environment"
+        ],
+        "title": "VersionResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Support Resolution Platform",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/documents": {
+      "get": {
+        "operationId": "list_documents_api_v1_documents_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Category"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "description": "Version status to list (default: active).",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/DocumentStatus",
+              "default": "active",
+              "description": "Version status to list (default: active)."
+            }
+          },
+          {
+            "description": "List every stored version, ignoring `status`.",
+            "in": "query",
+            "name": "all_statuses",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "List every stored version, ignoring `status`.",
+              "title": "All Statuses",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "enabled",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Enabled"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          }
+        },
+        "summary": "List knowledge-base documents",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}": {
+      "get": {
+        "operationId": "get_document_api_v1_documents__document_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found (`NOT_FOUND`, `DOCUMENT_NOT_FOUND`)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          }
+        },
+        "summary": "A document's current state and version history",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}/chunks": {
+      "get": {
+        "operationId": "document_chunks_api_v1_documents__document_id__chunks_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChunkPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found (`NOT_FOUND`, `DOCUMENT_NOT_FOUND`)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          }
+        },
+        "summary": "List a document's chunks (active version unless `version` is given)",
+        "tags": [
+          "retrieval"
+        ]
+      }
+    },
+    "/api/v1/evaluations": {
+      "get": {
+        "operationId": "evaluations_api_v1_evaluations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationRunList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          }
+        },
+        "summary": "Recent evaluation runs",
+        "tags": [
+          "evaluations"
+        ]
+      }
+    },
+    "/api/v1/evaluations/run": {
+      "post": {
+        "operationId": "run_evaluation_api_v1_evaluations_run_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Admin-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluationRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationRunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request is invalid (`INVALID_REQUEST`)."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing admin token (`UNAUTHORIZED`)."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid admin token or admin not allowed from this client (`FORBIDDEN`)."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A job of this kind is already running (`*_ALREADY_RUNNING`)."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body exceeds `MAX_REQUEST_BODY_BYTES` (`PAYLOAD_TOO_LARGE`)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A provider returned an error (`EMBEDDING_PROVIDER_ERROR`, `LLM_PROVIDER_ERROR`)."
+          }
+        },
+        "summary": "Start an evaluation run in the background (admin only)",
+        "tags": [
+          "evaluations"
+        ]
+      }
+    },
+    "/api/v1/evaluations/{evaluation_id}": {
+      "get": {
+        "operationId": "evaluation_api_v1_evaluations__evaluation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "evaluation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Evaluation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationRunDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found (`NOT_FOUND`, `DOCUMENT_NOT_FOUND`)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          }
+        },
+        "summary": "One evaluation run with per-case results",
+        "tags": [
+          "evaluations"
+        ]
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Liveness check",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/ingestion/run": {
+      "post": {
+        "operationId": "run_ingestion_api_v1_ingestion_run_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Admin-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestionRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestionJobView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing admin token (`UNAUTHORIZED`)."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid admin token or admin not allowed from this client (`FORBIDDEN`)."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A job of this kind is already running (`*_ALREADY_RUNNING`)."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body exceeds `MAX_REQUEST_BODY_BYTES` (`PAYLOAD_TOO_LARGE`)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A provider returned an error (`EMBEDDING_PROVIDER_ERROR`, `LLM_PROVIDER_ERROR`)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A dependency is unavailable (`RETRIEVAL_UNAVAILABLE`, `SERVICE_UNAVAILABLE`)."
+          }
+        },
+        "summary": "Start an ingestion job in the background (admin only)",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/api/v1/ingestion/status": {
+      "get": {
+        "operationId": "ingestion_status_api_v1_ingestion_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestionStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Latest ingestion job",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/api/v1/ingestion/{job_id}": {
+      "get": {
+        "operationId": "ingestion_job_api_v1_ingestion__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestionJobView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found (`NOT_FOUND`, `DOCUMENT_NOT_FOUND`)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          }
+        },
+        "summary": "One ingestion job",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/api/v1/ready": {
+      "get": {
+        "operationId": "ready_api_v1_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            },
+            "description": "The database is down."
+          }
+        },
+        "summary": "Readiness of the API and its dependencies",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "post": {
+        "operationId": "search_api_v1_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetrievalResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body exceeds `MAX_REQUEST_BODY_BYTES` (`PAYLOAD_TOO_LARGE`)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded (`RATE_LIMITED`); see the `Retry-After` header."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A provider returned an error (`EMBEDDING_PROVIDER_ERROR`, `LLM_PROVIDER_ERROR`)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A dependency is unavailable (`RETRIEVAL_UNAVAILABLE`, `SERVICE_UNAVAILABLE`)."
+          }
+        },
+        "summary": "Search the knowledge base",
+        "tags": [
+          "retrieval"
+        ]
+      }
+    },
+    "/api/v1/tickets/analyze": {
+      "post": {
+        "operationId": "analyze_ticket_api_v1_tickets_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketAnalysisResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body exceeds `MAX_REQUEST_BODY_BYTES` (`PAYLOAD_TOO_LARGE`)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded (`RATE_LIMITED`); see the `Retry-After` header."
+          }
+        },
+        "summary": "Draft a grounded, cited resolution for a ticket (AI-generated draft)",
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
+    "/api/v1/tickets/classify": {
+      "post": {
+        "operationId": "classify_ticket_api_v1_tickets_classify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassifyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body exceeds `MAX_REQUEST_BODY_BYTES` (`PAYLOAD_TOO_LARGE`)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded (`RATE_LIMITED`); see the `Retry-After` header."
+          }
+        },
+        "summary": "Classify a ticket and estimate its priority (AI-assisted)",
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
+    "/api/v1/tickets/retrieve": {
+      "post": {
+        "operationId": "retrieve_for_ticket_api_v1_tickets_retrieve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketRetrieveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetrievalResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body exceeds `MAX_REQUEST_BODY_BYTES` (`PAYLOAD_TOO_LARGE`)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed (`INVALID_REQUEST`); input values are never echoed."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded (`RATE_LIMITED`); see the `Retry-After` header."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A provider returned an error (`EMBEDDING_PROVIDER_ERROR`, `LLM_PROVIDER_ERROR`)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A dependency is unavailable (`RETRIEVAL_UNAVAILABLE`, `SERVICE_UNAVAILABLE`)."
+          }
+        },
+        "summary": "Retrieve evidence for a support ticket",
+        "tags": [
+          "retrieval"
+        ]
+      }
+    },
+    "/api/v1/version": {
+      "get": {
+        "operationId": "version_api_v1_version_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Build and API version",
+        "tags": [
+          "system"
+        ]
+      }
+    }
+  }
+}

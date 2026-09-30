@@ -26,6 +26,14 @@ function describe(error: unknown): { title: string; message: string; requestId: 
         requestId: error.requestId,
       };
     }
+    if (error.code === "RATE_LIMITED") {
+      const wait = Number(error.details?.retry_after_seconds);
+      return {
+        title: "Too many requests",
+        message: Number.isFinite(wait) && wait > 0 ? `Please wait ${wait} s and try again.` : error.message,
+        requestId: error.requestId,
+      };
+    }
     if (error.code === "INVALID_REQUEST") {
       return { title: "Invalid request", message: error.message, requestId: error.requestId };
     }

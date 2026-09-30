@@ -5,9 +5,12 @@ ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /build
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-COPY pyproject.toml ./
+# Dependencies come from the hashed lock (pip refuses anything unpinned or unhashed); the
+# project itself is then installed without resolving dependencies again.
+COPY pyproject.toml requirements.lock ./
+RUN pip install --require-hashes -r requirements.lock
 COPY app ./app
-RUN pip install --upgrade pip && pip install .
+RUN pip install --no-deps .
 # Bake the tokenizer encoding into the image so nothing is downloaded at runtime (ADR D13).
 ENV TIKTOKEN_CACHE_DIR=/opt/tiktoken
 RUN python -c "import tiktoken; tiktoken.get_encoding('o200k_base')"

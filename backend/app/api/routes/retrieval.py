@@ -6,7 +6,9 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import select
 
 from app.api.deps import SessionDep, SettingsDep
+from app.api.responses import BODY, READ, errors
 from app.core.errors import DocumentNotFoundError
+from app.core.rate_limit import rate_limit
 from app.db.models import Document
 from app.repositories import chunks as chunk_repo
 from app.schemas.documents import ChunkPage, ChunkView
@@ -30,7 +32,13 @@ def get_retrieval_service(request: Request, settings: SettingsDep) -> RetrievalS
 RetrievalDep = Annotated[RetrievalService, Depends(get_retrieval_service)]
 
 
-@router.post("/search", response_model=RetrievalResult, summary="Search the knowledge base")
+@router.post(
+    "/search",
+    responses=BODY | errors(429, 502, 503),
+    dependencies=[Depends(rate_limit("search"))],
+    response_model=RetrievalResult,
+    summary="Search the knowledge base",
+)
 async def search(
     body: SearchRequest, service: RetrievalDep, settings: SettingsDep
 ) -> RetrievalResult:
@@ -45,6 +53,8 @@ async def search(
 
 @router.post(
     "/tickets/retrieve",
+    responses=BODY | errors(429, 502, 503),
+    dependencies=[Depends(rate_limit("search"))],
     response_model=RetrievalResult,
     summary="Retrieve evidence for a support ticket",
 )
@@ -59,6 +69,7 @@ async def retrieve_for_ticket(
 
 @router.get(
     "/documents/{document_id}/chunks",
+    responses=READ | errors(404),
     response_model=ChunkPage,
     summary="List a document's chunks (active version unless `version` is given)",
 )
