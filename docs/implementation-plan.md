@@ -32,11 +32,11 @@ This plan turns the spec into an ordered, verifiable build. Section references l
 | 2 | Knowledge ingestion | 5-7 d | Real docs fetched, chunked, embedded, stored, versioned; re-run skips unchanged docs | Done (`phase-2-complete`) |
 | 3 | Retrieval | 3-4 d | Vector, lexical, hybrid retrieval via API with scores and threshold | Done (`phase-3-complete`) |
 | 4 | AI resolution | 5-6 d | Ticket → classification → priority → grounded, validated draft; all failure paths tested with fakes | Done (`phase-4-complete`) |
-| 5 | API completion & contracts | 2 d | All 15 routes implemented, error contract, OpenAPI accurate | |
-| 6 | Frontend | 6-8 d | All 7 pages on real APIs, all UI states handled | |
-| 7 | Evaluation | 4-5 d | Cases authored, runner, metrics, experiments stored, UI shows real metrics | |
-| 8 | Security & observability hardening | 3-4 d | SSRF, injection, limits, admin protection, structured logs, all security tests pass | |
-| 9 | Testing, docs, release | 3-4 d | Clean-room Docker acceptance test passes; audit clean; docs complete | |
+| 5 | API completion & contracts | 2 d | All 15 routes implemented, error contract, OpenAPI accurate | Done (`phase-5-complete`) |
+| 6 | Frontend | 6-8 d | All 7 pages on real APIs, all UI states handled | Done (`phase-6-complete`) |
+| 7 | Evaluation | 4-5 d | Cases authored, runner, metrics, experiments stored, UI shows real metrics | Done (`phase-7-complete`) |
+| 8 | Security & observability hardening | 3-4 d | SSRF, injection, limits, admin protection, structured logs, all security tests pass | Done (`phase-8-complete`) |
+| 9 | Testing, docs, release | 3-4 d | Clean-room Docker acceptance test passes; audit clean; docs complete | Done (`phase-9-complete`) |
 
 Total: roughly 35-45 working days.
 
@@ -274,17 +274,19 @@ Fakes (`FakeLLMProvider`, `FakeEmbeddingProvider`, `FakeFetcher`) live only in `
 
 ## 4. Definition of Done (Condensed from [§111])
 
-- [ ] `docker compose up --build` works from a clean clone; migrations and ingestion documented and working
-- [ ] Real documentation ingested with preserved metadata, versioning, and staged publish
-- [ ] Vector, lexical, hybrid retrieval (and optional reranker) work and are inspectable
-- [ ] Classification, priority (documented rubric), structured generation, citation validation, grounding validation, and human-review logic work
-- [ ] Unsupported and low-evidence tickets get a safe, honest response
-- [ ] All 15 API routes implemented, validated, and documented; OpenAPI accurate
-- [ ] All 7 frontend pages use real APIs; all async states handled; no fake numbers anywhere
-- [ ] Evaluation runner, documented metrics, and stored reproducible experiments visible in the UI
-- [ ] Request IDs, structured logs, no secrets or LLM payloads logged
-- [ ] SSRF, prompt injection, input limits, admin protection, safe errors verified by tests
-- [ ] Unit, integration, API, retrieval, security, and E2E tests pass
-- [ ] README, architecture, ingestion, retrieval, evaluation, security, licensing, and API docs complete
-- [ ] Final quality audit clean; clean-room acceptance scenario passes
-- [ ] No required feature is a mock, placeholder, or TODO
+All items verified on 2026-09-30; evidence in `docs/acceptance.md`.
+
+- [x] `docker compose up --build` works from a clean clone; migrations and ingestion documented and working
+- [x] Real documentation ingested with preserved metadata, versioning, and staged publish
+- [x] Vector, lexical, hybrid retrieval (and optional reranker) work and are inspectable
+- [x] Classification, priority (documented rubric), structured generation, citation validation, grounding validation, and human-review logic work
+- [x] Unsupported and low-evidence tickets get a safe, honest response
+- [x] All 15 API routes implemented, validated, and documented; OpenAPI accurate
+- [x] All 7 frontend pages use real APIs; all async states handled; no fake numbers anywhere
+- [x] Evaluation runner, documented metrics, and stored reproducible experiments visible in the UI
+- [x] Request IDs, structured logs, no secrets or LLM payloads logged
+- [x] SSRF, prompt injection, input limits, admin protection, safe errors verified by tests
+- [x] Unit, integration, API, retrieval, security, and E2E tests pass
+- [x] README, architecture, ingestion, retrieval, evaluation, security, licensing, and API docs complete
+- [x] Final quality audit clean; clean-room acceptance scenario passes
+- [x] No required feature is a mock, placeholder, or TODO

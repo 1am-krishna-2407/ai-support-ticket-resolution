@@ -1,5 +1,20 @@
 # Changelog
 
+## Phase 9: Testing, documentation, release (`phase-9-complete`, 2026-09-30)
+
+**Added** `backend/tests/e2e` (11 tests against the live stack through nginx, including an
+opt-in real ticket analysis); `docs/acceptance.md` with evidence for every
+definition-of-done item; rewritten README; final quality audit.
+
+**Verified** clean-room run: fresh clone, `--no-cache` build (hash-checked Python install,
+`npm ci`), migrations 0001–0005 on an empty database, real ingestion of three pages
+(73 chunks embedded; re-run makes 0 embedding calls), and the E2E suite passing. Stopping
+the backend shows a clear "Service unavailable" state in the UI, which recovers on
+restart.
+
+**Fixed** the ingestion script logged to stdout, mixing log lines into its JSON summary;
+logs now go to stderr like the other scripts.
+
 ## Phase 8: Security and observability hardening (`phase-8-complete`, 2026-09-30)
 
 **Added** per-client sliding-window rate limits for analysis (20/min) and search (60/min)

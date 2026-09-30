@@ -39,7 +39,7 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
 async def _main(argv: list[str]) -> int:
     args = _parse_args(argv)
     settings = get_settings()
-    configure_logging(settings.log_level)
+    configure_logging(settings.log_level, sys.stderr)  # keep stdout for the JSON summary
     engine = create_engine(settings)
     fetcher = HttpDocumentFetcher(settings)
     try:
