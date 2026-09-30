@@ -33,7 +33,9 @@ together with:
 > Content from GitLab Docs (https://docs.gitlab.com), licensed under CC BY-SA 4.0.
 > This project is not affiliated with or endorsed by GitLab Inc.
 
-The same string is exposed by the API (Phase 5) so every client can display it.
+The API returns the same notice in the `attribution` field of `GET /documents` and
+`GET /documents/{document_id}` so any client can display it; the web UI shows a shorter
+form under every source card.
 
 ## Derived material
 

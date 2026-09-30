@@ -1,5 +1,56 @@
 # Changelog
 
+## Phase 8: Security and observability hardening (`phase-8-complete`, 2026-09-30)
+
+**Added** per-client sliding-window rate limits for analysis (20/min) and search (60/min)
+with `429 RATE_LIMITED` and `Retry-After`; `X-Forwarded-For` is honoured only from
+`TRUSTED_PROXY_CIDRS` (Compose pins the frontend proxy to 172.28.10.10). `request_logs`
+now receives one metadata-only row per API request (route template, status, latency,
+error code, analysis timings and outcome), written off the request path, pruned after
+`REQUEST_LOG_RETENTION_DAYS`; the unused `PERSIST_TICKET_BODIES` switch is gone because
+ticket text is never stored. Log redaction now covers Groq, NVIDIA, Hugging Face, Google
+and GitLab token formats. Hashed Python lockfiles (`requirements.lock`,
+`requirements-dev.lock`) installed with `--require-hashes`; `make lock`, `make audit`.
+Containers: read-only root filesystems, `tmpfs /tmp`, all capabilities dropped,
+`no-new-privileges`. `docs/security.md`.
+
+**Tests** `backend/tests/security`: admin protection, SSRF (URL rules and fetcher),
+prompt injection end to end (detection, containment, hijacked output withheld), rate
+limits, safe errors, log safety (no keys, ticket text or model output in logs, including
+when a provider echoes secrets). `pip-audit` and `npm audit`: no known vulnerabilities.
+
+## Phase 7: Evaluation (`phase-7-complete`, 2026-09-30)
+
+**Added** 51-case dataset over 17 types (`evaluation/cases.json`, validated against the
+knowledge base); runner with frozen configuration, single-flight lock, and provider
+outages recorded as errors rather than scores; CLI (`app.scripts.evaluate`) and
+admin-only `POST /evaluations/run`; deterministic retrieval and answer metrics with
+formulas in `docs/evaluation.md`; Evaluation page with per-case results and run-to-run
+comparison.
+
+**Results** retrieval for hybrid, vector and lexical (51 cases each) and a full generation
+run on Nemotron are recorded in `docs/evaluation.md`.
+
+## Phase 6: Frontend (`phase-6-complete`, 2026-09-30)
+
+**Added** seven pages on real APIs (Dashboard, Ticket Analysis, Retrieval Explorer,
+Knowledge Base with document detail, Ingestion, Evaluation, System Status) with Zod-
+validated responses, loading, empty, error, degraded and rate-limited states, request IDs
+on every error, and a persistent *AI-generated draft* notice. Tables stay page-specific
+(document list, evaluation cases, metric comparison) rather than a generic `DataTable`,
+because each has different columns, links and states.
+
+**Tests** 33 component tests (state variants per page), plus the end-to-end suite against
+the live stack.
+
+## Phase 5: API completion and contracts (`phase-5-complete`, 2026-09-30)
+
+**Added** all routes (16 operations) with Pydantic request and response models, limits,
+pagination, and the single error contract; every route documents its real error
+responses in OpenAPI; `docs/openapi.json` and `docs/api.md` are generated
+(`make openapi`) and a unit test fails if they drift. Server-side timeouts on every
+provider call and a database statement timeout; single-flight ingestion and evaluation.
+
 ## LLM provider change (2026-09-30)
 
 - LLM: NVIDIA `nvidia/nemotron-3-super-120b-a12b` via the NVIDIA API catalog

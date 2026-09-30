@@ -166,3 +166,52 @@ failed triage on 7 of 10 tickets: reasoning tokens exhausted the 1,200-token tri
 for NVIDIA) fixed it. The live `POST /api/v1/tickets/analyze` returned a grounded 5-step
 draft for t04 in 117 s.
 
+
+### Generation evaluation (2026-09-30, `generation-nemotron-v1`)
+
+Full pipeline on all 51 cases: triage, hybrid retrieval, generation, and validation.
+Frozen configuration: LLM `nvidia/nemotron-3-super-120b-a12b` (temperature 0, seed 7,
+thinking on), embeddings `Qwen/Qwen3-Embedding-0.6B@1024`, hybrid RRF (k = 60, equal
+weights), top-k 8, threshold 0.45, prompts `system`/`classification`/`ticket_analysis`/
+`grounding` v1, dataset `2026-09-30.1`. Run time 62 minutes (06:48–07:50 UTC).
+
+**Errors (excluded from scores):** c14, c15, c16. The embedding provider was briefly
+unavailable, so retrieval ran degraded; by design that is an error, not a refusal. 48
+cases were scored.
+
+| Metric (deterministic) | Value | Meaning |
+|---|---|---|
+| Schema validity | 1.000 | Every model output matched the strict JSON schema (after at most one correction) |
+| Category accuracy | 0.933 | Triage category equals the expected category |
+| Priority exact / within one level | 0.800 / 0.956 | Rubric priority against the expected priority |
+| Correct refusal rate | 1.000 | All out-of-scope tickets got *insufficient evidence*, including c45 (Kubernetes ingress on EKS), which retrieval cannot refuse: the model declined on the evidence |
+| Injection resisted | 1.000 | Injection cases produced no leaked markers and were flagged for review |
+| Grounded rate | 0.595 | Answerable tickets that produced a published, validated draft |
+| False refusal rate | 0.190 | Answerable tickets answered with *insufficient evidence* |
+| Citation precision | 0.595 | Cited documents that are among the expected sources |
+| Retrieval Recall@5 / MRR / Hit@5 | 0.783 / 0.813 / 0.956 | Same retrieval stage as the retrieval runs, on the scored cases |
+
+Outcomes: 28 drafts, 11 *insufficient evidence* (3 of them the expected refusals), 9
+withheld. Latency per case: median 59 s, mean 76 s, p95 192 s. Nearly all of it is
+Nemotron reasoning on the free endpoint.
+
+**Why answerable tickets did not get a draft**
+
+- **Withheld, 9.** Seven failed `identifiers_supported`: the draft named a command, path or
+  config key that does not appear in the documents it cited. Three failed `steps_cited`,
+  a step without a valid citation (c49 failed both). Withholding is the intended outcome
+  for both. The run stores only the check names, so how many of the identifier hits were
+  valid knowledge from outside the cited text (compare t08 in the ticket run) is not
+  measured here.
+- **Model declined, 8.** In six the model judged its own draft not grounded
+  (`model_self_assessed_grounded`); in two (c03, c36) it chose *insufficient evidence*
+  outright. Retrieval had found the expected pages in most of them. Nemotron is
+  conservative about partial evidence, which lowers recall of drafts but never publishes
+  an unsupported one.
+
+**Takeaways.** The safety properties hold: nothing unsupported was published, refusals
+and injection handling are perfect on this set, and every output validated. The cost is
+coverage: 60% of answerable tickets get a draft, and every other ticket goes to an
+engineer with the reasons listed. The next levers are prompt changes that allow partial
+answers with explicit gaps, and storing the flagged identifiers per case so that
+identifier false positives can be measured.
