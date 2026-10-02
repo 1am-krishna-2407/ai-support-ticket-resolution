@@ -68,7 +68,7 @@ Scorecard: **27 ✅ · 10 ⚠️ · 27 ❌** across 64 items.
 |---|---|---|---|
 | 4.1 | Health and readiness checks | ✅ | `/health`, `/ready`, Compose health checks |
 | 4.2 | Graceful degradation when a provider fails | ✅ | Lexical-only search, review-only analysis, circuit breaker, daily-quota fail-fast |
-| 4.3 | Timeouts consistent from browser to provider | ❌ | **Bug G1:** UI timeout 120 s and nginx `proxy_read_timeout 120s`, but 6 of 48 evaluation analyses and 2 of 10 real tickets took longer (slowest 376 s) |
+| 4.3 | Timeouts consistent from browser to provider | ⚠️ | **G1 mitigated 2026-10-02:** UI and nginx now wait 300 s (were 120 s), but 6 of 48 evaluation analyses and 2 of 10 real tickets took longer (slowest 376 s) |
 | 4.4 | Production LLM and embedding tiers with SLAs | ❌ | NVIDIA free endpoint (intermittent 503s), HF credits, Groq free tier (200k tokens/day) |
 | 4.5 | Automatic failover between LLM providers | ❌ | Two providers supported; switching is a manual `LLM_PROVIDER` change |
 | 4.6 | Database backups with a tested restore | ❌ | Named volume only; no `pg_dump` schedule or restore drill |

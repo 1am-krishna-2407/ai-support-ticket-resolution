@@ -64,6 +64,7 @@ class LLMProvider(Protocol):
         schema_name: str,
         schema: dict[str, Any],
         max_tokens: int | None = None,
+        reasoning: bool = True,
     ) -> LLMResult: ...
 
     async def aclose(self) -> None: ...
@@ -199,14 +200,18 @@ class OpenAICompatibleChatProvider:
         schema_name: str,
         schema: dict[str, Any],
         max_tokens: int | None,
+        reasoning: bool = True,
     ) -> dict[str, Any]:
         s = self._settings
+        # reasoning=False asks for a direct answer where the provider can switch reasoning off
+        # (Nemotron); the reasoning allowance is then not needed.
+        thinking = s.llm_enable_thinking and reasoning
         body: dict[str, Any] = {
             "model": s.llm_model,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
             "temperature": s.llm_temperature,
             "max_completion_tokens": (max_tokens or s.llm_max_output_tokens)
-            + s.llm_reasoning_tokens,
+            + (s.llm_reasoning_tokens if thinking else 0),
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {"name": schema_name, "strict": True, "schema": schema},
@@ -218,7 +223,7 @@ class OpenAICompatibleChatProvider:
             # NVIDIA's API takes max_tokens; Nemotron's reasoning is a chat-template switch and
             # arrives in a separate reasoning_content field, which is never read.
             body["max_tokens"] = body.pop("max_completion_tokens")
-            body["chat_template_kwargs"] = {"enable_thinking": s.llm_enable_thinking}
+            body["chat_template_kwargs"] = {"enable_thinking": thinking}
         elif "gpt-oss" in s.llm_model:
             body["reasoning_effort"] = s.llm_reasoning_effort
             body["include_reasoning"] = False  # never return the model's reasoning text
@@ -231,9 +236,10 @@ class OpenAICompatibleChatProvider:
         schema_name: str,
         schema: dict[str, Any],
         max_tokens: int | None = None,
+        reasoning: bool = True,
     ) -> LLMResult:
         try:
-            result = await self._complete_json(messages, schema_name, schema, max_tokens)
+            result = await self._complete_json(messages, schema_name, schema, max_tokens, reasoning)
         except LLMProviderError as exc:
             self.last_failure = {"code": exc.code.value, "message": exc.message, "at": time.time()}
             raise
@@ -246,8 +252,9 @@ class OpenAICompatibleChatProvider:
         schema_name: str,
         schema: dict[str, Any],
         max_tokens: int | None,
+        reasoning: bool = True,
     ) -> LLMResult:
-        body = self._body(messages, schema_name, schema, max_tokens)
+        body = self._body(messages, schema_name, schema, max_tokens, reasoning)
         if self._bucket is not None:
             # Estimate: message text + schema (sent as part of the request) + max output.
             estimate = (

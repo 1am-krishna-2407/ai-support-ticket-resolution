@@ -323,3 +323,23 @@ async def test_requests_are_paced_per_minute(make_settings: Callable[..., Settin
     assert sleeps == []
     await _call(p)  # the third request in the same minute waits
     assert sum(sleeps) == pytest.approx(30.0)
+
+
+async def test_reasoning_can_be_switched_off_per_call(
+    make_settings: Callable[..., Settings],
+) -> None:
+    bodies: list[dict[str, Any]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        bodies.append(json.loads(request.content))
+        return ok()
+
+    settings = make_settings(llm_provider="nvidia", nemotron_api_key=NV_KEY)
+    p, _ = provider(settings, handler)
+    await p.complete_json(MESSAGES, schema_name="s", schema={}, max_tokens=1200, reasoning=False)
+    await p.complete_json(MESSAGES, schema_name="s", schema={}, max_tokens=1200)
+    direct, reasoned = bodies
+    assert direct["chat_template_kwargs"] == {"enable_thinking": False}
+    assert direct["max_tokens"] == 1200  # no reasoning allowance
+    assert reasoned["chat_template_kwargs"] == {"enable_thinking": True}
+    assert reasoned["max_tokens"] == 1200 + 4000

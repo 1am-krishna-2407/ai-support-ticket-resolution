@@ -15,8 +15,9 @@ import {
   type RetrievalMethod,
 } from "./schemas";
 
-// Analysis calls an LLM (and may retry once), so it gets a longer client timeout.
-const ANALYSIS_TIMEOUT_MS = 120_000;
+// Analysis runs triage and a reasoning draft (sometimes a correction); real runs take
+// 30 s to 3 min on free endpoints, so the client waits up to 5 minutes.
+const ANALYSIS_TIMEOUT_MS = 300_000;
 
 export interface TicketPayload {
   title: string;

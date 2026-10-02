@@ -349,3 +349,14 @@ async def test_classify_only(build) -> None:  # type: ignore[no-untyped-def]
     out = await service.classify(TICKET)
     assert out.classification.category == "runners" and out.priority.level == "low"
     assert llm.calls_for("resolution") == 0 and out.human_review.required is False
+
+
+async def test_triage_reasoning_is_configurable(build) -> None:  # type: ignore[no-untyped-def]
+    service, llm = build({"triage": [triage_json()], "resolution": [resolution_json()]})
+    await service.analyze(TICKET)
+    assert llm.reasoning == {"triage": True, "resolution": True}
+    fast, llm = build(
+        {"triage": [triage_json()], "resolution": [resolution_json()]}, llm_triage_reasoning=False
+    )
+    await fast.analyze(TICKET)
+    assert llm.reasoning == {"triage": False, "resolution": True}

@@ -128,6 +128,10 @@ class Settings(BaseSettings):
     llm_reasoning_effort: Literal["low", "medium", "high"] = "low"
     # Nemotron reasoning ("thinking") on/off; its reasoning text is never returned or logged.
     llm_enable_thinking: bool = True
+    # Reasoning for triage. Off, Nemotron answers in ~2 s instead of 10-20 s, but on the 48
+    # answerable evaluation cases priority accuracy fell from 0.80 to 0.60 (category 0.93 to
+    # 0.92), so it stays on by default.
+    llm_triage_reasoning: bool = True
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     # Reasoning tokens count toward this limit on gpt-oss; 1,500 truncated some drafts.
     llm_max_output_tokens: int = Field(default=2500, gt=0)

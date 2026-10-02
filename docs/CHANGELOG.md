@@ -1,5 +1,13 @@
 # Changelog
 
+## Fix: ticket analyses timing out in the UI (2026-10-02)
+
+The browser and nginx gave up after 120 s while analyses on free Nemotron take 30 s to
+3 min (generation alone 65-106 s in the reported runs), so long analyses ended in timeouts
+(nginx 499). Both limits are now 300 s. A per-call reasoning switch was added
+(`LLM_TRIAGE_REASONING`): triage without reasoning answers in ~2 s, but priority accuracy on
+48 evaluation cases fell from 0.80 to 0.60, so reasoning stays on by default.
+
 ## UI: review banner removed (2026-10-02)
 
 The amber "AI-generated draft / human review required" banner above every analysis is

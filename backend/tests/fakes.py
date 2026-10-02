@@ -97,15 +97,19 @@ class FakeLLMProvider:
     def __init__(self, script: dict[str, list[object]] | None = None) -> None:
         self.script: dict[str, list[object]] = {k: list(v) for k, v in (script or {}).items()}
         self.calls: list[tuple[str, list[object]]] = []
+        self.reasoning: dict[str, bool] = {}
 
     @property
     def model(self) -> str:
         return "fake-llm"
 
-    async def complete_json(self, messages, *, schema_name, schema, max_tokens=None):  # type: ignore[no-untyped-def]
+    async def complete_json(
+        self, messages, *, schema_name, schema, max_tokens=None, reasoning=True
+    ):  # type: ignore[no-untyped-def]
         from app.providers.llm import LLMResult
 
         self.calls.append((schema_name, list(messages)))
+        self.reasoning[schema_name] = reasoning
         queue = self.script.get(schema_name)
         if not queue:
             raise AssertionError(f"unexpected LLM call for schema {schema_name!r}")

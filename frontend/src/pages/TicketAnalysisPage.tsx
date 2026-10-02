@@ -153,7 +153,7 @@ export function TicketAnalysisPage() {
 
         <div aria-live="polite">
           {mutation.isPending ? (
-            <LoadingState label="Classifying, searching the documentation, drafting, and validating… this can take up to a minute." />
+            <LoadingState label="Classifying, searching the documentation, drafting, and validating… this usually takes 1–3 minutes." />
           ) : mutation.isError ? (
             <ErrorState error={mutation.error} />
           ) : mutation.data ? (

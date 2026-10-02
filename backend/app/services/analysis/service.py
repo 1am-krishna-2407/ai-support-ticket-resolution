@@ -134,7 +134,13 @@ class TicketAnalysisService:
     # --- structured LLM calls ----------------------------------------------------
 
     async def _structured(
-        self, model: type[T], schema_name: str, messages: list[ChatMessage], max_tokens: int
+        self,
+        model: type[T],
+        schema_name: str,
+        messages: list[ChatMessage],
+        max_tokens: int,
+        *,
+        reasoning: bool = True,
     ) -> T:
         """One call, plus at most one correction attempt when the output fails validation."""
         if self._llm is None:
@@ -144,7 +150,11 @@ class TicketAnalysisService:
         for attempt in range(2):
             try:
                 result = await self._llm.complete_json(
-                    conversation, schema_name=schema_name, schema=schema, max_tokens=max_tokens
+                    conversation,
+                    schema_name=schema_name,
+                    schema=schema,
+                    max_tokens=max_tokens,
+                    reasoning=reasoning,
                 )
                 return model.model_validate_json(result.content)
             except ValidationError as exc:
@@ -188,7 +198,11 @@ class TicketAnalysisService:
         )
         try:
             out = await self._structured(
-                TriageOutput, "triage", [self._system(), ChatMessage("user", prompt)], 1200
+                TriageOutput,
+                "triage",
+                [self._system(), ChatMessage("user", prompt)],
+                1200,
+                reasoning=self._settings.llm_triage_reasoning,
             )
         except (LLMProviderError, InvalidModelOutputError) as exc:
             return TriageResult(
