@@ -3,7 +3,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { z } from "zod";
 
 import { PageHeader } from "../components/PageHeader";
-import { ReviewBanner } from "../components/ReviewBanner";
+import { ReviewFlags } from "../components/ReviewFlags";
 import { ATTRIBUTION_NOTE, SourceCard } from "../components/SourceCard";
 import { ErrorState, LoadingState, Panel } from "../components/States";
 import { StatusBadge } from "../components/StatusBadge";
@@ -201,8 +201,6 @@ export function AnalysisResult({ result }: { result: TicketAnalysis }) {
   const { resolution, classification, priority, grounding, retrieval } = result;
   return (
     <div className="space-y-4">
-      <ReviewBanner label={result.label} required={result.human_review.required} reasons={result.human_review.reasons} />
-
       {result.errors.length ? (
         <section role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
           <p className="font-medium">Some stages failed; the result below reflects that:</p>
@@ -269,6 +267,9 @@ export function AnalysisResult({ result }: { result: TicketAnalysis }) {
         {resolution.confidence ? (
           <p className="mt-3 text-xs text-slate-500">Model-stated confidence: {resolution.confidence}</p>
         ) : null}
+        <div className="mt-3 empty:hidden">
+          <ReviewFlags reasons={result.human_review.reasons} />
+        </div>
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">

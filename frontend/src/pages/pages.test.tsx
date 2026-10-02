@@ -39,9 +39,10 @@ describe("Ticket Analysis", () => {
     const calls = stubApi([health, { method: "POST", path: "/tickets/analyze", body: analysis() }]);
     renderAt("/tickets");
     await fillTicket("Runner TLS error", "x509: certificate signed by unknown authority");
-    expect(await screen.findByText("AI-generated draft. Not reviewed or approved by a human.")).toBeInTheDocument();
-    expect(screen.getByText("High or critical priority")).toBeInTheDocument();
-    expect(screen.getByText("Set `tls-ca-file` in config.toml.")).toBeInTheDocument();
+    expect(await screen.findByText("Set `tls-ca-file` in config.toml.")).toBeInTheDocument();
+    // Routine review reasons (here: high priority) do not interrupt the result.
+    expect(screen.queryByLabelText("Review flags")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Not reviewed or approved by a human/)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Self-signed certificates" })).toHaveAttribute(
       "href",
       "https://docs.gitlab.com/runner/configuration/tls-self-signed/",
@@ -80,7 +81,28 @@ describe("Ticket Analysis", () => {
     await fillTicket("Printer jam", "The office printer jams on double-sided jobs.");
     expect(await screen.findByText("Insufficient documentation")).toBeInTheDocument();
     expect(screen.getByText("No documentation met the relevance threshold.")).toBeInTheDocument();
-    expect(screen.getByText("Documentation does not cover this ticket well enough")).toBeInTheDocument();
+  });
+
+  it("flags serious review reasons in one line", async () => {
+    stubApi([
+      health,
+      {
+        method: "POST",
+        path: "/tickets/analyze",
+        body: analysis({
+          human_review: {
+            required: true,
+            reasons: ["high_or_critical_priority", "prompt_injection_suspected", "security_concern"],
+          },
+        }),
+      },
+    ]);
+    renderAt("/tickets");
+    await fillTicket("Runner TLS error", "x509: certificate signed by unknown authority");
+    const flags = await screen.findByLabelText("Review flags");
+    expect(within(flags).getByText("Possible security concern")).toBeInTheDocument();
+    expect(within(flags).getByText(/possible prompt injection/)).toBeInTheDocument();
+    expect(within(flags).queryByText("High or critical priority")).not.toBeInTheDocument();
   });
 
   it("shows API errors with the request ID instead of a blank screen", async () => {

@@ -13,38 +13,39 @@ const REASON_LABELS: Record<string, string> = {
   high_or_critical_priority: "High or critical priority",
   security_concern: "Possible security concern",
   data_loss_risk: "Possible data loss",
-  needs_more_information: "More information is needed from the customer",
+  needs_more_information: "Includes follow-up questions for the customer",
   prompt_injection_suspected: "Ticket or sources contain instruction-like text (possible prompt injection)",
 };
+
+/**
+ * Reasons worth interrupting the reader for. Routine ones (priority, follow-up questions,
+ * insufficient evidence, stage failures) are already visible elsewhere on the page.
+ */
+const SERIOUS = new Set([
+  "security_concern",
+  "data_loss_risk",
+  "prompt_injection_suspected",
+  "grounding_failed",
+  "citation_invalid",
+  "unsupported_identifiers",
+]);
 
 export function reasonLabel(reason: string): string {
   return REASON_LABELS[reason] ?? reason.replace(/_/g, " ");
 }
 
-/** Always-visible label: output is an AI draft, and why human review is required. */
-export function ReviewBanner({ label, required, reasons }: { label: string; required: boolean; reasons: string[] }) {
+/** A one-line flag row, shown only when a serious review reason fired. */
+export function ReviewFlags({ reasons }: { reasons: string[] }) {
+  const serious = reasons.filter((r) => SERIOUS.has(r));
+  if (!serious.length) return null;
   return (
-    <section
-      aria-label="Review status"
-      className={`rounded-lg border px-4 py-3 text-sm ${
-        required ? "border-amber-300 bg-amber-50" : "border-blue-200 bg-blue-50"
-      }`}
-    >
-      <p className="font-semibold text-slate-900">{label}</p>
-      {required ? (
-        <>
-          <p className="mt-1 text-amber-900">Human review required before anything is sent to a customer:</p>
-          <ul className="mt-1 list-disc pl-5 text-amber-900">
-            {reasons.map((r) => (
-              <li key={r}>{reasonLabel(r)}</li>
-            ))}
-          </ul>
-        </>
-      ) : (
-        <p className="mt-1 text-blue-900">
-          No automatic review triggers fired. A support engineer must still check the draft before use.
-        </p>
-      )}
+    <section aria-label="Review flags" className="flex flex-wrap items-center gap-2 text-sm">
+      <span className="font-medium text-slate-700">Check before sending:</span>
+      {serious.map((r) => (
+        <span key={r} className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs text-amber-900">
+          {reasonLabel(r)}
+        </span>
+      ))}
     </section>
   );
 }

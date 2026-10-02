@@ -1,5 +1,14 @@
 # Changelog
 
+## UI: review banner removed (2026-10-02)
+
+The amber "AI-generated draft / human review required" banner above every analysis is
+gone. Users of the tool know drafts are AI-generated, and routine reasons (priority,
+follow-up questions, insufficient evidence) are already visible on the page. Serious
+reasons only (security concern, data loss, prompt injection, failed grounding or
+citations, unsupported identifiers) appear as a one-line "Check before sending" row at the
+bottom of the Resolution panel. The API still returns `label` and `human_review`.
+
 ## Phase 9: Testing, documentation, release (`phase-9-complete`, 2026-09-30)
 
 **Added** `backend/tests/e2e` (11 tests against the live stack through nginx, including an
