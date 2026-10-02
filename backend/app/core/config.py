@@ -223,6 +223,8 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     rate_limit_analyze_per_minute: int = Field(default=20, gt=0)
     rate_limit_search_per_minute: int = Field(default=60, gt=0)
+    # Failed or successful sign-in attempts per client per minute (brute-force guard).
+    rate_limit_login_per_minute: int = Field(default=10, gt=0)
     # Peers allowed to set X-Forwarded-For (the frontend's nginx). Empty: never trusted.
     trusted_proxy_cidrs: Annotated[list[str], NoDecode] = Field(default_factory=list)
 
@@ -231,6 +233,21 @@ class Settings(BaseSettings):
     # One metadata row per API request in request_logs (never ticket text or model output).
     request_log_enabled: bool = True
     request_log_retention_days: int = Field(default=30, gt=0)
+
+    # --- Users and sessions --------------------------------------------------
+    session_cookie_name: str = "srp_session"
+    session_ttl_hours: int = Field(default=12, gt=0, le=24 * 30)
+    # Secure cookies need HTTPS. None: on in production, off otherwise (plain-HTTP localhost).
+    session_cookie_secure: bool | None = None
+    password_min_length: int = Field(default=12, ge=8, le=128)
+    # Saved ticket analyses older than this are deleted at startup; None keeps them.
+    ticket_history_retention_days: int | None = Field(default=None, gt=0)
+
+    @property
+    def secure_cookies(self) -> bool:
+        if self.session_cookie_secure is not None:
+            return self.session_cookie_secure
+        return self.environment is Environment.PRODUCTION
 
     @field_validator("cors_origins", "allowed_source_domains", "trusted_proxy_cidrs", mode="before")
     @classmethod

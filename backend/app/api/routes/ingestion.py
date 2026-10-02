@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, FastAPI, Request, status
 
 from app.api.deps import SessionDep, SettingsDep
 from app.api.responses import ADMIN, READ, errors
+from app.core.auth import require_user
 from app.core.config import Settings
 from app.core.errors import (
     AppError,
@@ -97,7 +98,13 @@ async def _run_in_background(
         await fetcher.aclose()
 
 
-@router.get("/ingestion/status", response_model=IngestionStatus, summary="Latest ingestion job")
+@router.get(
+    "/ingestion/status",
+    dependencies=[Depends(require_user)],
+    responses=errors(401),
+    response_model=IngestionStatus,
+    summary="Latest ingestion job",
+)
 async def ingestion_status(request: Request, session: SessionDep) -> IngestionStatus:
     latest = await job_repo.latest_job(session)
     return IngestionStatus(running=_running(request), latest=_view(latest) if latest else None)
@@ -105,7 +112,8 @@ async def ingestion_status(request: Request, session: SessionDep) -> IngestionSt
 
 @router.get(
     "/ingestion/{job_id}",
-    responses=READ | errors(404),
+    dependencies=[Depends(require_user)],
+    responses=READ | errors(401, 404),
     response_model=IngestionJobView,
     summary="One ingestion job",
 )

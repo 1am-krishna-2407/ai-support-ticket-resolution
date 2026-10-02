@@ -21,6 +21,7 @@ from app.services.analysis.prompts import PromptRegistry
 from app.services.evaluation.dataset import EvaluationDataset
 from app.services.evaluation.factory import build_evaluation_runner
 from app.services.evaluation.runner import EvaluationOptions, evaluation_lock, get_run
+from tests.auth_helpers import login_as
 from tests.fakes import FakeLLMProvider
 from tests.integration.test_retrieval import QUERY_VECTORS, MappingEmbedder, corpus  # noqa: F401
 from tests.unit.test_ticket_analysis import triage_json
@@ -150,6 +151,7 @@ async def api(
         app.state.embedder = MappingEmbedder(QUERY_VECTORS)
         transport = httpx.ASGITransport(app=app, client=("203.0.113.9", 5000))
         async with httpx.AsyncClient(transport=transport, base_url="http://t") as c:
+            await login_as(app, c)
             yield app, c
 
 
@@ -163,7 +165,7 @@ async def _wait(c: httpx.AsyncClient) -> None:
 
 async def test_evaluation_api_lifecycle(api: Any) -> None:
     _, c = api
-    assert (await c.post("/api/v1/evaluations/run", json={})).status_code == 401
+    assert (await c.post("/api/v1/evaluations/run", json={})).status_code == 403  # agent
     r = await c.post("/api/v1/evaluations/run", json={"name": "api run", "k": 3}, headers=ADMIN)
     assert r.status_code == 202 and r.json()["status"] == "queued"
     run_id = r.json()["id"]

@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 class ErrorCode(StrEnum):
     INVALID_REQUEST = "INVALID_REQUEST"
+    CONFLICT = "CONFLICT"
     NOT_FOUND = "NOT_FOUND"
     METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED"
     PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE"
@@ -79,6 +80,12 @@ class PayloadTooLargeError(AppError):
     code = ErrorCode.PAYLOAD_TOO_LARGE
     status_code = 413
     default_message = "The request body is too large."
+
+
+class ConflictError(AppError):
+    code = ErrorCode.CONFLICT
+    status_code = 409
+    default_message = "The request conflicts with existing data."
 
 
 class UnauthorizedError(AppError):

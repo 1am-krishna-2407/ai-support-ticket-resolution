@@ -14,7 +14,9 @@ suite is `backend/tests/security` (`make test-security` / `./tasks.ps1 test-secu
 | Prompt injection in tickets | Detected and flagged (`prompt_injection_suspected` review reason); ticket wrapped in delimiters; delimiter look-alikes neutralised; system prompt declares ticket and sources untrusted | `app/services/analysis/context.py`, `prompts/system_v1.txt` | `test_prompt_injection.py` |
 | Prompt injection in retrieved documentation | Suspicious chunks are excluded from the model's context and reported (`retrieval.excluded_for_injection`) | `context.py` | `test_prompt_injection.py` |
 | A hijacked or hallucinating model | Output must match a strict JSON schema; every step must cite a source that was actually provided; commands, paths, and config keys must appear in the cited text (or the ticket); failing drafts are withheld, never shown | `validation.py`, `service.py` | `test_prompt_injection.py`, `tests/unit/test_analysis_rules.py` |
-| Unauthorised operations | Ingestion and evaluation runs need `X-Admin-Token` (constant-time compare) in `ADMIN_MODE=token`; `local` allows loopback peers only and ignores forwarded headers; `dev` is refused when `ENVIRONMENT=production` | `app/core/security.py` | `test_admin_protection.py` |
+| Unauthenticated use | Every API route requires a signed-in user except `/health`, `/version`, `/ready` and `/auth/login`. Sessions: random 256-bit token in an HttpOnly, `SameSite=Strict` cookie scoped to `/api` (`Secure` in production); only its SHA-256 is stored; 12-hour expiry; deleted on sign-out, password change, role change, deactivation. Passwords: Argon2id, at least 12 characters; sign-in failures give one generic message and take the same time for unknown emails; 10 attempts per minute per client. Cross-site writes are rejected (`Sec-Fetch-Site`) on top of SameSite | `app/core/auth.py`, `app/core/passwords.py`, `app/api/routes/auth.py` | `test_auth.py` (a sweep checks every non-public route returns 401 signed out) |
+| Unauthorised operations | Roles: `agent` (analyse tickets, own history) and `admin` (also users, ingestion and evaluation runs, everyone's history). Admin routes accept a signed-in admin, or `X-Admin-Token` (constant-time compare) for automation in `ADMIN_MODE=token`; `local` allows loopback peers only and ignores forwarded headers; `dev` is refused when `ENVIRONMENT=production`. Admins cannot demote or deactivate themselves, and the last active admin cannot be removed | `app/core/security.py`, `app/api/routes/users.py` | `test_admin_protection.py`, `test_auth.py` |
+| Reading someone else's analyses | Saved analyses are returned only to their owner (and admins); another user's ID answers 404, not 403, so IDs reveal nothing | `app/api/routes/tickets.py` | `test_ticket_api.py::test_analyses_are_saved_per_user_and_isolated` |
 | Abuse and cost blow-ups | Per-client sliding-window limits on analysis (`RATE_LIMIT_ANALYZE_PER_MINUTE`, 20) and search (`RATE_LIMIT_SEARCH_PER_MINUTE`, 60); 429 with `Retry-After`; X-Forwarded-For is trusted only from `TRUSTED_PROXY_CIDRS` (Compose: the frontend's fixed address). Provider-side: client pacing to Groq's tokens/minute and NVIDIA's requests/minute; daily-quota errors fail fast; embedding circuit breaker | `app/core/rate_limit.py`, `app/providers/*` | `test_rate_limit.py`, `tests/unit/test_llm_provider.py` |
 | Oversized or malformed input | Body limit `MAX_REQUEST_BODY_BYTES` (256 kB) enforced on declared and streamed bodies; ticket title ≤ 300 and description ≤ 20,000 characters; Pydantic validation on every route | `app/core/middleware.py`, `app/schemas/*` | `test_safe_errors.py` |
 | Information leakage in errors | One error contract; unhandled errors return an opaque 500; validation errors never echo submitted values | `app/core/exception_handlers.py` | `test_safe_errors.py` |
@@ -39,8 +41,13 @@ suite is `backend/tests/security` (`make test-security` / `./tasks.ps1 test-secu
 
 ## Privacy
 
-Tickets are processed in memory and not persisted. The only stored traces of a ticket
-are the outcome metadata above. Evaluation cases are authored data in
+Every ticket analysed through the API is saved for the user who ran it (`ticket_analyses`:
+the ticket title, description, environment and the full response), so they can reopen it
+from History. Only that user and admins can read it; users can delete their own entries.
+Set `TICKET_HISTORY_RETENTION_DAYS` to delete saved analyses older than that at startup
+(unset keeps them). `request_logs` holds outcome metadata only and records which user made
+each request. Passwords are stored only as Argon2id hashes and session tokens only as
+SHA-256 hashes. Evaluation cases are authored data in
 `evaluation/cases.json`, not customer tickets.
 
 ## Supply chain and containers
@@ -71,5 +78,8 @@ the literal values of every key in `.env` before each commit.
 - Injection detection is pattern-based. It is a signal for human review, not the main
   defence; the main defence is that nothing the model writes reaches the user unless it
   validates against the cited evidence.
-- The admin token is a single shared secret. There are no user accounts; the platform is
-  designed for a support team's internal network.
+- Accounts are local (email and password). There is no single sign-on, multi-factor
+  authentication or self-service password reset: admins create accounts and reset
+  passwords.
+- Sessions are only as safe as the transport: serve the UI over HTTPS (with
+  `SESSION_COOKIE_SECURE=true`, the default in production) anywhere beyond localhost.

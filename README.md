@@ -46,10 +46,18 @@ cp .env.example .env
 docker compose up -d --build
 docker compose run --rm backend alembic upgrade head
 docker compose run --rm backend python -m app.scripts.ingest     # ~217 pages; embeds once
+# Create the first admin (prompts for a password of at least 12 characters):
+docker compose run --rm backend python -m app.scripts.create_user \
+  --email you@example.com --name "Your Name" --role admin
 ```
 
-- Frontend: http://localhost:8080 (Dashboard, Ticket Analysis, Retrieval Explorer,
-  Knowledge Base, Ingestion, Evaluation, System Status)
+Sign in at http://localhost:8080. Admins create further accounts on the **Users** page.
+**Agents** analyse tickets and see their own **History**; **admins** also manage users,
+run ingestion and evaluations, and can see every user's analyses. The sidebar shows who
+is signed in with their analysis stats.
+
+- Frontend: http://localhost:8080 (Dashboard, Ticket Analysis, History, Retrieval
+  Explorer, Knowledge Base, Ingestion, Evaluation, System Status, Users, Account)
 - API: http://localhost:8000/api/v1 — reference in `docs/api.md`, live docs at
   http://localhost:8000/api/v1/docs
 
@@ -89,8 +97,9 @@ Integration tests run against a real Postgres + pgvector database named
 `<POSTGRES_DB>_test`, created the first time the Postgres volume initialises; set
 `TEST_DATABASE_URL` in `.env`. The tests refuse any database whose name does not end in
 `_test`. End-to-end tests run against the live stack:
-`E2E_BASE_URL=http://127.0.0.1:8080 pytest tests/e2e` (add `E2E_LLM=1` to also analyse a
-ticket with the real LLM).
+`E2E_BASE_URL=http://127.0.0.1:8080 E2E_EMAIL=... E2E_PASSWORD=... pytest tests/e2e` with an
+agent account (or put those values in a git-ignored `.env.e2e`); add `E2E_LLM=1` to also
+analyse a ticket with the real LLM.
 
 ## Documentation
 
@@ -128,8 +137,8 @@ never logged or returned by the API.
 
 ## Limits
 
-- Designed for one support team on an internal network: a single shared admin token, no
-  user accounts, in-process rate limits, one backend replica.
+- Designed for one support team on an internal network: local accounts (no SSO or MFA),
+  in-process rate limits, one backend replica.
 - Answers are only as good as the indexed documentation (217 pages); anything outside it
   is answered with *insufficient evidence*.
 - Free-tier providers are slow and rate-limited: a ticket analysis with Nemotron takes

@@ -52,8 +52,10 @@ export class ApiError extends Error {
   }
 }
 
+export const SESSION_EXPIRED_EVENT = "auth:session-expired";
+
 export interface RequestOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
   headers?: Record<string, string>;
   signal?: AbortSignal;
@@ -120,6 +122,11 @@ export async function apiRequest<T>(
   }
 
   const requestId = response.headers.get("X-Request-ID");
+  // A signed-in page got 401: the session expired or was revoked. The auth layer listens
+  // and sends the user to the sign-in page. /auth/* calls report 401 to their caller.
+  if (response.status === 401 && !path.startsWith("/auth/")) {
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+  }
   const payload: unknown = await response.json().catch(() => undefined);
 
   if (!response.ok && !acceptStatuses.includes(response.status)) {

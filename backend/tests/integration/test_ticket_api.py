@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.core.config import Settings
 from app.main import create_app
+from tests.auth_helpers import login_as
 from tests.fakes import FakeLLMProvider
 from tests.integration.test_retrieval import QUERY_VECTORS, MappingEmbedder, corpus  # noqa: F401
 from tests.unit.test_ticket_analysis import triage_json
@@ -51,6 +52,7 @@ async def client(
         app.state.embedder = MappingEmbedder(QUERY_VECTORS)
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://t") as c:
+            await login_as(app, c)
             yield app, c
 
 
@@ -153,10 +155,12 @@ async def test_request_logs_hold_metadata_but_never_ticket_text(client: Any) -> 
             .all()
         )
     assert [(row.path, row.status_code) for row in rows] == [
+        ("/api/v1/auth/login", 200),  # the fixture's sign-in
         ("/api/v1/tickets/analyze", 200),
         ("/api/v1/tickets/analyze", 422),
     ]
-    ok, invalid = rows
+    login_row, ok, invalid = rows
+    assert login_row.user_id is None and ok.user_id is not None  # analyses are attributed
     assert ok.request_id == r.headers["x-request-id"] and ok.route_class == "tickets"
     assert ok.outcome and ok.outcome["status"] == "draft" and ok.outcome["grounded"] is True
     assert ok.stage_timings and "total" in ok.stage_timings
@@ -166,3 +170,43 @@ async def test_request_logs_hold_metadata_but_never_ticket_text(client: Any) -> 
     )
     for text in (TICKET["title"], TICKET["description"], "gitlab-runner register"):
         assert text not in stored
+
+
+async def test_analyses_are_saved_per_user_and_isolated(client: Any) -> None:
+    from tests.auth_helpers import login_as
+
+    app, c = client  # signed in as agent@example.test
+    app.state.llm = FakeLLMProvider({"triage": [triage_json()], "resolution": [RESOLUTION]})
+    r = await c.post("/api/v1/tickets/analyze", json=TICKET)
+    analysis_id = r.json()["analysis_id"]
+    assert analysis_id
+
+    mine = (await c.get("/api/v1/tickets/history")).json()
+    assert mine["total"] == 1 and mine["items"][0]["title"] == TICKET["title"]
+    assert mine["items"][0]["status"] == "draft"
+    detail = (await c.get(f"/api/v1/tickets/history/{analysis_id}")).json()
+    assert detail["description"] == TICKET["description"]
+    assert detail["result"]["resolution"]["status"] == "draft"
+    assert detail["result"]["analysis_id"] == analysis_id
+    stats = (await c.get("/api/v1/auth/me")).json()["stats"]
+    assert stats["analyses"] == 1 and stats["drafts"] == 1 and stats["last_analysis_at"]
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://t") as other:
+        await login_as(app, other, role="agent", email="other@example.test")
+        assert (await other.get("/api/v1/tickets/history")).json()["total"] == 0
+        # Another user's analysis is "not found", not "forbidden".
+        assert (await other.get(f"/api/v1/tickets/history/{analysis_id}")).status_code == 404
+        assert (await other.delete(f"/api/v1/tickets/history/{analysis_id}")).status_code == 404
+        assert (await other.get("/api/v1/tickets/history?scope=all")).status_code == 403
+
+    async with httpx.AsyncClient(transport=transport, base_url="http://t") as admin:
+        await login_as(app, admin, role="admin", email="lead@example.test")
+        everything = (await admin.get("/api/v1/tickets/history?scope=all")).json()
+        assert everything["total"] == 1
+        assert everything["items"][0]["user_email"] == "agent@example.test"
+        assert (await admin.get(f"/api/v1/tickets/history/{analysis_id}")).status_code == 200
+
+    assert (await c.delete(f"/api/v1/tickets/history/{analysis_id}")).status_code == 204
+    assert (await c.get("/api/v1/tickets/history")).json()["total"] == 0
+    assert (await c.get(f"/api/v1/tickets/history/{analysis_id}")).status_code == 404

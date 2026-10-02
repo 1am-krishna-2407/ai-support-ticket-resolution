@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, FastAPI, Query, Request, status
 
 from app.api.deps import SessionDep, SettingsDep
 from app.api.responses import ADMIN, READ, errors
+from app.core.auth import require_user
 from app.core.errors import (
     AppError,
     EvaluationAlreadyRunningError,
@@ -124,7 +125,8 @@ async def _run_in_background(
 
 @router.get(
     "/evaluations",
-    responses=READ,
+    dependencies=[Depends(require_user)],
+    responses=READ | errors(401),
     response_model=EvaluationRunList,
     summary="Recent evaluation runs",
 )
@@ -139,7 +141,8 @@ async def evaluations(
 
 @router.get(
     "/evaluations/{evaluation_id}",
-    responses=READ | errors(404),
+    dependencies=[Depends(require_user)],
+    responses=READ | errors(401, 404),
     response_model=EvaluationRunDetail,
     summary="One evaluation run with per-case results",
 )

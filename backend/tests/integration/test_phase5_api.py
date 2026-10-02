@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.core.config import Settings
 from app.main import create_app
+from tests.auth_helpers import login_as
 from tests.fakes import FakeEmbeddingProvider, FakeFetcher
 from tests.integration.conftest import TEST_EMBEDDING_DIMENSION
 from tests.integration.test_retrieval import QUERY_VECTORS, MappingEmbedder, corpus  # noqa: F401
@@ -53,6 +54,7 @@ async def api(
         app.state.embedder = MappingEmbedder(QUERY_VECTORS)
         transport = httpx.ASGITransport(app=app, client=("203.0.113.9", 5000))
         async with httpx.AsyncClient(transport=transport, base_url="http://t") as c:
+            await login_as(app, c)
             yield app, c
 
 
@@ -149,9 +151,13 @@ async def test_document_detail_and_versions(api: Any) -> None:
 
 
 async def test_ingestion_run_requires_admin_token(api: Any) -> None:
-    _, c = api
+    app, c = api  # signed in as an agent
     r = await c.post("/api/v1/ingestion/run", json={})
-    assert r.status_code == 401 and r.json()["error"]["code"] == "UNAUTHORIZED"
+    assert r.status_code == 403 and r.json()["error"]["code"] == "FORBIDDEN"
+    transport = httpx.ASGITransport(app=app, client=("203.0.113.9", 5000))
+    async with httpx.AsyncClient(transport=transport, base_url="http://t") as anonymous:
+        r = await anonymous.post("/api/v1/ingestion/run", json={})
+        assert r.status_code == 401 and r.json()["error"]["code"] == "UNAUTHORIZED"
     r = await c.post("/api/v1/ingestion/run", json={}, headers={"X-Admin-Token": "wrong"})
     assert r.status_code == 403
 

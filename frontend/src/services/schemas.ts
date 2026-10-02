@@ -133,6 +133,7 @@ export const ResolutionStatusSchema = z.enum([
 
 export const TicketAnalysisSchema = z.object({
   label: z.string(),
+  analysis_id: z.string().nullable().optional(),
   classification: ClassificationSchema,
   priority: PrioritySchema,
   resolution: z.object({
@@ -339,3 +340,74 @@ export const EvaluationRunDetailSchema = EvaluationRunSchema.extend({
   cases: z.array(EvaluationCaseSchema),
 });
 export type EvaluationRunDetail = z.infer<typeof EvaluationRunDetailSchema>;
+
+// --- Users, sessions, saved analyses -------------------------------------------------------
+
+export const RoleSchema = z.enum(["admin", "agent"]);
+export type Role = z.infer<typeof RoleSchema>;
+
+export const UserSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  name: z.string(),
+  role: RoleSchema,
+  is_active: z.boolean(),
+  created_at: z.string(),
+  last_login_at: z.string().nullable(),
+});
+export type User = z.infer<typeof UserSchema>;
+
+export const UserStatsSchema = z.object({
+  analyses: z.number(),
+  drafts: z.number(),
+  withheld: z.number(),
+  insufficient_evidence: z.number(),
+  unavailable: z.number(),
+  last_analysis_at: z.string().nullable(),
+});
+export type UserStats = z.infer<typeof UserStatsSchema>;
+
+export const MeSchema = z.object({ user: UserSchema, stats: UserStatsSchema });
+export type Me = z.infer<typeof MeSchema>;
+
+export const UserPageSchema = z.object({
+  total: z.number(),
+  offset: z.number(),
+  limit: z.number(),
+  items: z.array(UserSchema.extend({ analyses: z.number() })),
+});
+export type UserPage = z.infer<typeof UserPageSchema>;
+
+export const TicketHistoryItemSchema = z.object({
+  id: z.string(),
+  created_at: z.string(),
+  title: z.string(),
+  status: ResolutionStatusSchema,
+  category: z.string().nullable(),
+  priority: z.string().nullable(),
+  grounded: z.boolean().nullable(),
+  latency_ms: z.number().nullable(),
+  user_email: z.string(),
+});
+export type TicketHistoryItem = z.infer<typeof TicketHistoryItemSchema>;
+
+export const TicketHistoryPageSchema = z.object({
+  total: z.number(),
+  offset: z.number(),
+  limit: z.number(),
+  scope: z.enum(["mine", "all"]),
+  items: z.array(TicketHistoryItemSchema),
+});
+export type TicketHistoryPage = z.infer<typeof TicketHistoryPageSchema>;
+
+export const TicketHistoryDetailSchema = z.object({
+  id: z.string(),
+  created_at: z.string(),
+  user_email: z.string(),
+  title: z.string(),
+  description: z.string(),
+  environment: z.record(z.string(), z.unknown()).nullable(),
+  result: TicketAnalysisSchema,
+});
+export type TicketHistoryDetail = z.infer<typeof TicketHistoryDetailSchema>;
+

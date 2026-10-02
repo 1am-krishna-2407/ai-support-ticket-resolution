@@ -23,6 +23,16 @@ EXPECTED_ROUTES = {
     ("post", "/api/v1/evaluations/run"),
     ("get", "/api/v1/evaluations"),
     ("get", "/api/v1/evaluations/{evaluation_id}"),
+    ("post", "/api/v1/auth/login"),
+    ("post", "/api/v1/auth/logout"),
+    ("get", "/api/v1/auth/me"),
+    ("post", "/api/v1/auth/password"),
+    ("get", "/api/v1/users"),
+    ("post", "/api/v1/users"),
+    ("patch", "/api/v1/users/{user_id}"),
+    ("get", "/api/v1/tickets/history"),
+    ("get", "/api/v1/tickets/history/{analysis_id}"),
+    ("delete", "/api/v1/tickets/history/{analysis_id}"),
 }
 
 

@@ -74,6 +74,7 @@ def _record(scope: Scope, request_id: str, status_code: int, latency_ms: float) 
             "error_code": state.get("error_code"),
             "stage_timings": extra.get("stage_timings"),
             "outcome": extra.get("outcome"),
+            "user_id": state.get("user_id"),
         }
     )
 

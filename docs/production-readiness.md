@@ -81,7 +81,7 @@ Scorecard: **27 ✅ · 10 ⚠️ · 27 ❌** across 64 items.
 
 | # | Ideal | Status | Evidence |
 |---|---|---|---|
-| 5.1 | Every endpoint requires an authenticated user | ❌ | Only admin routes need a token; analysis, search and documents are open to anyone who reaches the port |
+| 5.1 | Every endpoint requires an authenticated user | ✅ | Added 2026-10-02: local accounts with Argon2id passwords, server-side sessions, agent/admin roles; every route except health, version, readiness and sign-in returns 401 when signed out (tested route by route). No SSO or MFA |
 | 5.2 | TLS on every hop | ❌ | HTTP on 127.0.0.1; no TLS termination or HSTS |
 | 5.3 | SSRF protection for ingestion | ✅ | Allowlist, public-IP pinning, redirect re-validation; tests |
 | 5.4 | Prompt-injection containment | ✅ | Detection, exclusion, delimiters, output validation; tests |
@@ -92,13 +92,13 @@ Scorecard: **27 ✅ · 10 ⚠️ · 27 ❌** across 64 items.
 | 5.9 | Pinned, audited dependencies | ✅ | Hashed lockfiles, `--require-hashes`; `pip-audit`/`npm audit` clean |
 | 5.10 | Automated dependency updates and image scanning | ❌ | No Dependabot or Renovate; no Trivy or Grype |
 | 5.11 | Hardened containers | ✅ | Non-root, read-only filesystem, capabilities dropped, `no-new-privileges` |
-| 5.12 | Audit trail of who ran what | ❌ | No user identities; `request_logs` has no actor |
+| 5.12 | Audit trail of who ran what | ✅ | `request_logs.user_id` on every signed-in request; saved analyses record their owner |
 
 ## 6. Privacy and compliance
 
 | # | Ideal | Status | Evidence |
 |---|---|---|---|
-| 6.1 | Ticket text not persisted | ✅ | Only outcome metadata is stored |
+| 6.1 | Ticket data stored deliberately, access-controlled, with retention | ✅ | Analyses are saved per user (owner and admins only, users can delete), optional `TICKET_HISTORY_RETENTION_DAYS`; request logs stay metadata-only |
 | 6.2 | Personal data and secrets removed before text goes to third-party models | ❌ | Redaction applies to logs only; prompts carry the ticket verbatim (a pasted token reaches the LLM provider) |
 | 6.3 | Providers under data-processing terms fit for customer data | ❌ | Free or trial tiers; terms not reviewed for production data |
 | 6.4 | Retention policy for stored operational data | ✅ | `request_logs` pruned after 30 days |
@@ -141,7 +141,7 @@ Scorecard: **27 ✅ · 10 ⚠️ · 27 ❌** across 64 items.
 | Gap | Why it matters | Effort |
 |---|---|---|
 | **G1. Timeout mismatch** (4.3) | 12% of evaluation analyses (and 2 of 10 real tickets) exceed 120 s. The UI shows a timeout and nginx returns 504 while the backend is still working and spending provider calls | Small: raise the nginx and UI limits above the backend's worst case, or make analysis a job (see G6) |
-| **G2. Authentication and TLS** (5.1, 5.2, 5.12) | Anyone who can reach the port can run analyses on your provider credits and read the knowledge base | Medium: SSO/OIDC via a reverse proxy (for example oauth2-proxy) plus TLS; record the user in `request_logs` |
+| **G2. TLS (authentication done 2026-10-02)** (5.2) | Accounts, roles and the audit trail exist; session cookies still travel over plain HTTP outside localhost | Small: TLS termination (for example Caddy) and `SESSION_COOKIE_SECURE=true`; SSO/MFA optional later |
 | **G3. Production providers and data terms** (4.4, 6.3) | Free tiers are slow, rate-limited and not meant for customer data | Commercial: paid NVIDIA NIM, Groq Dev, or a self-hosted model; review the DPA |
 | **G4. PII and secret scrubbing in prompts** (6.2) | Customers paste tokens, emails and hostnames; today these reach the LLM provider | Small to medium: reuse the log redaction patterns on prompt text and add email/IP masking, with tests |
 | **G5. Backups and CI** (4.6, 8.2) | One disk failure loses the knowledge base and evaluation history; nothing stops a regression from merging | Small: nightly `pg_dump` with a restore test; a CI workflow running the existing lint, test and audit targets |

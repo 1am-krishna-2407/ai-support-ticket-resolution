@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 
+import { useAuth } from "../auth/AuthContext";
 import { PageHeader } from "../components/PageHeader";
 import { ErrorState, LoadingState, MetricCard, Panel } from "../components/States";
 import { StatusBadge } from "../components/StatusBadge";
@@ -17,17 +18,16 @@ export function IngestionPage() {
     queryFn: ({ signal }) => getIngestionStatus(signal),
     refetchInterval: (query) => (query.state.data?.running ? POLL_MS : false),
   });
-  // Held in memory only: never persisted, and sent only with the trigger request.
-  const [token, setToken] = useState("");
+  const { isAdmin } = useAuth();
   const [force, setForce] = useState(false);
   const trigger = useMutation({
-    mutationFn: () => startIngestion(token, force),
+    mutationFn: () => startIngestion(force),
     onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.ingestionStatus }),
   });
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (token) trigger.mutate();
+    if (isAdmin) trigger.mutate();
   }
 
   const running = status.data?.running ?? false;
@@ -55,30 +55,20 @@ export function IngestionPage() {
 
         <Panel title="Start a job">
           <form onSubmit={onSubmit} className="space-y-3" aria-label="Start ingestion">
-            <label className="block text-sm font-medium text-slate-800">
-              Admin token
-              <input
-                type="password"
-                autoComplete="off"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm font-normal"
-              />
-            </label>
             <label className="flex items-center gap-2 text-sm text-slate-800">
               <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
               Re-process unchanged documents (stored embeddings are reused)
             </label>
             <button
               type="submit"
-              disabled={!token || running || trigger.isPending}
+              disabled={!isAdmin || running || trigger.isPending}
               className="w-full rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {trigger.isPending ? "Starting…" : running ? "A job is running" : "Start ingestion"}
             </button>
             <p className="text-xs text-slate-500">
-              {!token
-                ? "Starting a job requires the admin token configured on the server (ADMIN_TOKEN)."
+              {!isAdmin
+                ? "Only admins can start ingestion."
                 : running
                   ? "Wait for the current job to finish."
                   : "The job runs in the background; this page updates while it runs."}
@@ -100,7 +90,7 @@ function TriggerError({ error }: { error: unknown }) {
   if (error instanceof ApiError && (error.code === "UNAUTHORIZED" || error.code === "FORBIDDEN")) {
     return (
       <p role="alert" className="text-xs text-red-700">
-        The admin token was rejected.
+        Your account is not allowed to start ingestion.
       </p>
     );
   }

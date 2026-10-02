@@ -1,5 +1,24 @@
 # Changelog
 
+## Users, sign-in, roles and saved analyses (2026-10-02)
+
+**Added** user accounts (email + Argon2id password; created by admins or with
+`app.scripts.create_user`), server-side sessions in an HttpOnly SameSite=Strict cookie,
+and two roles: `agent` and `admin`. Every API route now requires sign-in except
+`/health`, `/version`, `/ready` and `/auth/login`. Every analysis is saved for its user
+(`ticket_analyses`) with History and detail pages; admins can view all users' analyses
+and manage users (create, role, deactivate, reset password) on the Users page. The sidebar
+shows the signed-in user with their stats (analyses, drafts, held back, no match, last
+activity), Account (change password) and Sign out. `request_logs` records the user.
+Ingestion and evaluation runs use the admin's session instead of an admin token in the
+browser (the token still works for automation). Migration 0006.
+
+**Tests** `tests/security/test_auth.py` (anonymous sweep of every route, cookie flags,
+hashed session storage, generic sign-in errors, rate limit, logout and expiry revocation,
+role enforcement, user management, password change, cross-site rejection) and history
+isolation between users; frontend tests for sign-in, redirects, the sidebar card, roles
+and History; E2E suite signs in with a test account.
+
 ## Fix: ticket analyses timing out in the UI (2026-10-02)
 
 The browser and nginx gave up after 120 s while analyses on free Nemotron take 30 s to

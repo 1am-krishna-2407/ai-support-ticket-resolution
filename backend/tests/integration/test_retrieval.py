@@ -23,6 +23,7 @@ from app.main import create_app
 from app.schemas.retrieval import RetrievalMethod
 from app.services.retrieval.query import transform_query
 from app.services.retrieval.service import RetrievalService
+from tests.auth_helpers import login_as
 from tests.integration.conftest import TEST_EMBEDDING_DIMENSION as DIM
 
 pytestmark = pytest.mark.integration
@@ -265,6 +266,7 @@ async def api(
         app.state.embedder = MappingEmbedder(QUERY_VECTORS)
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://t") as client:
+            await login_as(app, client)
             yield app, client
 
 

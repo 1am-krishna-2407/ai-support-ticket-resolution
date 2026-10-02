@@ -1,9 +1,15 @@
 import { vi } from "vitest";
 
+import { me } from "./fixtures";
+
 type Route = { method?: string; path: string | RegExp; status?: number; body: unknown; headers?: Record<string, string> };
 
-/** Stub global fetch: each call is answered by the first matching route; unmatched → 404. */
+/**
+ * Stub global fetch: each call is answered by the first matching route; unmatched → 404.
+ * A signed-in admin is assumed unless the routes answer GET /auth/me themselves.
+ */
 export function stubApi(routes: Route[]) {
+  routes = [...routes, { path: "/auth/me", body: me("admin") }];
   const calls: { method: string; url: string; body: unknown; headers: Record<string, string> }[] = [];
   const fn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);

@@ -1,4 +1,4 @@
-import type { Readiness, RetrievalResult, TicketAnalysis } from "../services/schemas";
+import type { Me, Readiness, RetrievalResult, TicketAnalysis } from "../services/schemas";
 
 export const chunk = (overrides: Partial<RetrievalResult["results"][number]> = {}) => ({
   source_id: "SRC-001",
@@ -113,4 +113,25 @@ export const readiness = (overrides: Partial<Readiness> = {}): Readiness => ({
   ],
   knowledge_base: { documents: 45, chunks: 900, embedded_chunks: 486 },
   ...overrides,
+});
+
+export const me = (role: "admin" | "agent" = "admin", stats: Partial<Me["stats"]> = {}): Me => ({
+  user: {
+    id: role === "admin" ? "u-admin" : "u-agent",
+    email: `${role}@example.test`,
+    name: role === "admin" ? "Ada Admin" : "Alex Agent",
+    role,
+    is_active: true,
+    created_at: "2026-10-01T09:00:00Z",
+    last_login_at: "2026-10-02T09:00:00Z",
+  },
+  stats: {
+    analyses: 7,
+    drafts: 4,
+    withheld: 2,
+    insufficient_evidence: 1,
+    unavailable: 0,
+    last_analysis_at: "2026-10-02T09:30:00Z",
+    ...stats,
+  },
 });

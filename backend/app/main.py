@@ -20,6 +20,8 @@ from app.core.rate_limit import build_limiters
 from app.db.session import create_engine, create_session_factory
 from app.providers.embeddings import EmbeddingProvider, create_embedding_provider
 from app.providers.llm import LLMProvider, OpenAICompatibleChatProvider
+from app.repositories import ticket_history
+from app.repositories import users as users_repo
 from app.services.analysis.prompts import PromptRegistry
 from app.services.ingestion.fetcher import HttpDocumentFetcher
 from app.services.request_log import RequestLogWriter
@@ -51,6 +53,24 @@ def build_llm(settings: Settings) -> LLMProvider | None:
     return OpenAICompatibleChatProvider(settings)
 
 
+async def _prune_user_data(app: FastAPI, settings: Settings) -> None:
+    """Drop expired sessions and, if a retention period is set, old saved analyses."""
+    try:
+        async with app.state.session_factory() as session, session.begin():
+            sessions = await users_repo.purge_expired_sessions(session)
+            analyses = (
+                await ticket_history.prune(session, settings.ticket_history_retention_days)
+                if settings.ticket_history_retention_days
+                else 0
+            )
+        if sessions or analyses:
+            logger.info(
+                "pruned user data", extra={"sessions": sessions, "ticket_analyses": analyses}
+            )
+    except Exception as exc:  # the database may be down at startup; /ready reports it
+        logger.warning("user data pruning skipped", extra={"error": type(exc).__name__})
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     configure_logging(settings.log_level)
@@ -70,6 +90,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.evaluation_start_lock = asyncio.Lock()
         app.state.evaluation_task = None
         app.state.request_log_writer = None
+        await _prune_user_data(app, settings)
         if settings.request_log_enabled:
             writer = RequestLogWriter(app.state.session_factory)
             try:

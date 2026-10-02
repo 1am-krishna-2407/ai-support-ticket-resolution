@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { createQueryClient } from "../lib/queryClient";
 import { routes } from "../routes";
 import { errorBody, stubApi } from "../test/fetchRouter";
-import { analysis, chunk, readiness, retrievalResult } from "../test/fixtures";
+import { analysis, chunk, me, readiness, retrievalResult } from "../test/fixtures";
 
 const health = { path: "/health", body: { status: "ok" } };
 
@@ -20,7 +20,7 @@ function renderAt(path: string) {
 }
 
 async function fillTicket(title: string, description: string) {
-  await userEvent.type(screen.getByLabelText("Title"), title);
+  await userEvent.type(await screen.findByLabelText("Title"), title);
   await userEvent.type(screen.getByLabelText("Description"), description);
   await userEvent.click(screen.getByRole("button", { name: "Analyse ticket" }));
 }
@@ -150,7 +150,7 @@ describe("Retrieval Explorer", () => {
       },
     ]);
     renderAt("/retrieval");
-    await userEvent.type(screen.getByLabelText("Query"), "x509");
+    await userEvent.type(await screen.findByLabelText("Query"), "x509");
     await userEvent.click(screen.getByRole("button", { name: "Search" }));
     expect(await screen.findByText("Relevant evidence found")).toBeInTheDocument();
     const results = screen.getByRole("list", { name: "Results" });
@@ -175,7 +175,7 @@ describe("Retrieval Explorer", () => {
       },
     ]);
     renderAt("/retrieval");
-    await userEvent.type(screen.getByLabelText("Query"), "x509");
+    await userEvent.type(await screen.findByLabelText("Query"), "x509");
     await userEvent.click(screen.getByRole("button", { name: "Search" }));
     expect(await screen.findByText("Insufficient evidence")).toBeInTheDocument();
     expect(screen.getByText(/Embeddings unavailable/)).toBeInTheDocument();
@@ -223,20 +223,91 @@ describe("Knowledge Base", () => {
 });
 
 describe("Ingestion", () => {
-  it("disables the trigger without an admin token and reports a rejected token", async () => {
-    stubApi([
+  it("lets admins start a job with their session and no token", async () => {
+    const calls = stubApi([
       health,
       { path: "/ingestion/status", body: { running: false, latest: null } },
-      { method: "POST", path: "/ingestion/run", status: 403, body: errorBody("FORBIDDEN", "The admin token is invalid.") },
+      { method: "POST", path: "/ingestion/run", status: 403, body: errorBody("FORBIDDEN", "This requires an admin account.") },
     ]);
     renderAt("/ingestion");
     expect(await screen.findByText("No ingestion job has run yet.")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Admin token")).not.toBeInTheDocument();
     const button = screen.getByRole("button", { name: "Start ingestion" });
-    expect(button).toBeDisabled();
-    await userEvent.type(screen.getByLabelText("Admin token"), "wrong-token");
     expect(button).toBeEnabled();
     await userEvent.click(button);
-    expect(await screen.findByText("The admin token was rejected.")).toBeInTheDocument();
+    expect(await screen.findByText("Your account is not allowed to start ingestion.")).toBeInTheDocument();
+    const sent = calls.find((c) => c.url.endsWith("/ingestion/run"));
+    expect(sent?.headers["X-Admin-Token"]).toBeUndefined();
+  });
+
+  it("explains to agents that only admins can start a job", async () => {
+    stubApi([
+      health,
+      { path: "/auth/me", body: me("agent") },
+      { path: "/ingestion/status", body: { running: false, latest: null } },
+    ]);
+    renderAt("/ingestion");
+    expect(await screen.findByText("Only admins can start ingestion.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start ingestion" })).toBeDisabled();
+  });
+});
+
+describe("History", () => {
+  const item = {
+    id: "a1",
+    created_at: "2026-10-02T09:30:00Z",
+    title: "Runner TLS error",
+    status: "draft",
+    category: "runners",
+    priority: "high",
+    grounded: true,
+    latency_ms: 84000,
+    user_email: "admin@example.test",
+  };
+
+  it("lists saved analyses and opens one", async () => {
+    stubApi([
+      health,
+      { path: "/tickets/history", body: { total: 1, offset: 0, limit: 20, scope: "mine", items: [item] } },
+      {
+        path: "/tickets/history/a1",
+        body: {
+          id: "a1",
+          created_at: item.created_at,
+          user_email: item.user_email,
+          title: item.title,
+          description: "x509: certificate signed by unknown authority",
+          environment: { deployment: "self-managed" },
+          result: analysis({ analysis_id: "a1" }),
+        },
+      },
+    ]);
+    renderAt("/history");
+    await userEvent.click(await screen.findByRole("link", { name: "Runner TLS error" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Runner TLS error" })).toBeInTheDocument();
+    expect(screen.getByText("x509: certificate signed by unknown authority")).toBeInTheDocument();
+    expect(screen.getByText("Set `tls-ca-file` in config.toml.")).toBeInTheDocument();
+  });
+
+  it("lets admins switch to every user's analyses", async () => {
+    const calls = stubApi([
+      health,
+      { path: "/tickets/history", body: { total: 1, offset: 0, limit: 20, scope: "mine", items: [item] } },
+    ]);
+    renderAt("/history");
+    await userEvent.click(await screen.findByRole("button", { name: "All users" }));
+    expect(calls.some((c) => c.url.includes("/tickets/history?scope=all"))).toBe(true);
+  });
+
+  it("has no scope switch for agents and an empty state", async () => {
+    stubApi([
+      health,
+      { path: "/auth/me", body: me("agent") },
+      { path: "/tickets/history", body: { total: 0, offset: 0, limit: 20, scope: "mine", items: [] } },
+    ]);
+    renderAt("/history");
+    expect(await screen.findByText("No saved analyses yet")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "All users" })).not.toBeInTheDocument();
   });
 });
 

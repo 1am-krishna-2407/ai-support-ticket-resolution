@@ -6,6 +6,7 @@ to the provider as strict JSON schemas and validated again on return.
 
 from __future__ import annotations
 
+import uuid
 from enum import StrEnum
 from typing import Literal
 
@@ -219,6 +220,8 @@ class ModelInfo(BaseModel):
 
 class TicketAnalysisResponse(BaseModel):
     label: str = DRAFT_LABEL
+    # Set when the analysis was saved to the signed-in user's history.
+    analysis_id: uuid.UUID | None = None
     classification: ClassificationView
     priority: PriorityView
     resolution: ResolutionView

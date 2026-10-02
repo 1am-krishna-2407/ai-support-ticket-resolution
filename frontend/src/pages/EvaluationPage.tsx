@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 
+import { useAuth } from "../auth/AuthContext";
 import { PageHeader } from "../components/PageHeader";
 import { ErrorState, LoadingState, MetricCard, Panel } from "../components/States";
 import { StatusBadge } from "../components/StatusBadge";
@@ -120,19 +121,19 @@ export function EvaluationPage() {
 }
 
 function StartForm({ running, onStarted }: { running: boolean; onStarted: () => void }) {
-  const [token, setToken] = useState("");
+  const { isAdmin } = useAuth();
   const [name, setName] = useState("");
   const [method, setMethod] = useState<RetrievalMethod>("hybrid");
   const [generation, setGeneration] = useState(false);
   const start = useMutation({
     mutationFn: () =>
-      startEvaluation(token, { name: name.trim() || undefined, method, k: 5, generation }),
+      startEvaluation({ name: name.trim() || undefined, method, k: 5, generation }),
     onSuccess: onStarted,
   });
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (token) start.mutate();
+    if (isAdmin) start.mutate();
   }
 
   return (
@@ -163,28 +164,18 @@ function StartForm({ running, onStarted }: { running: boolean; onStarted: () => 
           <input type="checkbox" checked={generation} onChange={(e) => setGeneration(e.target.checked)} />
           Include generation (2 LLM calls per case)
         </label>
-        <label className="block font-medium text-slate-800">
-          Admin token
-          <input
-            type="password"
-            autoComplete="off"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 font-normal"
-          />
-        </label>
         <button
           type="submit"
-          disabled={!token || running || start.isPending}
+          disabled={!isAdmin || running || start.isPending}
           className="w-full rounded-md bg-blue-700 px-3 py-2 font-medium text-white hover:bg-blue-800 disabled:bg-slate-400"
         >
           {running ? "A run is in progress" : start.isPending ? "Starting…" : "Start evaluation"}
         </button>
-        {!token ? <p className="text-xs text-slate-500">Starting a run requires the admin token.</p> : null}
+        {!isAdmin ? <p className="text-xs text-slate-500">Only admins can start evaluation runs.</p> : null}
         {start.isError ? (
           start.error instanceof ApiError &&
           (start.error.code === "UNAUTHORIZED" || start.error.code === "FORBIDDEN") ? (
-            <p role="alert" className="text-xs text-red-700">The admin token was rejected.</p>
+            <p role="alert" className="text-xs text-red-700">Your account is not allowed to start runs.</p>
           ) : (
             <ErrorState error={start.error} />
           )

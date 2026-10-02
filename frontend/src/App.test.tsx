@@ -5,8 +5,14 @@ import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 import { createQueryClient } from "./lib/queryClient";
-import { NAV_ITEMS } from "./navigation";
+import { navItemsFor } from "./navigation";
+import { safeNext } from "./pages/LoginPage";
 import { routes } from "./routes";
+import { errorBody, stubApi } from "./test/fetchRouter";
+import { me } from "./test/fixtures";
+
+const health = { path: "/health", body: { status: "ok" } };
+const signedOut = { path: "/auth/me", status: 401, body: errorBody("UNAUTHORIZED", "Sign in to continue.") };
 
 function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
@@ -18,51 +24,119 @@ function renderAt(path: string) {
   return router;
 }
 
-function stubHealth(response: () => Promise<Response>) {
-  vi.stubGlobal("fetch", vi.fn(response));
-}
-
-const ok = () =>
-  Promise.resolve(
-    new Response(JSON.stringify({ status: "ok" }), {
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
-
 describe("app shell", () => {
-  it("renders all seven navigation items", () => {
-    stubHealth(ok);
+  it("shows every section to an admin", async () => {
+    stubApi([health]);
     renderAt("/");
-    const nav = screen.getByRole("navigation", { name: "Primary" });
+    const nav = await screen.findByRole("navigation", { name: "Primary" });
     const links = within(nav).getAllByRole("link");
-    expect(links.map((l) => l.textContent)).toEqual(NAV_ITEMS.map((i) => i.label));
+    expect(links.map((l) => l.textContent)).toEqual(navItemsFor(true).map((i) => i.label));
   });
 
-  it.each(NAV_ITEMS)("navigates to $label", async ({ label }) => {
-    stubHealth(ok);
+  it("hides admin-only sections from agents", async () => {
+    stubApi([health, { path: "/auth/me", body: me("agent") }]);
     renderAt("/");
-    const nav = screen.getByRole("navigation", { name: "Primary" });
+    const nav = await screen.findByRole("navigation", { name: "Primary" });
+    expect(within(nav).queryByRole("link", { name: "Users" })).not.toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "History" })).toBeInTheDocument();
+  });
+
+  it("blocks agents who open an admin page directly", async () => {
+    stubApi([health, { path: "/auth/me", body: me("agent") }]);
+    renderAt("/users");
+    expect(await screen.findByRole("heading", { name: "Admins only" })).toBeInTheDocument();
+  });
+
+  it.each(navItemsFor(true))("navigates to $label", async ({ label }) => {
+    stubApi([health]);
+    renderAt("/");
+    const nav = await screen.findByRole("navigation", { name: "Primary" });
     await userEvent.click(within(nav).getByRole("link", { name: label }));
     expect(screen.getByRole("heading", { level: 1, name: label })).toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: label })).toHaveAttribute("aria-current", "page");
   });
 
-  it("shows a not-found page for unknown routes", () => {
-    stubHealth(ok);
+  it("shows the signed-in user and their stats at the bottom of the sidebar", async () => {
+    stubApi([health]);
+    renderAt("/");
+    const card = await screen.findByRole("region", { name: "Your profile" });
+    expect(within(card).getByText("Ada Admin")).toBeInTheDocument();
+    expect(within(card).getByText("admin@example.test")).toBeInTheDocument();
+    expect(within(card).getByText("admin")).toBeInTheDocument();
+    expect(within(card).getByText("Analyses").previousSibling).toHaveTextContent("7");
+    expect(within(card).getByText("Drafts").previousSibling).toHaveTextContent("4");
+    expect(within(card).getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+  });
+
+  it("signs out through the API and returns to the login page", async () => {
+    const calls = stubApi([health, { method: "POST", path: "/auth/logout", status: 204, body: null }]);
+    const router = renderAt("/history");
+    await userEvent.click(await screen.findByRole("button", { name: "Sign out" }));
+    expect(await screen.findByRole("heading", { name: "Sign in" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/login");
+    expect(calls.some((c) => c.method === "POST" && c.url.endsWith("/auth/logout"))).toBe(true);
+  });
+
+  it("shows a not-found page for unknown routes", async () => {
+    stubApi([health]);
     renderAt("/nope");
-    expect(screen.getByRole("heading", { name: "Page not found" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
   });
 
   it("shows the API as online when /health succeeds", async () => {
-    stubHealth(ok);
+    stubApi([health]);
     renderAt("/");
     expect(await screen.findByText("API online")).toBeInTheDocument();
   });
 
-  it("shows the API as unreachable instead of a blank screen when the backend is down", async () => {
-    stubHealth(() => Promise.reject(new TypeError("Failed to fetch")));
+  it("explains an unreachable backend instead of showing a blank screen", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new TypeError("Failed to fetch"))));
     renderAt("/");
-    expect(await screen.findByText("API unreachable")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Could not reach the API/);
+  });
+});
+
+describe("sign-in", () => {
+  it("sends signed-out visitors to the login page and back afterwards", async () => {
+    const calls = stubApi([health, signedOut, { method: "POST", path: "/auth/login", body: me("agent") }]);
+    const router = renderAt("/history");
+    expect(await screen.findByRole("heading", { name: "Sign in" })).toBeInTheDocument();
+    expect(router.state.location.search).toBe("?next=%2Fhistory");
+
+    await userEvent.type(screen.getByLabelText("Email"), "agent@example.test");
+    await userEvent.type(screen.getByLabelText("Password"), "correct horse battery staple");
+    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "History" })).toBeInTheDocument();
+    const sent = calls.find((c) => c.url.endsWith("/auth/login"));
+    expect(sent?.body).toEqual({ email: "agent@example.test", password: "correct horse battery staple" });
+  });
+
+  it("shows one generic message for a failed sign-in", async () => {
+    stubApi([
+      health,
+      signedOut,
+      {
+        method: "POST",
+        path: "/auth/login",
+        status: 401,
+        body: errorBody("UNAUTHORIZED", "The email or password is incorrect, or the account is disabled."),
+      },
+    ]);
+    renderAt("/login");
+    await userEvent.type(await screen.findByLabelText("Email"), "x@example.test");
+    await userEvent.type(screen.getByLabelText("Password"), "wrong");
+    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("The email or password is incorrect");
+  });
+
+  it.each([
+    [null, "/"],
+    ["/history", "/history"],
+    ["//evil.example.com", "/"],
+    ["https://evil.example.com", "/"],
+    ["/login", "/"],
+  ])("only redirects inside the app after sign-in (%s)", (next, expected) => {
+    expect(safeNext(next)).toBe(expected);
   });
 });

@@ -1,7 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactNode } from "react";
+import { Link } from "react-router";
 import { z } from "zod";
 
+import { useAuth } from "../auth/AuthContext";
 import { PageHeader } from "../components/PageHeader";
 import { ReviewFlags } from "../components/ReviewFlags";
 import { ATTRIBUTION_NOTE, SourceCard } from "../components/SourceCard";
@@ -24,7 +26,7 @@ const FormSchema = z.object({
 
 type Deployment = "" | "gitlab.com" | "self-managed" | "dedicated";
 
-const RESOLUTION_STATUS_TEXT: Record<string, string> = {
+export const RESOLUTION_STATUS_TEXT: Record<string, string> = {
   draft: "Draft resolution",
   insufficient_evidence: "Insufficient documentation",
   withheld: "Draft withheld (failed validation)",
@@ -39,7 +41,16 @@ export function TicketAnalysisPage() {
   const [executor, setExecutor] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const mutation = useMutation({ mutationFn: (payload: TicketPayload) => analyzeTicket(payload) });
+  const queryClient = useQueryClient();
+  const { refresh } = useAuth();
+  const mutation = useMutation({
+    mutationFn: (payload: TicketPayload) => analyzeTicket(payload),
+    onSuccess: () => {
+      // The analysis was saved: update the history list and the sidebar stats.
+      void queryClient.invalidateQueries({ queryKey: ["history"] });
+      void refresh();
+    },
+  });
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -157,7 +168,18 @@ export function TicketAnalysisPage() {
           ) : mutation.isError ? (
             <ErrorState error={mutation.error} />
           ) : mutation.data ? (
-            <AnalysisResult result={mutation.data} />
+            <>
+              {mutation.data.analysis_id ? (
+                <p className="mb-3 text-xs text-slate-500">
+                  Saved to your{" "}
+                  <Link to={`/history/${mutation.data.analysis_id}`} className="text-blue-700 underline">
+                    history
+                  </Link>
+                  .
+                </p>
+              ) : null}
+              <AnalysisResult result={mutation.data} />
+            </>
           ) : (
             <p className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-sm text-slate-600">
               Results appear here after you submit a ticket.

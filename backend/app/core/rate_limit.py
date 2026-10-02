@@ -22,7 +22,7 @@ from fastapi import Depends, Request
 from app.core.config import Settings, get_settings
 from app.core.errors import RateLimitedError
 
-RateGroup = Literal["analyze", "search"]
+RateGroup = Literal["analyze", "search", "login"]
 WINDOW_SECONDS = 60.0
 
 
@@ -69,6 +69,7 @@ def build_limiters(settings: Settings) -> dict[RateGroup, SlidingWindowLimiter]:
     return {
         "analyze": SlidingWindowLimiter(settings.rate_limit_analyze_per_minute),
         "search": SlidingWindowLimiter(settings.rate_limit_search_per_minute),
+        "login": SlidingWindowLimiter(settings.rate_limit_login_per_minute),
     }
 
 

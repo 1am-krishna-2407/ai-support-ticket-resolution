@@ -52,6 +52,11 @@ class IngestionJobStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
+class UserRole(StrEnum):
+    ADMIN = "admin"  # manages users, runs ingestion and evaluations, sees every analysis
+    AGENT = "agent"  # analyses tickets and sees their own history
+
+
 class EvaluationRunStatus(StrEnum):
     QUEUED = "queued"
     RUNNING = "running"
@@ -269,8 +274,72 @@ class RequestLog(TimestampMixin, Base):
     error_code: Mapped[str | None] = mapped_column(String(64))
     stage_timings: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     outcome: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # Who made the request (audit trail); kept when the user is later deactivated.
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
 
 
+class User(TimestampMixin, Base):
+    """A person who can sign in. Accounts are created by admins; there is no self sign-up."""
+
+    __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint(_enum_check("role", UserRole), name="role_valid"),
+        CheckConstraint("email = lower(email)", name="email_lowercase"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String(254), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(16), nullable=False, default=UserRole.AGENT.value)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class UserSession(TimestampMixin, Base):
+    """A signed-in browser. Only a SHA-256 of the cookie token is stored."""
+
+    __tablename__ = "user_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped[User] = relationship(lazy="joined")
+
+
+class TicketAnalysisRecord(TimestampMixin, Base):
+    """A saved ticket analysis: the ticket as submitted and the full response, per user."""
+
+    __tablename__ = "ticket_analyses"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    environment: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # Denormalised for listing and stats without unpacking `result`.
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    category: Mapped[str | None] = mapped_column(String(64))
+    priority: Mapped[str | None] = mapped_column(String(16))
+    grounded: Mapped[bool | None] = mapped_column(Boolean)
+    latency_ms: Mapped[float | None] = mapped_column(Float)
+    result: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+
+Index(
+    "ix_ticket_analyses_user_created", TicketAnalysisRecord.user_id, TicketAnalysisRecord.created_at
+)
+Index("ix_user_sessions_expires_at", UserSession.expires_at)
 Index("ix_request_logs_created_at", RequestLog.created_at)
 Index("ix_ingestion_jobs_created_at", IngestionJob.created_at)
 Index("ix_evaluation_runs_created_at", EvaluationRun.created_at)

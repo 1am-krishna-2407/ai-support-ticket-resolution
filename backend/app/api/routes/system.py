@@ -54,7 +54,9 @@ def _provider_check(name: str, provider: object | None, label: str) -> Dependenc
     "/ready",
     response_model=ReadinessResponse,
     summary="Readiness of the API and its dependencies",
-    responses={503: {"model": ReadinessResponse, "description": "The database is down."}},
+    responses={
+        503: {"model": ReadinessResponse, "description": "The database is down."},
+    },
 )
 async def ready(request: Request, settings: SettingsDep) -> JSONResponse:
     app = request.app
