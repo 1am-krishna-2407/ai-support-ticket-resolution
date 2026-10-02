@@ -140,3 +140,76 @@ describe("sign-in", () => {
     expect(safeNext(next)).toBe(expected);
   });
 });
+
+describe("sign-up", () => {
+  const config = (registration: "open" | "approval" | "closed") => ({
+    path: "/auth/config",
+    body: { registration, password_min_length: 12 },
+  });
+
+  async function fillSignUp() {
+    await userEvent.type(await screen.findByLabelText("Name"), "New Person");
+    await userEvent.type(screen.getByLabelText("Email"), "new@example.test");
+    await userEvent.type(screen.getByLabelText(/^Password/), "correct horse battery staple");
+    await userEvent.type(screen.getByLabelText("Repeat password"), "correct horse battery staple");
+    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
+  }
+
+  it("offers sign-up on the login page when it is open", async () => {
+    stubApi([health, signedOut, config("open")]);
+    renderAt("/login");
+    expect(await screen.findByRole("link", { name: "Create an account" })).toHaveAttribute("href", "/register");
+  });
+
+  it("hides sign-up when an admin has closed it", async () => {
+    stubApi([health, signedOut, config("closed")]);
+    renderAt("/login");
+    expect(await screen.findByText("Accounts are created by an administrator.")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Create an account" })).not.toBeInTheDocument();
+  });
+
+  it("creates an agent account and signs straight in", async () => {
+    const calls = stubApi([
+      health,
+      signedOut,
+      config("open"),
+      { method: "POST", path: "/auth/register", status: 201, body: { status: "active", me: me("agent") } },
+    ]);
+    renderAt("/register");
+    await fillSignUp();
+    expect(await screen.findByRole("region", { name: "Your profile" })).toBeInTheDocument();
+    const sent = calls.find((c) => c.url.endsWith("/auth/register"));
+    expect(sent?.body).toEqual({ email: "new@example.test", name: "New Person", password: "correct horse battery staple" });
+  });
+
+  it("explains when an admin must approve the new account", async () => {
+    stubApi([
+      health,
+      signedOut,
+      config("approval"),
+      { method: "POST", path: "/auth/register", status: 201, body: { status: "pending", me: null } },
+    ]);
+    renderAt("/register");
+    expect(await screen.findByText("New accounts are activated by an administrator.")).toBeInTheDocument();
+    await fillSignUp();
+    expect(await screen.findByRole("heading", { name: "Account requested" })).toBeInTheDocument();
+  });
+
+  it("catches mismatched passwords before calling the API", async () => {
+    const calls = stubApi([health, signedOut, config("open")]);
+    renderAt("/register");
+    await userEvent.type(await screen.findByLabelText("Name"), "New Person");
+    await userEvent.type(screen.getByLabelText("Email"), "new@example.test");
+    await userEvent.type(screen.getByLabelText(/^Password/), "correct horse battery staple");
+    await userEvent.type(screen.getByLabelText("Repeat password"), "something else entirely");
+    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText("The passwords do not match.")).toBeInTheDocument();
+    expect(calls.some((c) => c.url.endsWith("/auth/register"))).toBe(false);
+  });
+
+  it("says so when sign-up is closed", async () => {
+    stubApi([health, signedOut, config("closed")]);
+    renderAt("/register");
+    expect(await screen.findByRole("heading", { name: "Sign-up is closed" })).toBeInTheDocument();
+  });
+});

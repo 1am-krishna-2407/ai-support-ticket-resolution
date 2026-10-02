@@ -29,6 +29,8 @@ PUBLIC = {
     ("get", "/api/v1/ready"),
     ("post", "/api/v1/auth/login"),
     ("post", "/api/v1/auth/logout"),
+    ("post", "/api/v1/auth/register"),
+    ("get", "/api/v1/auth/config"),
 }
 
 
@@ -251,3 +253,79 @@ async def test_cross_site_writes_are_rejected(stack: Any) -> None:
     r = await c.post("/api/v1/auth/logout", headers={"Sec-Fetch-Site": "cross-site"})
     assert r.status_code == 403
     assert (await c.get("/api/v1/auth/me")).status_code == 200  # still signed in
+
+
+def _with_mode(app: Any, mode: str) -> None:
+    from app.core.config import get_settings
+
+    current = app.dependency_overrides[get_settings]()
+    updated = current.model_copy(update={"registration_mode": mode})
+    app.dependency_overrides[get_settings] = lambda: updated
+
+
+SIGNUP = {"email": "Newbie@Example.test", "name": "New Person", "password": PASSWORD}
+
+
+async def test_open_sign_up_creates_an_agent_and_signs_in(stack: Any) -> None:
+    _, new_client = stack
+    c = new_client()
+    assert (await c.get("/api/v1/auth/config")).json()["registration"] == "open"
+    r = await c.post("/api/v1/auth/register", json=SIGNUP)
+    assert r.status_code == 201 and r.json()["status"] == "active"
+    me = (await c.get("/api/v1/auth/me")).json()["user"]
+    assert me["email"] == "newbie@example.test" and me["role"] == "agent"
+    assert (await c.get("/api/v1/users")).status_code == 403  # no admin powers
+
+
+async def test_sign_up_cannot_choose_a_role_or_reuse_an_email(stack: Any) -> None:
+    app, new_client = stack
+    await create_user(app, email="taken@example.test")
+    c = new_client()
+    sneaky = await c.post("/api/v1/auth/register", json={**SIGNUP, "role": "admin"})
+    assert sneaky.status_code == 422  # unknown field rejected; nobody signs up as admin
+    duplicate = await c.post(
+        "/api/v1/auth/register", json={**SIGNUP, "email": "TAKEN@example.test"}
+    )
+    assert duplicate.status_code == 409
+    weak = await c.post("/api/v1/auth/register", json={**SIGNUP, "password": "short"})
+    assert weak.status_code == 400
+
+
+async def test_approval_mode_waits_for_an_admin(stack: Any) -> None:
+    app, new_client = stack
+    _with_mode(app, "approval")
+    await create_user(app, role="admin", email="approver@example.test")
+    c = new_client()
+    r = await c.post("/api/v1/auth/register", json=SIGNUP)
+    assert r.status_code == 201 and r.json() == {"status": "pending", "me": None}
+    assert (await c.get("/api/v1/auth/me")).status_code == 401
+    assert (await login(new_client(), "newbie@example.test")).status_code == 401
+
+    admin = new_client()
+    await login(admin, "approver@example.test")
+    pending = next(
+        u
+        for u in (await admin.get("/api/v1/users")).json()["items"]
+        if u["email"] == "newbie@example.test"
+    )
+    assert pending["is_active"] is False
+    await admin.patch(f"/api/v1/users/{pending['id']}", json={"is_active": True})
+    assert (await login(new_client(), "newbie@example.test")).status_code == 200
+
+
+async def test_closed_mode_refuses_sign_up(stack: Any) -> None:
+    app, new_client = stack
+    _with_mode(app, "closed")
+    c = new_client()
+    assert (await c.get("/api/v1/auth/config")).json()["registration"] == "closed"
+    assert (await c.post("/api/v1/auth/register", json=SIGNUP)).status_code == 403
+
+
+async def test_sign_up_shares_the_sign_in_rate_limit(stack: Any) -> None:
+    _, new_client = stack
+    c = new_client("203.0.113.88")
+    codes = [
+        (await c.post("/api/v1/auth/register", json={**SIGNUP, "password": "short"})).status_code
+        for _ in range(6)
+    ]
+    assert codes[:5] == [400] * 5 and codes[5] == 429

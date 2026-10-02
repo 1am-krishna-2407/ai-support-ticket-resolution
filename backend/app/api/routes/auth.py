@@ -15,13 +15,22 @@ from app.core.auth import (
     session_token,
     start_session,
 )
-from app.core.errors import InvalidRequestError, UnauthorizedError
+from app.core.errors import ConflictError, ForbiddenError, InvalidRequestError, UnauthorizedError
 from app.core.passwords import hash_password, needs_rehash, password_problem, verify_password
 from app.core.rate_limit import rate_limit
-from app.db.models import User
+from app.db.models import User, UserRole
 from app.repositories import ticket_history
 from app.repositories import users as users_repo
-from app.schemas.auth import LoginRequest, MeResponse, PasswordChange, UserStats, UserView
+from app.schemas.auth import (
+    AuthConfig,
+    LoginRequest,
+    MeResponse,
+    PasswordChange,
+    RegisterRequest,
+    RegisterResponse,
+    UserStats,
+    UserView,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -66,6 +75,55 @@ async def login(
     await start_session(session, response, user, settings)
     await session.commit()
     return await me_response(session, user)
+
+
+@router.get(
+    "/config",
+    response_model=AuthConfig,
+    summary="Public sign-in settings: whether self sign-up is open and the password rule",
+)
+async def auth_config(settings: SettingsDep) -> AuthConfig:
+    return AuthConfig(
+        registration=settings.registration_mode,
+        password_min_length=settings.password_min_length,
+    )
+
+
+@router.post(
+    "/register",
+    response_model=RegisterResponse,
+    status_code=status.HTTP_201_CREATED,
+    responses=BODY | errors(400, 403, 409, 429),
+    dependencies=[Depends(rate_limit("login"))],
+    summary="Create your own agent account (when REGISTRATION_MODE allows it)",
+)
+async def register(
+    body: RegisterRequest, response: Response, session: SessionDep, settings: SettingsDep
+) -> RegisterResponse:
+    if settings.registration_mode == "closed":
+        raise ForbiddenError("Sign-up is closed. Ask an admin to create your account.")
+    problem = password_problem(
+        body.password, email=body.email, min_length=settings.password_min_length
+    )
+    if problem:
+        raise InvalidRequestError(problem)
+    if await users_repo.get_by_email(session, body.email) is not None:
+        raise ConflictError("An account with this email already exists. Sign in instead.")
+    user = await users_repo.create_user(
+        session,
+        email=body.email,
+        name=body.name,
+        password_hash=hash_password(body.password),
+        role=UserRole.AGENT,
+    )
+    if settings.registration_mode == "approval":
+        user.is_active = False
+        await session.commit()
+        return RegisterResponse(status="pending")
+    user.last_login_at = datetime.now(UTC)
+    await start_session(session, response, user, settings)
+    await session.commit()
+    return RegisterResponse(status="active", me=await me_response(session, user))
 
 
 @router.post(

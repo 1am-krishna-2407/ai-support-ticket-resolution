@@ -14,6 +14,8 @@ response carries an `X-Request-ID` header.
 | GET | `/api/v1/version` | Build and API version | 200 | - |  |
 | GET | `/api/v1/ready` | Readiness of the API and its dependencies | 200 | 503 |  |
 | POST | `/api/v1/auth/login` | Sign in with email and password (sets an HttpOnly session cookie) | 200 | 401, 413, 422, 429 |  |
+| GET | `/api/v1/auth/config` | Public sign-in settings: whether self sign-up is open and the password rule | 200 | - |  |
+| POST | `/api/v1/auth/register` | Create your own agent account (when REGISTRATION_MODE allows it) | 201 | 400, 403, 409, 413, 422, 429 |  |
 | POST | `/api/v1/auth/logout` | Sign out this browser (the session is deleted server-side) | 204 | - |  |
 | GET | `/api/v1/auth/me` | The signed-in user and their analysis stats | 200 | 401 |  |
 | POST | `/api/v1/auth/password` | Change your password (signs out your other browsers) | 204 | 400, 401, 413, 422 |  |

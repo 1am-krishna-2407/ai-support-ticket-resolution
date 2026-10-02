@@ -22,6 +22,21 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=256)
 
 
+class RegisterRequest(BaseModel):
+    """Self sign-up. There is no role field: self-made accounts are always agents."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    email: str = Field(pattern=EMAIL_PATTERN, max_length=254)
+    name: str = Field(min_length=1, max_length=120)
+    password: str = Field(min_length=1, max_length=256)
+
+
+class AuthConfig(BaseModel):
+    registration: Literal["open", "approval", "closed"]
+    password_min_length: int
+
+
 class UserView(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -46,6 +61,12 @@ class UserStats(BaseModel):
 class MeResponse(BaseModel):
     user: UserView
     stats: UserStats
+
+
+class RegisterResponse(BaseModel):
+    # active: signed in now (`me` is set); pending: an admin must activate the account.
+    status: Literal["active", "pending"]
+    me: MeResponse | None = None
 
 
 class PasswordChange(BaseModel):

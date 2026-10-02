@@ -1,5 +1,13 @@
 # Changelog
 
+## Self sign-up (2026-10-03)
+
+**Added** "Create an account" on the login page and `POST /auth/register`. Self-made accounts
+are always agents. `REGISTRATION_MODE` controls it: `open` (default, signed in at once),
+`approval` (account waits for an admin; the Users page shows "Awaiting approval" with an
+Approve button) or `closed`. `GET /auth/config` tells the UI which. Sign-up shares the
+sign-in rate limit. The E2E suite now runs only when `E2E_BASE_URL` is set explicitly.
+
 ## Users, sign-in, roles and saved analyses (2026-10-02)
 
 **Added** user accounts (email + Argon2id password; created by admins or with

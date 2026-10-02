@@ -51,7 +51,10 @@ docker compose run --rm backend python -m app.scripts.create_user \
   --email you@example.com --name "Your Name" --role admin
 ```
 
-Sign in at http://localhost:8080. Admins create further accounts on the **Users** page.
+Sign in at http://localhost:8080. People can create their own (agent) accounts with
+**Create an account** on the login page; `REGISTRATION_MODE` makes that `open` (default),
+`approval` (an admin approves each new account on the **Users** page) or `closed` (only
+admins create accounts).
 **Agents** analyse tickets and see their own **History**; **admins** also manage users,
 run ingestion and evaluations, and can see every user's analyses. The sidebar shows who
 is signed in with their analysis stats.

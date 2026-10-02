@@ -5,7 +5,7 @@
 
 E2E_EMAIL / E2E_PASSWORD are an existing agent account on the stack (create one with
 `python -m app.scripts.create_user`). They may also come from a git-ignored `.env.e2e`
-file at the repository root.
+file at the repository root; E2E_BASE_URL must always be set explicitly.
 
 Covers the real path: nginx (static SPA + /api proxy) → FastAPI → Postgres/pgvector →
 the configured embedding provider (one query embedding per search). With E2E_LLM=1 the
@@ -33,7 +33,9 @@ def _from_env_file(name: str) -> str:
     return ""
 
 
-BASE_URL = (os.environ.get("E2E_BASE_URL") or _from_env_file("E2E_BASE_URL")).rstrip("/")
+# Only an explicit E2E_BASE_URL runs this suite (it spends embedding calls on the live
+# stack); .env.e2e supplies just the test account.
+BASE_URL = os.environ.get("E2E_BASE_URL", "").rstrip("/")
 EMAIL = os.environ.get("E2E_EMAIL") or _from_env_file("E2E_EMAIL")
 PASSWORD = os.environ.get("E2E_PASSWORD") or _from_env_file("E2E_PASSWORD")
 pytestmark = [

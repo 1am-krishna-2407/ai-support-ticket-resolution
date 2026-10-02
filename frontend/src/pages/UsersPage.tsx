@@ -155,8 +155,8 @@ export function UsersPage() {
                         </select>
                       </td>
                       <td className="px-4 py-2">
-                        <span className={u.is_active ? "text-green-700" : "text-slate-500"}>
-                          {u.is_active ? "Active" : "Deactivated"}
+                        <span className={u.is_active ? "text-green-700" : u.last_login_at ? "text-slate-500" : "text-amber-700"}>
+                          {u.is_active ? "Active" : u.last_login_at ? "Deactivated" : "Awaiting approval"}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-slate-700">{u.analyses}</td>
@@ -170,7 +170,7 @@ export function UsersPage() {
                           onClick={() => update.mutate({ id: u.id, changes: { is_active: !u.is_active } })}
                           className="mr-2 rounded border border-slate-300 px-2 py-1 text-xs disabled:opacity-40"
                         >
-                          {u.is_active ? "Deactivate" : "Activate"}
+                          {u.is_active ? "Deactivate" : u.last_login_at ? "Activate" : "Approve"}
                         </button>
                         <button
                           type="button"

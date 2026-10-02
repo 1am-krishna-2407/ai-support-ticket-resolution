@@ -14,6 +14,7 @@ import { IngestionPage } from "./pages/IngestionPage";
 import { KnowledgeBasePage } from "./pages/KnowledgeBasePage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { RegisterPage } from "./pages/RegisterPage";
 import { RetrievalExplorerPage } from "./pages/RetrievalExplorerPage";
 import { SystemStatusPage } from "./pages/SystemStatusPage";
 import { TicketAnalysisPage } from "./pages/TicketAnalysisPage";
@@ -30,6 +31,7 @@ export const routes: RouteObject[] = [
     errorElement: <RouteErrorBoundary />,
     children: [
       { path: "/login", element: <LoginPage /> },
+      { path: "/register", element: <RegisterPage /> },
       {
         path: "/",
         element: (

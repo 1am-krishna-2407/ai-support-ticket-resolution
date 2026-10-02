@@ -1,14 +1,20 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { Navigate, useNavigate, useSearchParams } from "react-router";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 
 import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../services/api";
-import { login, queryKeys } from "../services/endpoints";
+import { getAuthConfig, login, queryKeys } from "../services/endpoints";
 
 /** Only same-app paths: never redirect to another site after sign-in. */
 export function safeNext(next: string | null): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/login")) {
+  if (
+    !next ||
+    !next.startsWith("/") ||
+    next.startsWith("//") ||
+    next.startsWith("/login") ||
+    next.startsWith("/register")
+  ) {
     return "/";
   }
   return next;
@@ -22,6 +28,12 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const next = safeNext(params.get("next"));
+  const config = useQuery({
+    queryKey: queryKeys.authConfig,
+    queryFn: ({ signal }) => getAuthConfig(signal),
+    staleTime: 300_000,
+  });
+  const canRegister = config.data && config.data.registration !== "closed";
 
   const mutation = useMutation({
     mutationFn: () => login(email.trim(), password),
@@ -103,7 +115,16 @@ export function LoginPage() {
           >
             {mutation.isPending ? "Signing in…" : "Sign in"}
           </button>
-          <p className="text-xs text-slate-500">Accounts are created by an administrator.</p>
+          {canRegister ? (
+            <p className="text-center text-sm text-slate-600">
+              New here?{" "}
+              <Link to={`/register${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-medium text-blue-700 underline">
+                Create an account
+              </Link>
+            </p>
+          ) : config.data ? (
+            <p className="text-xs text-slate-500">Accounts are created by an administrator.</p>
+          ) : null}
         </form>
       </div>
     </main>

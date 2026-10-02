@@ -240,6 +240,11 @@ class Settings(BaseSettings):
     # Secure cookies need HTTPS. None: on in production, off otherwise (plain-HTTP localhost).
     session_cookie_secure: bool | None = None
     password_min_length: int = Field(default=12, ge=8, le=128)
+    # Self sign-up from the login page. open: account is active at once; approval: it
+    # waits until an admin activates it; closed: only admins create accounts. Self-made
+    # accounts are always agents. Open sign-up lets anyone who can reach the site spend
+    # LLM credits (within the per-client rate limits).
+    registration_mode: Literal["open", "approval", "closed"] = "open"
     # Saved ticket analyses older than this are deleted at startup; None keeps them.
     ticket_history_retention_days: int | None = Field(default=None, gt=0)
 

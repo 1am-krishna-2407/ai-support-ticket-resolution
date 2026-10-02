@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { apiRequest } from "./api";
 import {
+  AuthConfigSchema,
   ChunkPageSchema,
   DocumentDetailSchema,
   EvaluationRunDetailSchema,
@@ -13,6 +14,7 @@ import {
   IngestionStatusSchema,
   MeSchema,
   ReadinessSchema,
+  RegisterResultSchema,
   RetrievalResultSchema,
   TicketAnalysisSchema,
   TicketHistoryDetailSchema,
@@ -63,6 +65,7 @@ export const queryKeys = {
   evaluations: ["evaluations", "list"] as const,
   evaluation: (id: string) => ["evaluations", "detail", id] as const,
   me: ["auth", "me"] as const,
+  authConfig: ["auth", "config"] as const,
   users: ["users", "list"] as const,
   history: (scope: "mine" | "all", offset: number) => ["history", "list", scope, offset] as const,
   historyItem: (id: string) => ["history", "detail", id] as const,
@@ -73,6 +76,12 @@ const NoContent = z.unknown();
 
 export const login = (email: string, password: string) =>
   apiRequest("/auth/login", MeSchema, { method: "POST", body: { email, password } });
+
+export const getAuthConfig = (signal?: AbortSignal) =>
+  apiRequest("/auth/config", AuthConfigSchema, { signal });
+
+export const register = (user: { email: string; name: string; password: string }) =>
+  apiRequest("/auth/register", RegisterResultSchema, { method: "POST", body: user });
 
 export const logout = () => apiRequest("/auth/logout", NoContent, { method: "POST" });
 

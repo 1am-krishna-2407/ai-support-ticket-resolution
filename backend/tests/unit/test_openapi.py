@@ -24,6 +24,8 @@ EXPECTED_ROUTES = {
     ("get", "/api/v1/evaluations"),
     ("get", "/api/v1/evaluations/{evaluation_id}"),
     ("post", "/api/v1/auth/login"),
+    ("post", "/api/v1/auth/register"),
+    ("get", "/api/v1/auth/config"),
     ("post", "/api/v1/auth/logout"),
     ("get", "/api/v1/auth/me"),
     ("post", "/api/v1/auth/password"),

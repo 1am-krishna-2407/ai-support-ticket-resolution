@@ -411,3 +411,14 @@ export const TicketHistoryDetailSchema = z.object({
 });
 export type TicketHistoryDetail = z.infer<typeof TicketHistoryDetailSchema>;
 
+export const AuthConfigSchema = z.object({
+  registration: z.enum(["open", "approval", "closed"]),
+  password_min_length: z.number(),
+});
+export type AuthConfig = z.infer<typeof AuthConfigSchema>;
+
+export const RegisterResultSchema = z.object({
+  status: z.enum(["active", "pending"]),
+  me: MeSchema.nullable(),
+});
+
